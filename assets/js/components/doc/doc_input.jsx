@@ -1,5 +1,5 @@
 var DocInput = React.createClass({
-    updateFieldValue: function (e) {
+    handleChange: function (e) {
         this.props.updateFieldValue(this.props.fieldName, e.target.value)
     },
 
@@ -9,9 +9,12 @@ var DocInput = React.createClass({
                 <label className="form-label">
                     {this.props.fieldName}
                 </label>
-                <input onChange={this.updateFieldValue} value={this.props.fieldValue} className="doc-block-input form-control" type="text"/>
+                <input  onChange={this.handleChange} 
+                        value={this.props.fieldValue} 
+                        className="doc-block-input form-control" 
+                        type="text"/>
             </div>
-        )
+        );
 
     }
 

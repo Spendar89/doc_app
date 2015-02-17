@@ -53,9 +53,10 @@ var DocForm = React.createClass({displayName: "DocForm",
         return {
             customFields: {
                 phone: "20232023444",
-                name: "Jake"
+                name: "Jake",
+                email: ""
             }
-        }
+        };
     },
 
     updateFieldValue: function (fieldName, fieldValue) {
@@ -66,9 +67,15 @@ var DocForm = React.createClass({displayName: "DocForm",
 
     renderDocInputs: function () {
         var self = this;
-        return _.map(this.state.customFields, function (fieldValue, fieldName, field) {
-            return React.createElement(DocInput, {updateFieldValue: self.updateFieldValue, fieldName: fieldName, fieldValue: fieldValue})
-        });
+        return _.map(
+            this.state.customFields, function (fieldValue, fieldName) {
+                return (
+                    React.createElement(DocInput, {updateFieldValue: self.updateFieldValue, 
+                        fieldName: fieldName, 
+                        fieldValue: fieldValue})
+                );
+            }
+        );
     },
 
     render: function() {
@@ -76,8 +83,7 @@ var DocForm = React.createClass({displayName: "DocForm",
             React.createElement("form", {className: "doc-form col-sm-12"}, 
                 this.renderDocInputs()
             )
-        )
-
+        );
     }
 
 });
@@ -87,7 +93,7 @@ module.exports = DocForm;
 
 },{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
 var DocInput = React.createClass({displayName: "DocInput",
-    updateFieldValue: function (e) {
+    handleChange: function (e) {
         this.props.updateFieldValue(this.props.fieldName, e.target.value)
     },
 
@@ -97,9 +103,12 @@ var DocInput = React.createClass({displayName: "DocInput",
                 React.createElement("label", {className: "form-label"}, 
                     this.props.fieldName
                 ), 
-                React.createElement("input", {onChange: this.updateFieldValue, value: this.props.fieldValue, className: "doc-block-input form-control", type: "text"})
+                React.createElement("input", {onChange: this.handleChange, 
+                        value: this.props.fieldValue, 
+                        className: "doc-block-input form-control", 
+                        type: "text"})
             )
-        )
+        );
 
     }
 

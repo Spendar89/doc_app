@@ -6,9 +6,10 @@ var DocForm = React.createClass({
         return {
             customFields: {
                 phone: "20232023444",
-                name: "Jake"
+                name: "Jake",
+                email: ""
             }
-        }
+        };
     },
 
     updateFieldValue: function (fieldName, fieldValue) {
@@ -19,9 +20,15 @@ var DocForm = React.createClass({
 
     renderDocInputs: function () {
         var self = this;
-        return _.map(this.state.customFields, function (fieldValue, fieldName, field) {
-            return <DocInput updateFieldValue={self.updateFieldValue} fieldName={fieldName} fieldValue={fieldValue} />
-        });
+        return _.map(
+            this.state.customFields, function (fieldValue, fieldName) {
+                return (
+                    <DocInput  updateFieldValue={self.updateFieldValue} 
+                        fieldName={fieldName}
+                        fieldValue={fieldValue} />
+                );
+            }
+        );
     },
 
     render: function() {
@@ -29,8 +36,7 @@ var DocForm = React.createClass({
             <form className="doc-form col-sm-12">
                 {this.renderDocInputs()}
             </form>
-        )
-
+        );
     }
 
 });
