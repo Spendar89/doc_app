@@ -7,7 +7,7 @@ namespace :build do
 
   desc 'browserify js'
   task :js do
-    `browserify assets/js/app.js > public/js/bundle.js`
+    `browserify -t reactify assets/js/app.js > public/js/bundle.js`
   end
 
   desc 'compile sass'
@@ -21,7 +21,7 @@ namespace :build do
 
   desc 'build and stick around and watch for changes'
   task :watch do
-    `watchify assets/js/app.js -o public/js/bundle.js`
+    `watchify -t reactify assets/js/app.js -o public/js/bundle.js`
     `bundle exec compass watch`
   end
 end
