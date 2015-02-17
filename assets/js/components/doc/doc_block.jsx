@@ -1,6 +1,13 @@
+var DocForm = require('./doc_form.jsx');
+
 var DocBlock = React.createClass({
+
     render: function() {
-        return <div>I am a Doc Block</div>;
+        return (
+            <div className="doc-block">
+                <DocForm /> 
+            </div>
+        )
 
     }
 
