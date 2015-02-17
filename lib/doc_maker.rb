@@ -1,13 +1,12 @@
 require './config/hello_sign'
 
 class DocMaker
-  attr_accessor :custom_fields, :template_id, :sent_signature
+  attr_accessor :document, :sent_signature
 
   # initialize with custom_fields hash and template_id
   def initialize(custom_fields, template_id = "3fb7cef48a0ec04e9ec9b1f02de90987ba801d79")
     @client = HelloSign.client
-    @custom_fields = custom_fields
-    @template_id = template_id
+    @document = document
   end
 
   # calls @client.send_signature_request_with_template method and sets 
@@ -19,8 +18,8 @@ class DocMaker
       title: title,
       subject: subject,
       signers: [signer],
-      template_id: @template_id,
-      custom_fields: @custom_fields
+      template_id: @document.template_id,
+      custom_fields: @document.custom_fields
     )
   end
 
