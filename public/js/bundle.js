@@ -47,17 +47,7 @@ module.exports = DocBlock;
 },{"./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx":[function(require,module,exports){
 var DocInput = require('./doc_input.jsx');
 
-var customMethods = {
-    setName: function (self) {
-        var nameValue;
-        if (self.state.customFields.email.value === "jakesendar@gmail.com") {
-            nameValue = "Jake Sendar";
-        } else {
-            nameValue = "Dude Man"
-        };
-        self.updateFieldValue("name", nameValue);
-    }
-};
+var CustomMethods = require('./../../lib/custom_methods.js');
 
 var DocForm = React.createClass({displayName: "DocForm",
 
@@ -69,21 +59,21 @@ var DocForm = React.createClass({displayName: "DocForm",
                 },
                 name: {
                     value: "Jake"
-                },
-                email: {
-                    value: "", 
-                    customMethod: "setName"
                 }
+                //email: {
+                    //value: "", 
+                    //customMethod: "setName"
+                //}
             }
         };
     },
 
     updateFieldValue: function (fieldName, fieldValue, customMethod) {
         var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = {value: fieldValue, method: customMethod};
+        cf[fieldName] = {value: fieldValue, customMethod: customMethod};
         this.setState({customFields: cf})
         if (customMethod) {
-            customMethods[customMethod](this);
+            CustomMethods[customMethod](this);
         }
     },
 
@@ -101,10 +91,24 @@ var DocForm = React.createClass({displayName: "DocForm",
         );
     },
 
+    transformCustomFields: function () {
+        return _.transform(this.state.customFields, function(result, field, name) {
+            result[name] = field.value;
+        });
+    },
+
+    handleSubmit: function (e) {
+        e.preventDefault();
+        $.post("/docs", this.transformCustomFields()).done(function (data) {
+            console.log(data)
+        });
+    },
+
     render: function() {
         return (
             React.createElement("form", {className: "doc-form col-sm-12"}, 
-                this.renderDocInputs()
+                this.renderDocInputs(), 
+                React.createElement("input", {type: "submit", onClick: this.handleSubmit})
             )
         );
     }
@@ -114,7 +118,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 module.exports = DocForm;
 
 
-},{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
+},{"./../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
 var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
         this.props.updateFieldValue(this.props.fieldName, 
@@ -140,6 +144,22 @@ var DocInput = React.createClass({displayName: "DocInput",
 });
 
 module.exports = DocInput;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
+var CustomMethods = {
+    setName: function (form) {
+        var nameValue;
+        if (form.state.customFields.email.value === "jakesendar@gmail.com") {
+            nameValue = "Jake Sendar";
+        } else {
+            nameValue = "Dude Man"
+        };
+        form.updateFieldValue("name", nameValue);
+    }
+}
+
+module.exports = CustomMethods;
 
 
 },{}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){

@@ -1,16 +1,6 @@
 var DocInput = require('./doc_input.jsx');
 
-var customMethods = {
-    setName: function (self) {
-        var nameValue;
-        if (self.state.customFields.email.value === "jakesendar@gmail.com") {
-            nameValue = "Jake Sendar";
-        } else {
-            nameValue = "Dude Man"
-        };
-        self.updateFieldValue("name", nameValue);
-    }
-};
+var CustomMethods = require('./../../lib/custom_methods.js');
 
 var DocForm = React.createClass({
 
@@ -22,21 +12,21 @@ var DocForm = React.createClass({
                 },
                 name: {
                     value: "Jake"
-                },
-                email: {
-                    value: "", 
-                    customMethod: "setName"
                 }
+                //email: {
+                    //value: "", 
+                    //customMethod: "setName"
+                //}
             }
         };
     },
 
     updateFieldValue: function (fieldName, fieldValue, customMethod) {
         var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = {value: fieldValue, method: customMethod};
+        cf[fieldName] = {value: fieldValue, customMethod: customMethod};
         this.setState({customFields: cf})
         if (customMethod) {
-            customMethods[customMethod](this);
+            CustomMethods[customMethod](this);
         }
     },
 
@@ -54,10 +44,24 @@ var DocForm = React.createClass({
         );
     },
 
+    transformCustomFields: function () {
+        return _.transform(this.state.customFields, function(result, field, name) {
+            result[name] = field.value;
+        });
+    },
+
+    handleSubmit: function (e) {
+        e.preventDefault();
+        $.post("/docs", this.transformCustomFields()).done(function (data) {
+            console.log(data)
+        });
+    },
+
     render: function() {
         return (
             <form className="doc-form col-sm-12">
                 {this.renderDocInputs()}
+                <input type="submit" onClick={this.handleSubmit}/>
             </form>
         );
     }
