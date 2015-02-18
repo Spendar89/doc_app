@@ -1,6 +1,8 @@
 var DocInput = React.createClass({
     handleChange: function (e) {
-        this.props.updateFieldValue(this.props.fieldName, e.target.value)
+        this.props.updateFieldValue(this.props.fieldName, 
+                                    e.target.value, 
+                                    this.props.customMethod)
     },
 
     render: function() {
