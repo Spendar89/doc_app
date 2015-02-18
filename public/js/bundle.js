@@ -54,10 +54,10 @@ var DocForm = React.createClass({displayName: "DocForm",
     getInitialState: function () {
         return {
             customFields: {
-                phone: {
+                Phone: {
                     value: "2022554618"
                 },
-                name: {
+                Name: {
                     value: "Jake"
                 }
                 //email: {
@@ -99,7 +99,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 
     handleSubmit: function (e) {
         e.preventDefault();
-        $.post("/docs", this.transformCustomFields()).done(function (data) {
+        $.post("/docs", this.transformCustomFields(), function (data) {
             console.log(data)
         });
     },

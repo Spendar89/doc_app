@@ -4,7 +4,7 @@ class DocMaker
   attr_accessor :document, :sent_signature
 
   # initialize with custom_fields hash and template_id
-  def initialize(custom_fields, template_id = "3fb7cef48a0ec04e9ec9b1f02de90987ba801d79")
+  def initialize(document)
     @client = HelloSign.client
     @document = document
   end
