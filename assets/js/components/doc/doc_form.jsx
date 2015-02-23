@@ -1,41 +1,13 @@
 var DocInput = require('./doc_input.jsx');
 
-var CustomMethods = require('./../../lib/custom_methods.js');
-
 var DocForm = React.createClass({
-
-    getInitialState: function () {
-        return {
-            customFields: {
-                Phone: {
-                    value: "2022554618"
-                },
-                Name: {
-                    value: "Jake"
-                }
-                //email: {
-                    //value: "", 
-                    //customMethod: "setName"
-                //}
-            }
-        };
-    },
-
-    updateFieldValue: function (fieldName, fieldValue, customMethod) {
-        var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = {value: fieldValue, customMethod: customMethod};
-        this.setState({customFields: cf})
-        if (customMethod) {
-            CustomMethods[customMethod](this);
-        }
-    },
 
     renderDocInputs: function () {
         var self = this;
         return _.map(
-            this.state.customFields, function (field, fieldName) {
+            this.props.customFields, function (field, fieldName) {
                 return (
-                    <DocInput  updateFieldValue={self.updateFieldValue} 
+                    <DocInput  updateFieldValue={self.props.updateCustomFieldValue} 
                         fieldName={fieldName}
                         fieldValue={field.value}
                         customMethod={field.customMethod}/>
@@ -45,7 +17,7 @@ var DocForm = React.createClass({
     },
 
     transformCustomFields: function () {
-        return _.transform(this.state.customFields, function(result, field, name) {
+        return _.transform(this.props.customFields, function(result, field, name) {
             result[name] = field.value;
         });
     },

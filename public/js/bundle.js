@@ -2,87 +2,52 @@
 React = require('react')
 _ = require('lodash')
 
-var AppTemplate = require('./components/app_template.jsx')
-React.render(AppTemplate(), document.getElementById("appTemplate"));
+var LeadIndexTemplate = require('./components/lead/lead_index_template.jsx');
+var LeadShowTemplate = require('./components/lead/lead_show_template.jsx');
 
+var Router = require('react-router'); // or var Router = ReactRouter; in browsers
+var DefaultRoute = Router.DefaultRoute;
+var Link = Router.Link;
+var Route = Router.Route;
+var RouteHandler = Router.RouteHandler;
 
-},{"./components/app_template.jsx":"/Users/jakesendar/doc_app/assets/js/components/app_template.jsx","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/assets/js/components/app_template.jsx":[function(require,module,exports){
-var DocBlock = require('./doc/doc_block.jsx')
-
-var AppTemplate = React.createClass({displayName: "AppTemplate",
-    render: function() {
+var App = React.createClass({displayName: "App",
+    render: function () {
         return (
-            React.createElement("div", {className: "app-template-div container"}, 
-                React.createElement(DocBlock, null)
+            React.createElement("div", null, 
+                React.createElement("header", null, 
+                    React.createElement("ul", null
+                    )
+                ), 
+                React.createElement(RouteHandler, React.__spread({},  this.props))
             )
-        )
-
+        );
     }
-
 });
 
-module.exports = AppTemplate;
+var routes = (
+    React.createElement(Route, {name: "app", path: "/", handler: App}, 
+        React.createElement(Route, {name: "leads", handler: LeadIndexTemplate}), 
+        React.createElement(Route, {name: "lead", path: "/leads/:leadId", handler: LeadShowTemplate})
+    )
+);
 
-
-
-},{"./doc/doc_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_block.jsx":[function(require,module,exports){
-var DocForm = require('./doc_form.jsx');
-
-var DocBlock = React.createClass({displayName: "DocBlock",
-
-    render: function() {
-        return (
-            React.createElement("div", {className: "doc-block"}, 
-                React.createElement(DocForm, null)
-            )
-        )
-
-    }
-
+Router.run(routes, function (Handler, state) {
+    React.render(React.createElement(Handler, {params: state.params}), document.body);
 });
 
-module.exports = DocBlock;
 
-
-},{"./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx":[function(require,module,exports){
+},{"./components/lead/lead_index_template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_index_template.jsx","./components/lead/lead_show_template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_show_template.jsx","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react-router":"/Users/jakesendar/doc_app/node_modules/react-router/modules/index.js"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx":[function(require,module,exports){
 var DocInput = require('./doc_input.jsx');
 
-var CustomMethods = require('./../../lib/custom_methods.js');
-
 var DocForm = React.createClass({displayName: "DocForm",
-
-    getInitialState: function () {
-        return {
-            customFields: {
-                Phone: {
-                    value: "2022554618"
-                },
-                Name: {
-                    value: "Jake"
-                }
-                //email: {
-                    //value: "", 
-                    //customMethod: "setName"
-                //}
-            }
-        };
-    },
-
-    updateFieldValue: function (fieldName, fieldValue, customMethod) {
-        var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = {value: fieldValue, customMethod: customMethod};
-        this.setState({customFields: cf})
-        if (customMethod) {
-            CustomMethods[customMethod](this);
-        }
-    },
 
     renderDocInputs: function () {
         var self = this;
         return _.map(
-            this.state.customFields, function (field, fieldName) {
+            this.props.customFields, function (field, fieldName) {
                 return (
-                    React.createElement(DocInput, {updateFieldValue: self.updateFieldValue, 
+                    React.createElement(DocInput, {updateFieldValue: self.props.updateCustomFieldValue, 
                         fieldName: fieldName, 
                         fieldValue: field.value, 
                         customMethod: field.customMethod})
@@ -92,7 +57,7 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     transformCustomFields: function () {
-        return _.transform(this.state.customFields, function(result, field, name) {
+        return _.transform(this.props.customFields, function(result, field, name) {
             result[name] = field.value;
         });
     },
@@ -118,7 +83,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 module.exports = DocForm;
 
 
-},{"./../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
+},{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
 var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
         this.props.updateFieldValue(this.props.fieldName, 
@@ -146,16 +111,255 @@ var DocInput = React.createClass({displayName: "DocInput",
 module.exports = DocInput;
 
 
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_block.jsx":[function(require,module,exports){
+var LeadInput = require('./lead_input.jsx');
+var LeadsList = require('./leads_list.jsx');
+
+var LeadBlock = React.createClass({displayName: "LeadBlock",
+
+    getInitialState: function () {
+        return { 
+            leads: [],
+            phone: ""
+        }
+    },
+
+    fetchLeads: function () {
+        $.get('/leads?phone=' + this.state.phone, function(data) {
+            this.setState({leads: data})
+        }.bind(this))
+    },
+    
+    handleChange: function (e) {
+        this.setState({phone: e.target.value})
+    },
+
+    handleClick: function (e) {
+        e.preventDefault();
+        this.fetchLeads();
+    },
+
+    renderLeadsList: function () {
+    },
+
+    render: function() {
+        return (
+            React.createElement("div", {className: "lead-block row"}, 
+                React.createElement("h4", {className: "col-sm-12"}, "Search for a lead by phone number:"), 
+                React.createElement("div", {className: "form-group col-sm-12 row"}, 
+                    React.createElement("div", {className: "col-sm-8"}, 
+                        React.createElement("input", {onChange: this.handleChange, 
+                                className: "lead-block-input form-control", 
+                                type: "text"})
+                    ), 
+                    React.createElement("div", {className: "col-sm-4"}, 
+                        React.createElement("button", {className: "btn btn-submit pull-right", onClick: this.handleClick}, 
+                            "Search For Leads"
+                        )
+                    )
+                ), 
+                React.createElement(LeadsList, {leads: this.state.leads, handleLead: this.props.handleLead})
+            )
+        )
+
+    }
+
+});
+
+module.exports = LeadBlock;
+
+
+},{"./lead_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_input.jsx","./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/leads_list.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_index_template.jsx":[function(require,module,exports){
+var LeadBlock = require('./lead_block.jsx')
+
+var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
+
+    getInitialState: function () {
+        return {
+            lead: false
+        }
+    },
+
+    handleLead: function (lead) {
+        console.log("LEAD:", lead)
+        this.setState({lead: lead})
+    },
+
+    render: function() {
+        return (
+            React.createElement("div", {className: "app-template-div container"}, 
+                React.createElement(LeadBlock, {handleLead: this.handleLead})
+            )
+        )
+
+    }
+
+});
+
+module.exports = LeadIndexTemplate;
+
+
+
+},{"./lead_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_input.jsx":[function(require,module,exports){
+
+var LeadInput = React.createClass({displayName: "LeadInput",
+    handleChange: function (e) {
+        //this.props.updateFieldValue(this.props.fieldName, 
+                                    //e.target.value, 
+                                    //this.props.customMethod)
+    },
+
+    render: function() {
+        return (
+            React.createElement("div", {className: "lead-input form-group"}, 
+                React.createElement("input", {onChange: this.handleChange, 
+                        className: "lead-block-input form-control", 
+                        type: "text"})
+            )
+        );
+
+    }
+
+});
+
+module.exports = LeadInput;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_show_template.jsx":[function(require,module,exports){
+var DocForm = require('./../doc/doc_form.jsx')
+var CustomMethods = require('./../../lib/custom_methods.js');
+
+var fetchLead = function (leadId, callback) {
+    return $.get('/leads/' + leadId, function(data) {
+        return callback(data)
+    })
+};
+
+var getCustomFields = function (lead) {
+    return {
+        Phone: {
+            value: lead.home_phone
+        },
+        Name: {
+            value: lead.first_name
+        },
+        Email: {
+            value: lead.email_1,
+            customMethod: "setName"
+        }
+    }
+};
+
+var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
+
+    getInitialState: function () {
+        return {
+            lead: {},
+            customFields: {}
+        }
+    },
+
+    setCustomFieldsFromLead: function (lead) {
+        this.setState({customFields: getCustomFields(lead)});
+    },
+
+    updateCustomFieldValue: function (fieldName, fieldValue, customMethod) {
+        var cf = _.extend(this.state.customFields, {});
+        cf[fieldName] = {value: fieldValue, customMethod: customMethod};
+        this.setState({customFields: cf})
+        if (customMethod) {
+            CustomMethods[customMethod](this);
+        }
+    },
+
+    setStateFromLead: function (lead) {
+        this.setState({lead: lead})
+        this.setCustomFieldsFromLead(lead);
+    },
+    
+    componentWillMount: function () {
+        fetchLead(this.props.params.leadId, this.setStateFromLead);
+    },
+
+    componentWillReceiveProps: function (nextProps) {
+        var oldLeadId = this.props.params.leadId;
+        var newLeadId = nextProps.params.leadId;
+        if (oldLeadId != newLeadId) {
+            fetchLead(newLeadId, this.setStateFromLead);
+        }
+    },
+
+    render: function() {
+        return (
+            React.createElement("div", {className: "app-template-div container"}, 
+                React.createElement(DocForm, {updateCustomFieldValue: this.updateCustomFieldValue, customFields: this.state.customFields, lead: this.state.lead})
+            )
+        )
+
+    }
+
+});
+
+module.exports = LeadShowTemplate;
+
+
+},{"./../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/leads_list.jsx":[function(require,module,exports){
+var LeadsList = React.createClass({displayName: "LeadsList",
+
+    handleClick: function(lead) {
+        console.log("LEAD 1", lead)
+        window.location.href = "#/leads/" + lead.id;
+        //this.props.handleLead(lead);
+    },
+
+    renderLeads: function () {
+       return this.props.leads.map(function (lead) {
+           return (
+                    React.createElement("tr", {className: "lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
+                           React.createElement("td", {className: "lead-results-field"}, 
+                               React.createElement("span", {className: "lead-results-field-value"}, lead.first_name, " ", lead.last_name)
+                           ), 
+                           React.createElement("td", {className: "lead-results-field"}, 
+                               React.createElement("span", {className: "lead-results-field-value"}, lead.email_1)
+                           ), 
+                           React.createElement("td", {className: "lead-results-field"}, 
+                               React.createElement("span", {className: "lead-results-field-value"}, lead.id)
+                           )
+                   )
+           )
+        }, this)
+    },
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "leads-list col-sm-12"}, 
+               React.createElement("table", {className: "lead-div table table-striped table-bordered table-striped"}, 
+                   React.createElement("tr", null, 
+                       React.createElement("th", null, "Name"), 
+                       React.createElement("th", null, "Email"), 
+                       React.createElement("th", null, "Id")
+                   ), 
+                    this.renderLeads()
+                )
+            )
+        )
+    }
+
+})
+
+module.exports = LeadsList;
+
+
 },{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
 var CustomMethods = {
     setName: function (form) {
         var nameValue;
-        if (form.state.customFields.email.value === "jakesendar@gmail.com") {
+        if (form.state.customFields.Email.value === "jakesendar@gmail.com") {
             nameValue = "Jake Sendar";
         } else {
             nameValue = "Dude Man"
         };
-        form.updateFieldValue("name", nameValue);
+        form.updateCustomFieldValue("Name", nameValue);
     }
 }
 
@@ -11408,6 +11612,2596 @@ module.exports = CustomMethods;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Cancellation.js":[function(require,module,exports){
+/**
+ * Represents a cancellation caused by navigating away
+ * before the previous transition has fully resolved.
+ */
+function Cancellation() {}
+
+module.exports = Cancellation;
+
+},{}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Configuration.js":[function(require,module,exports){
+var warning = require('react/lib/warning');
+var invariant = require('react/lib/invariant');
+
+function checkPropTypes(componentName, propTypes, props) {
+  for (var propName in propTypes) {
+    if (propTypes.hasOwnProperty(propName)) {
+      var error = propTypes[propName](props, propName, componentName);
+
+      if (error instanceof Error)
+        warning(false, error.message);
+    }
+  }
+}
+
+var Configuration = {
+
+  statics: {
+
+    validateProps: function (props) {
+      checkPropTypes(this.displayName, this.propTypes, props);
+    }
+
+  },
+
+  render: function () {
+    invariant(
+      false,
+      '%s elements are for router configuration only and should not be rendered',
+      this.constructor.displayName
+    );
+  }
+
+};
+
+module.exports = Configuration;
+
+},{"react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/History.js":[function(require,module,exports){
+var invariant = require('react/lib/invariant');
+var canUseDOM = require('react/lib/ExecutionEnvironment').canUseDOM;
+
+var History = {
+
+  /**
+   * The current number of entries in the history.
+   *
+   * Note: This property is read-only.
+   */
+  length: 1,
+
+  /**
+   * Sends the browser back one entry in the history.
+   */
+  back: function () {
+    invariant(
+      canUseDOM,
+      'Cannot use History.back without a DOM'
+    );
+
+    // Do this first so that History.length will
+    // be accurate in location change listeners.
+    History.length -= 1;
+
+    window.history.back();
+  }
+
+};
+
+module.exports = History;
+
+},{"react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Navigation.js":[function(require,module,exports){
+var PropTypes = require('./PropTypes');
+
+/**
+ * A mixin for components that modify the URL.
+ *
+ * Example:
+ *
+ *   var MyLink = React.createClass({
+ *     mixins: [ Router.Navigation ],
+ *     handleClick: function (event) {
+ *       event.preventDefault();
+ *       this.transitionTo('aRoute', { the: 'params' }, { the: 'query' });
+ *     },
+ *     render: function () {
+ *       return (
+ *         <a onClick={this.handleClick}>Click me!</a>
+ *       );
+ *     }
+ *   });
+ */
+var Navigation = {
+
+  contextTypes: {
+    makePath: PropTypes.func.isRequired,
+    makeHref: PropTypes.func.isRequired,
+    transitionTo: PropTypes.func.isRequired,
+    replaceWith: PropTypes.func.isRequired,
+    goBack: PropTypes.func.isRequired
+  },
+
+  /**
+   * Returns an absolute URL path created from the given route
+   * name, URL parameters, and query values.
+   */
+  makePath: function (to, params, query) {
+    return this.context.makePath(to, params, query);
+  },
+
+  /**
+   * Returns a string that may safely be used as the href of a
+   * link to the route with the given name.
+   */
+  makeHref: function (to, params, query) {
+    return this.context.makeHref(to, params, query);
+  },
+
+  /**
+   * Transitions to the URL specified in the arguments by pushing
+   * a new URL onto the history stack.
+   */
+  transitionTo: function (to, params, query) {
+    this.context.transitionTo(to, params, query);
+  },
+
+  /**
+   * Transitions to the URL specified in the arguments by replacing
+   * the current URL in the history stack.
+   */
+  replaceWith: function (to, params, query) {
+    this.context.replaceWith(to, params, query);
+  },
+
+  /**
+   * Transitions to the previous URL.
+   */
+  goBack: function () {
+    this.context.goBack();
+  }
+
+};
+
+module.exports = Navigation;
+
+},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/NavigationContext.js":[function(require,module,exports){
+var PropTypes = require('./PropTypes');
+
+/**
+ * Provides the router with context for Router.Navigation.
+ */
+var NavigationContext = {
+
+  childContextTypes: {
+    makePath: PropTypes.func.isRequired,
+    makeHref: PropTypes.func.isRequired,
+    transitionTo: PropTypes.func.isRequired,
+    replaceWith: PropTypes.func.isRequired,
+    goBack: PropTypes.func.isRequired
+  },
+
+  getChildContext: function () {
+    return {
+      makePath: this.constructor.makePath.bind(this.constructor),
+      makeHref: this.constructor.makeHref.bind(this.constructor),
+      transitionTo: this.constructor.transitionTo.bind(this.constructor),
+      replaceWith: this.constructor.replaceWith.bind(this.constructor),
+      goBack: this.constructor.goBack.bind(this.constructor)
+    };
+  }
+
+};
+
+module.exports = NavigationContext;
+
+},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js":[function(require,module,exports){
+var assign = require('react/lib/Object.assign');
+var ReactPropTypes = require('react').PropTypes;
+
+var PropTypes = assign({
+
+  /**
+   * Requires that the value of a prop be falsy.
+   */
+  falsy: function (props, propName, componentName) {
+    if (props[propName])
+      return new Error('<' + componentName + '> may not have a "' + propName + '" prop');
+  }
+
+}, ReactPropTypes);
+
+module.exports = PropTypes;
+
+},{"react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Redirect.js":[function(require,module,exports){
+/**
+ * Encapsulates a redirect to the given route.
+ */
+function Redirect(to, params, query) {
+  this.to = to;
+  this.params = params;
+  this.query = query;
+}
+
+module.exports = Redirect;
+
+},{}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/RouteHandlerMixin.js":[function(require,module,exports){
+var React = require('react');
+var assign = require('react/lib/Object.assign');
+var PropTypes = require('./PropTypes');
+
+var REF_NAME = '__routeHandler__';
+
+var RouteHandlerMixin = {
+
+  contextTypes: {
+    getRouteAtDepth: PropTypes.func.isRequired,
+    setRouteComponentAtDepth: PropTypes.func.isRequired,
+    routeHandlers: PropTypes.array.isRequired
+  },
+
+  childContextTypes: {
+    routeHandlers: PropTypes.array.isRequired
+  },
+
+  getChildContext: function () {
+    return {
+      routeHandlers: this.context.routeHandlers.concat([ this ])
+    };
+  },
+
+  componentDidMount: function () {
+    this._updateRouteComponent();
+  },
+
+  componentDidUpdate: function () {
+    this._updateRouteComponent();
+  },
+
+  componentWillUnmount: function () {
+    this.context.setRouteComponentAtDepth(this.getRouteDepth(), null);
+  },
+
+  _updateRouteComponent: function () {
+    this.context.setRouteComponentAtDepth(this.getRouteDepth(), this.refs[REF_NAME]);
+  },
+
+  getRouteDepth: function () {
+    return this.context.routeHandlers.length;
+  },
+
+  createChildRouteHandler: function (props) {
+    var route = this.context.getRouteAtDepth(this.getRouteDepth());
+    return route ? React.createElement(route.handler, assign({}, props || this.props, { ref: REF_NAME })) : null;
+  }
+
+};
+
+module.exports = RouteHandlerMixin;
+
+},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Routing.js":[function(require,module,exports){
+/* jshint -W084 */
+var React = require('react');
+var invariant = require('react/lib/invariant');
+var DefaultRoute = require('./components/DefaultRoute');
+var NotFoundRoute = require('./components/NotFoundRoute');
+var Redirect = require('./components/Redirect');
+var Path = require('./utils/Path');
+
+function createTransitionToHook(to, _params, _query) {
+  return function (transition, params, query) {
+    transition.redirect(to, _params || params, _query || query);
+  };
+}
+
+function createRoute(element, parentRoute, namedRoutes) {
+  var type = element.type;
+  var props = element.props;
+
+  if (type.validateProps)
+    type.validateProps(props);
+
+  var options = {
+    name: props.name,
+    ignoreScrollBehavior: !!props.ignoreScrollBehavior
+  };
+
+  if (type === Redirect.type) {
+    options.willTransitionTo = createTransitionToHook(props.to, props.params, props.query);
+    props.path = props.path || props.from || '*';
+  } else {
+    options.handler = props.handler;
+    options.willTransitionTo = props.handler && props.handler.willTransitionTo;
+    options.willTransitionFrom = props.handler && props.handler.willTransitionFrom;
+  }
+
+  var parentPath = (parentRoute && parentRoute.path) || '/';
+
+  if ((props.path || props.name) && type !== DefaultRoute.type && type !== NotFoundRoute.type) {
+    var path = props.path || props.name;
+
+    // Relative paths extend their parent.
+    if (!Path.isAbsolute(path))
+      path = Path.join(parentPath, path);
+
+    options.path = Path.normalize(path);
+  } else {
+    options.path = parentPath;
+
+    if (type === NotFoundRoute.type)
+      options.path += '*';
+  }
+
+  options.paramNames = Path.extractParamNames(options.path);
+
+  // Make sure the route's path has all params its parent needs.
+  if (parentRoute && Array.isArray(parentRoute.paramNames)) {
+    parentRoute.paramNames.forEach(function (paramName) {
+      invariant(
+        options.paramNames.indexOf(paramName) !== -1,
+        'The nested route path "%s" is missing the "%s" parameter of its parent path "%s"',
+        options.path, paramName, parentRoute.path
+      );
+    });
+  }
+
+  var route = new Route(options);
+
+  // Make sure the route can be looked up by <Link>s.
+  if (props.name) {
+    invariant(
+      namedRoutes[props.name] == null,
+      'You cannot use the name "%s" for more than one route',
+      props.name
+    );
+
+    namedRoutes[props.name] = route;
+  }
+
+  // Handle <NotFoundRoute>.
+  if (type === NotFoundRoute.type) {
+    invariant(
+      parentRoute,
+      '<NotFoundRoute> must have a parent <Route>'
+    );
+
+    invariant(
+      parentRoute.notFoundRoute == null,
+      'You may not have more than one <NotFoundRoute> per <Route>'
+    );
+
+    invariant(
+      props.children == null,
+      '<NotFoundRoute> must not have children'
+    );
+
+    parentRoute.notFoundRoute = route;
+
+    return null;
+  }
+
+  // Handle <DefaultRoute>.
+  if (type === DefaultRoute.type) {
+    invariant(
+      parentRoute,
+      '<DefaultRoute> must have a parent <Route>'
+    );
+
+    invariant(
+      parentRoute.defaultRoute == null,
+      'You may not have more than one <DefaultRoute> per <Route>'
+    );
+
+    invariant(
+      props.children == null,
+      '<DefaultRoute> must not have children'
+    );
+
+    parentRoute.defaultRoute = route;
+
+    return null;
+  }
+
+  route.routes = createRoutesFromReactChildren(props.children, route, namedRoutes);
+
+  return route;
+}
+
+/**
+ * Creates and returns an array of route objects from the given ReactChildren.
+ */
+function createRoutesFromReactChildren(children, parentRoute, namedRoutes) {
+  var routes = [];
+
+  React.Children.forEach(children, function (child) {
+    // Exclude null values, <DefaultRoute>s and <NotFoundRoute>s.
+    if (React.isValidElement(child) && (child = createRoute(child, parentRoute, namedRoutes)))
+      routes.push(child);
+  });
+
+  return routes;
+}
+
+function Route(options) {
+  options = options || {};
+
+  this.name = options.name;
+  this.path = options.path || '/';
+  this.paramNames = options.paramNames || Path.extractParamNames(this.path);
+  this.ignoreScrollBehavior = !!options.ignoreScrollBehavior;
+  this.willTransitionTo = options.willTransitionTo;
+  this.willTransitionFrom = options.willTransitionFrom;
+  this.handler = options.handler;
+}
+
+module.exports = {
+  createRoutesFromReactChildren: createRoutesFromReactChildren,
+  Route: Route
+};
+
+},{"./components/DefaultRoute":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/DefaultRoute.js","./components/NotFoundRoute":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/NotFoundRoute.js","./components/Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Redirect.js","./utils/Path":"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/Path.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Scrolling.js":[function(require,module,exports){
+var invariant = require('react/lib/invariant');
+var canUseDOM = require('react/lib/ExecutionEnvironment').canUseDOM;
+var getWindowScrollPosition = require('./utils/getWindowScrollPosition');
+
+function shouldUpdateScroll(state, prevState) {
+  if (!prevState)
+    return true;
+
+  // Don't update scroll position when only the query has changed.
+  if (state.pathname === prevState.pathname)
+    return false;
+
+  var routes = state.routes;
+  var prevRoutes = prevState.routes;
+
+  var sharedAncestorRoutes = routes.filter(function (route) {
+    return prevRoutes.indexOf(route) !== -1;
+  });
+
+  return !sharedAncestorRoutes.some(function (route) {
+    return route.ignoreScrollBehavior;
+  });
+}
+
+/**
+ * Provides the router with the ability to manage window scroll position
+ * according to its scroll behavior.
+ */
+var Scrolling = {
+
+  statics: {
+    /**
+     * Records curent scroll position as the last known position for the given URL path.
+     */
+    recordScrollPosition: function (path) {
+      if (!this.scrollHistory)
+        this.scrollHistory = {};
+
+      this.scrollHistory[path] = getWindowScrollPosition();
+    },
+
+    /**
+     * Returns the last known scroll position for the given URL path.
+     */
+    getScrollPosition: function (path) {
+      if (!this.scrollHistory)
+        this.scrollHistory = {};
+
+      return this.scrollHistory[path] || null;
+    }
+  },
+
+  componentWillMount: function () {
+    invariant(
+      this.getScrollBehavior() == null || canUseDOM,
+      'Cannot use scroll behavior without a DOM'
+    );
+  },
+
+  componentDidMount: function () {
+    this._updateScroll();
+  },
+
+  componentDidUpdate: function (prevProps, prevState) {
+    this._updateScroll(prevState);
+  },
+
+  _updateScroll: function (prevState) {
+    if (!shouldUpdateScroll(this.state, prevState))
+      return;
+
+    var scrollBehavior = this.getScrollBehavior();
+
+    if (scrollBehavior)
+      scrollBehavior.updateScrollPosition(
+        this.constructor.getScrollPosition(this.state.path),
+        this.state.action
+      );
+  }
+
+};
+
+module.exports = Scrolling;
+
+},{"./utils/getWindowScrollPosition":"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/getWindowScrollPosition.js","react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/State.js":[function(require,module,exports){
+var PropTypes = require('./PropTypes');
+
+/**
+ * A mixin for components that need to know the path, routes, URL
+ * params and query that are currently active.
+ *
+ * Example:
+ *
+ *   var AboutLink = React.createClass({
+ *     mixins: [ Router.State ],
+ *     render: function () {
+ *       var className = this.props.className;
+ *   
+ *       if (this.isActive('about'))
+ *         className += ' is-active';
+ *   
+ *       return React.DOM.a({ className: className }, this.props.children);
+ *     }
+ *   });
+ */
+var State = {
+
+  contextTypes: {
+    getCurrentPath: PropTypes.func.isRequired,
+    getCurrentRoutes: PropTypes.func.isRequired,
+    getCurrentPathname: PropTypes.func.isRequired,
+    getCurrentParams: PropTypes.func.isRequired,
+    getCurrentQuery: PropTypes.func.isRequired,
+    isActive: PropTypes.func.isRequired
+  },
+
+  /**
+   * Returns the current URL path.
+   */
+  getPath: function () {
+    return this.context.getCurrentPath();
+  },
+
+  /**
+   * Returns an array of the routes that are currently active.
+   */
+  getRoutes: function () {
+    return this.context.getCurrentRoutes();
+  },
+
+  /**
+   * Returns the current URL path without the query string.
+   */
+  getPathname: function () {
+    return this.context.getCurrentPathname();
+  },
+
+  /**
+   * Returns an object of the URL params that are currently active.
+   */
+  getParams: function () {
+    return this.context.getCurrentParams();
+  },
+
+  /**
+   * Returns an object of the query params that are currently active.
+   */
+  getQuery: function () {
+    return this.context.getCurrentQuery();
+  },
+
+  /**
+   * A helper method to determine if a given route, params, and query
+   * are active.
+   */
+  isActive: function (to, params, query) {
+    return this.context.isActive(to, params, query);
+  }
+
+};
+
+module.exports = State;
+
+},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/StateContext.js":[function(require,module,exports){
+var assign = require('react/lib/Object.assign');
+var PropTypes = require('./PropTypes');
+var Path = require('./utils/Path');
+
+function routeIsActive(activeRoutes, routeName) {
+  return activeRoutes.some(function (route) {
+    return route.name === routeName;
+  });
+}
+
+function paramsAreActive(activeParams, params) {
+  for (var property in params)
+    if (String(activeParams[property]) !== String(params[property]))
+      return false;
+
+  return true;
+}
+
+function queryIsActive(activeQuery, query) {
+  for (var property in query)
+    if (String(activeQuery[property]) !== String(query[property]))
+      return false;
+
+  return true;
+}
+
+/**
+ * Provides the router with context for Router.State.
+ */
+var StateContext = {
+
+  /**
+   * Returns the current URL path + query string.
+   */
+  getCurrentPath: function () {
+    return this.state.path;
+  },
+
+  /**
+   * Returns a read-only array of the currently active routes.
+   */
+  getCurrentRoutes: function () {
+    return this.state.routes.slice(0);
+  },
+
+  /**
+   * Returns the current URL path without the query string.
+   */
+  getCurrentPathname: function () {
+    return this.state.pathname;
+  },
+
+  /**
+   * Returns a read-only object of the currently active URL parameters.
+   */
+  getCurrentParams: function () {
+    return assign({}, this.state.params);
+  },
+
+  /**
+   * Returns a read-only object of the currently active query parameters.
+   */
+  getCurrentQuery: function () {
+    return assign({}, this.state.query);
+  },
+
+  /**
+   * Returns true if the given route, params, and query are active.
+   */
+  isActive: function (to, params, query) {
+    if (Path.isAbsolute(to))
+      return to === this.state.path;
+
+    return routeIsActive(this.state.routes, to) &&
+      paramsAreActive(this.state.params, params) &&
+      (query == null || queryIsActive(this.state.query, query));
+  },
+
+  childContextTypes: {
+    getCurrentPath: PropTypes.func.isRequired,
+    getCurrentRoutes: PropTypes.func.isRequired,
+    getCurrentPathname: PropTypes.func.isRequired,
+    getCurrentParams: PropTypes.func.isRequired,
+    getCurrentQuery: PropTypes.func.isRequired,
+    isActive: PropTypes.func.isRequired
+  },
+
+  getChildContext: function () {
+    return {
+      getCurrentPath: this.getCurrentPath,
+      getCurrentRoutes: this.getCurrentRoutes,
+      getCurrentPathname: this.getCurrentPathname,
+      getCurrentParams: this.getCurrentParams,
+      getCurrentQuery: this.getCurrentQuery,
+      isActive: this.isActive
+    };
+  }
+
+};
+
+module.exports = StateContext;
+
+},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","./utils/Path":"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/Path.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/Transition.js":[function(require,module,exports){
+/* jshint -W058 */
+var assign = require('react/lib/Object.assign');
+var Redirect = require('./Redirect');
+
+/**
+ * Encapsulates a transition to a given path.
+ *
+ * The willTransitionTo and willTransitionFrom handlers receive
+ * an instance of this class as their first argument.
+ */
+function Transition(path, retry) {
+  this.path = path;
+  this.abortReason = null;
+  this.retry = retry.bind(this);
+}
+
+assign(Transition.prototype, {
+
+  abort: function (reason) {
+    if (this.abortReason == null)
+      this.abortReason = reason || 'ABORT';
+  },
+
+  redirect: function (to, params, query) {
+    this.abort(new Redirect(to, params, query));
+  },
+
+  from: function (routes, components, callback) {
+    var self = this;
+
+    var runHooks = routes.reduce(function (callback, route, index) {
+      return function (error) {
+        if (error || self.abortReason) {
+          callback(error);
+        } else if (route.willTransitionFrom) {
+          try {
+            route.willTransitionFrom(self, components[index], callback);
+
+            // If there is no callback in the argument list, call it automatically.
+            if (route.willTransitionFrom.length < 3)
+              callback();
+          } catch (e) {
+            callback(e);
+          }
+        } else {
+          callback();
+        }
+      };
+    }, callback);
+
+    runHooks();
+  },
+
+  to: function (routes, params, query, callback) {
+    var self = this;
+
+    var runHooks = routes.reduceRight(function (callback, route) {
+      return function (error) {
+        if (error || self.abortReason) {
+          callback(error);
+        } else if (route.willTransitionTo) {
+          try {
+            route.willTransitionTo(self, params, query, callback);
+
+            // If there is no callback in the argument list, call it automatically.
+            if (route.willTransitionTo.length < 4)
+              callback();
+          } catch (e) {
+            callback(e);
+          }
+        } else {
+          callback();
+        }
+      };
+    }, callback);
+
+    runHooks();
+  }
+
+});
+
+module.exports = Transition;
+
+},{"./Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Redirect.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/actions/LocationActions.js":[function(require,module,exports){
+/**
+ * Actions that modify the URL.
+ */
+var LocationActions = {
+
+  /**
+   * Indicates a new location is being pushed to the history stack.
+   */
+  PUSH: 'push',
+
+  /**
+   * Indicates the current location should be replaced.
+   */
+  REPLACE: 'replace',
+
+  /**
+   * Indicates the most recent entry should be removed from the history stack.
+   */
+  POP: 'pop'
+
+};
+
+module.exports = LocationActions;
+
+},{}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/behaviors/ImitateBrowserBehavior.js":[function(require,module,exports){
+var LocationActions = require('../actions/LocationActions');
+
+/**
+ * A scroll behavior that attempts to imitate the default behavior
+ * of modern browsers.
+ */
+var ImitateBrowserBehavior = {
+
+  updateScrollPosition: function (position, actionType) {
+    switch (actionType) {
+      case LocationActions.PUSH:
+      case LocationActions.REPLACE:
+        window.scrollTo(0, 0);
+        break;
+      case LocationActions.POP:
+        if (position) {
+          window.scrollTo(position.x, position.y);
+        } else {
+          window.scrollTo(0, 0);
+        }
+        break;
+    }
+  }
+
+};
+
+module.exports = ImitateBrowserBehavior;
+
+},{"../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/modules/actions/LocationActions.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/behaviors/ScrollToTopBehavior.js":[function(require,module,exports){
+/**
+ * A scroll behavior that always scrolls to the top of the page
+ * after a transition.
+ */
+var ScrollToTopBehavior = {
+
+  updateScrollPosition: function () {
+    window.scrollTo(0, 0);
+  }
+
+};
+
+module.exports = ScrollToTopBehavior;
+
+},{}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/DefaultRoute.js":[function(require,module,exports){
+var React = require('react');
+var Configuration = require('../Configuration');
+var PropTypes = require('../PropTypes');
+
+/**
+ * A <DefaultRoute> component is a special kind of <Route> that
+ * renders when its parent matches but none of its siblings do.
+ * Only one such route may be used at any given level in the
+ * route hierarchy.
+ */
+var DefaultRoute = React.createClass({
+
+  displayName: 'DefaultRoute',
+
+  mixins: [ Configuration ],
+
+  propTypes: {
+    name: PropTypes.string,
+    path: PropTypes.falsy,
+    children: PropTypes.falsy,
+    handler: PropTypes.func.isRequired
+  }
+
+});
+
+module.exports = DefaultRoute;
+
+},{"../Configuration":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Configuration.js","../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Link.js":[function(require,module,exports){
+var React = require('react');
+var classSet = require('react/lib/cx');
+var assign = require('react/lib/Object.assign');
+var Navigation = require('../Navigation');
+var State = require('../State');
+var PropTypes = require('../PropTypes');
+
+function isLeftClickEvent(event) {
+  return event.button === 0;
+}
+
+function isModifiedEvent(event) {
+  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
+}
+
+/**
+ * <Link> components are used to create an <a> element that links to a route.
+ * When that route is active, the link gets an "active" class name (or the
+ * value of its `activeClassName` prop).
+ *
+ * For example, assuming you have the following route:
+ *
+ *   <Route name="showPost" path="/posts/:postID" handler={Post}/>
+ *
+ * You could use the following component to link to that route:
+ *
+ *   <Link to="showPost" params={{ postID: "123" }} />
+ *
+ * In addition to params, links may pass along query string parameters
+ * using the `query` prop.
+ *
+ *   <Link to="showPost" params={{ postID: "123" }} query={{ show:true }}/>
+ */
+var Link = React.createClass({
+
+  displayName: 'Link',
+
+  mixins: [ Navigation, State ],
+
+  propTypes: {
+    activeClassName: PropTypes.string.isRequired,
+    to: PropTypes.string.isRequired,
+    params: PropTypes.object,
+    query: PropTypes.object,
+    onClick: PropTypes.func
+  },
+
+  getDefaultProps: function () {
+    return {
+      activeClassName: 'active'
+    };
+  },
+
+  handleClick: function (event) {
+    var allowTransition = true;
+    var clickResult;
+
+    if (this.props.onClick)
+      clickResult = this.props.onClick(event);
+
+    if (isModifiedEvent(event) || !isLeftClickEvent(event))
+      return;
+
+    if (clickResult === false || event.defaultPrevented === true)
+      allowTransition = false;
+
+    event.preventDefault();
+
+    if (allowTransition)
+      this.transitionTo(this.props.to, this.props.params, this.props.query);
+  },
+
+  /**
+   * Returns the value of the "href" attribute to use on the DOM element.
+   */
+  getHref: function () {
+    return this.makeHref(this.props.to, this.props.params, this.props.query);
+  },
+
+  /**
+   * Returns the value of the "class" attribute to use on the DOM element, which contains
+   * the value of the activeClassName property when this <Link> is active.
+   */
+  getClassName: function () {
+    var classNames = {};
+
+    if (this.props.className)
+      classNames[this.props.className] = true;
+
+    if (this.isActive(this.props.to, this.props.params, this.props.query))
+      classNames[this.props.activeClassName] = true;
+
+    return classSet(classNames);
+  },
+
+  render: function () {
+    var props = assign({}, this.props, {
+      href: this.getHref(),
+      className: this.getClassName(),
+      onClick: this.handleClick
+    });
+
+    return React.DOM.a(props, this.props.children);
+  }
+
+});
+
+module.exports = Link;
+
+},{"../Navigation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Navigation.js","../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","../State":"/Users/jakesendar/doc_app/node_modules/react-router/modules/State.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js","react/lib/cx":"/Users/jakesendar/doc_app/node_modules/react/lib/cx.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/NotFoundRoute.js":[function(require,module,exports){
+var React = require('react');
+var Configuration = require('../Configuration');
+var PropTypes = require('../PropTypes');
+
+/**
+ * A <NotFoundRoute> is a special kind of <Route> that
+ * renders when the beginning of its parent's path matches
+ * but none of its siblings do, including any <DefaultRoute>.
+ * Only one such route may be used at any given level in the
+ * route hierarchy.
+ */
+var NotFoundRoute = React.createClass({
+
+  displayName: 'NotFoundRoute',
+
+  mixins: [ Configuration ],
+
+  propTypes: {
+    name: PropTypes.string,
+    path: PropTypes.falsy,
+    children: PropTypes.falsy,
+    handler: PropTypes.func.isRequired
+  }
+
+});
+
+module.exports = NotFoundRoute;
+
+},{"../Configuration":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Configuration.js","../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Redirect.js":[function(require,module,exports){
+var React = require('react');
+var Configuration = require('../Configuration');
+var PropTypes = require('../PropTypes');
+
+/**
+ * A <Redirect> component is a special kind of <Route> that always
+ * redirects to another route when it matches.
+ */
+var Redirect = React.createClass({
+
+  displayName: 'Redirect',
+
+  mixins: [ Configuration ],
+
+  propTypes: {
+    path: PropTypes.string,
+    from: PropTypes.string, // Alias for path.
+    to: PropTypes.string,
+    handler: PropTypes.falsy
+  }
+
+});
+
+module.exports = Redirect;
+
+},{"../Configuration":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Configuration.js","../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Route.js":[function(require,module,exports){
+var React = require('react');
+var Configuration = require('../Configuration');
+var PropTypes = require('../PropTypes');
+var RouteHandler = require('./RouteHandler');
+/**
+ * <Route> components specify components that are rendered to the page when the
+ * URL matches a given pattern.
+ *
+ * Routes are arranged in a nested tree structure. When a new URL is requested,
+ * the tree is searched depth-first to find a route whose path matches the URL.
+ * When one is found, all routes in the tree that lead to it are considered
+ * "active" and their components are rendered into the DOM, nested in the same
+ * order as they are in the tree.
+ *
+ * The preferred way to configure a router is using JSX. The XML-like syntax is
+ * a great way to visualize how routes are laid out in an application.
+ *
+ *   var routes = [
+ *     <Route handler={App}>
+ *       <Route name="login" handler={Login}/>
+ *       <Route name="logout" handler={Logout}/>
+ *       <Route name="about" handler={About}/>
+ *     </Route>
+ *   ];
+ *   
+ *   Router.run(routes, function (Handler) {
+ *     React.render(<Handler/>, document.body);
+ *   });
+ *
+ * Handlers for Route components that contain children can render their active
+ * child route using a <RouteHandler> element.
+ *
+ *   var App = React.createClass({
+ *     render: function () {
+ *       return (
+ *         <div class="application">
+ *           <RouteHandler/>
+ *         </div>
+ *       );
+ *     }
+ *   });
+ *
+ * If no handler is provided for the route, it will render a matched child route.
+ */
+var Route = React.createClass({
+
+  displayName: 'Route',
+
+  mixins: [ Configuration ],
+
+  propTypes: {
+    name: PropTypes.string,
+    path: PropTypes.string,
+    handler: PropTypes.func,
+    ignoreScrollBehavior: PropTypes.bool
+  },
+
+  getDefaultProps: function(){
+    return {
+      handler: RouteHandler
+    };
+  }
+
+});
+
+module.exports = Route;
+
+},{"../Configuration":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Configuration.js","../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","./RouteHandler":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/RouteHandler.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/RouteHandler.js":[function(require,module,exports){
+var React = require('react');
+var RouteHandlerMixin = require('../RouteHandlerMixin');
+
+/**
+ * A <RouteHandler> component renders the active child route handler
+ * when routes are nested.
+ */
+var RouteHandler = React.createClass({
+
+  displayName: 'RouteHandler',
+
+  mixins: [ RouteHandlerMixin ],
+
+  render: function () {
+    return this.createChildRouteHandler();
+  }
+
+});
+
+module.exports = RouteHandler;
+
+},{"../RouteHandlerMixin":"/Users/jakesendar/doc_app/node_modules/react-router/modules/RouteHandlerMixin.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/createRouter.js":[function(require,module,exports){
+(function (process){
+/* jshint -W058 */
+var React = require('react');
+var warning = require('react/lib/warning');
+var invariant = require('react/lib/invariant');
+var canUseDOM = require('react/lib/ExecutionEnvironment').canUseDOM;
+var LocationActions = require('./actions/LocationActions');
+var ImitateBrowserBehavior = require('./behaviors/ImitateBrowserBehavior');
+var HashLocation = require('./locations/HashLocation');
+var HistoryLocation = require('./locations/HistoryLocation');
+var RefreshLocation = require('./locations/RefreshLocation');
+var NavigationContext = require('./NavigationContext');
+var StateContext = require('./StateContext');
+var Scrolling = require('./Scrolling');
+var createRoutesFromReactChildren = require('./Routing').createRoutesFromReactChildren;
+var isReactChildren = require('./isReactChildren');
+var Transition = require('./Transition');
+var PropTypes = require('./PropTypes');
+var Redirect = require('./Redirect');
+var History = require('./History');
+var Cancellation = require('./Cancellation');
+var supportsHistory = require('./utils/supportsHistory');
+var Path = require('./utils/Path');
+
+/**
+ * The default location for new routers.
+ */
+var DEFAULT_LOCATION = canUseDOM ? HashLocation : '/';
+
+/**
+ * The default scroll behavior for new routers.
+ */
+var DEFAULT_SCROLL_BEHAVIOR = canUseDOM ? ImitateBrowserBehavior : null;
+
+function createMatch(route, params, pathname, query) {
+  return {
+    routes: [ route ],
+    params: params,
+    pathname: pathname,
+    query: query
+  };
+}
+
+function findMatch(routes, defaultRoute, notFoundRoute, pathname, query) {
+  var route, match, params;
+
+  for (var i = 0, len = routes.length; i < len; ++i) {
+    route = routes[i];
+
+    // Check the subtree first to find the most deeply-nested match.
+    match = findMatch(route.routes, route.defaultRoute, route.notFoundRoute, pathname, query);
+
+    if (match != null) {
+      match.routes.unshift(route);
+      return match;
+    }
+
+    // No routes in the subtree matched, so check this route.
+    params = Path.extractParams(route.path, pathname);
+
+    if (params)
+      return createMatch(route, params, pathname, query);
+  }
+
+  // No routes matched, so try the default route if there is one.
+  if (defaultRoute && (params = Path.extractParams(defaultRoute.path, pathname)))
+    return createMatch(defaultRoute, params, pathname, query);
+
+  // Last attempt: does the "not found" route match?
+  if (notFoundRoute && (params = Path.extractParams(notFoundRoute.path, pathname)))
+    return createMatch(notFoundRoute, params, pathname, query);
+
+  return null;
+}
+
+function hasProperties(object, properties) {
+  for (var propertyName in properties)
+    if (properties.hasOwnProperty(propertyName) && object[propertyName] !== properties[propertyName])
+      return false;
+
+  return true;
+}
+
+function hasMatch(routes, route, prevParams, nextParams, prevQuery, nextQuery) {
+  return routes.some(function (r) {
+    if (r !== route)
+      return false;
+
+    var paramNames = route.paramNames;
+    var paramName;
+
+    // Ensure that all params the route cares about did not change.
+    for (var i = 0, len = paramNames.length; i < len; ++i) {
+      paramName = paramNames[i];
+
+      if (nextParams[paramName] !== prevParams[paramName])
+        return false;
+    }
+
+    // Ensure the query hasn't changed.
+    return hasProperties(prevQuery, nextQuery) && hasProperties(nextQuery, prevQuery);
+  });
+}
+
+/**
+ * Creates and returns a new router using the given options. A router
+ * is a ReactComponent class that knows how to react to changes in the
+ * URL and keep the contents of the page in sync.
+ *
+ * Options may be any of the following:
+ *
+ * - routes           (required) The route config
+ * - location         The location to use. Defaults to HashLocation when
+ *                    the DOM is available, "/" otherwise
+ * - scrollBehavior   The scroll behavior to use. Defaults to ImitateBrowserBehavior
+ *                    when the DOM is available, null otherwise
+ * - onError          A function that is used to handle errors
+ * - onAbort          A function that is used to handle aborted transitions
+ *
+ * When rendering in a server-side environment, the location should simply
+ * be the URL path that was used in the request, including the query string.
+ */
+function createRouter(options) {
+  options = options || {};
+
+  if (isReactChildren(options))
+    options = { routes: options };
+
+  var mountedComponents = [];
+  var location = options.location || DEFAULT_LOCATION;
+  var scrollBehavior = options.scrollBehavior || DEFAULT_SCROLL_BEHAVIOR;
+  var state = {};
+  var nextState = {};
+  var pendingTransition = null;
+  var dispatchHandler = null;
+
+  if (typeof location === 'string') {
+    warning(
+      !canUseDOM || process.env.NODE_ENV === 'test',
+      'You should not use a static location in a DOM environment because ' +
+      'the router will not be kept in sync with the current URL'
+    );
+  } else {
+    invariant(
+      canUseDOM || location.needsDOM === false,
+      'You cannot use %s without a DOM',
+      location
+    );
+  }
+
+  // Automatically fall back to full page refreshes in
+  // browsers that don't support the HTML history API.
+  if (location === HistoryLocation && !supportsHistory())
+    location = RefreshLocation;
+
+  var Router = React.createClass({
+
+    displayName: 'Router',
+
+    statics: {
+
+      isRunning: false,
+
+      cancelPendingTransition: function () {
+        if (pendingTransition) {
+          pendingTransition.abort(new Cancellation);
+          pendingTransition = null;
+        }
+      },
+
+      clearAllRoutes: function () {
+        this.cancelPendingTransition();
+        this.defaultRoute = null;
+        this.notFoundRoute = null;
+        this.namedRoutes = {};
+        this.routes = [];
+      },
+
+      /**
+       * Adds routes to this router from the given children object (see ReactChildren).
+       */
+      addRoutes: function (routes) {
+        if (isReactChildren(routes))
+          routes = createRoutesFromReactChildren(routes, this, this.namedRoutes);
+
+        this.routes.push.apply(this.routes, routes);
+      },
+
+      /**
+       * Replaces routes of this router from the given children object (see ReactChildren).
+       */
+      replaceRoutes: function (routes) {
+        this.clearAllRoutes();
+        this.addRoutes(routes);
+        this.refresh();
+      },
+
+      /**
+       * Performs a match of the given path against this router and returns an object
+       * with the { routes, params, pathname, query } that match. Returns null if no
+       * match can be made.
+       */
+      match: function (path) {
+        return findMatch(this.routes, this.defaultRoute, this.notFoundRoute, Path.withoutQuery(path), Path.extractQuery(path));
+      },
+
+      /**
+       * Returns an absolute URL path created from the given route
+       * name, URL parameters, and query.
+       */
+      makePath: function (to, params, query) {
+        var path;
+        if (Path.isAbsolute(to)) {
+          path = Path.normalize(to);
+        } else {
+          var route = this.namedRoutes[to];
+
+          invariant(
+            route,
+            'Unable to find <Route name="%s">',
+            to
+          );
+
+          path = route.path;
+        }
+
+        return Path.withQuery(Path.injectParams(path, params), query);
+      },
+
+      /**
+       * Returns a string that may safely be used as the href of a link
+       * to the route with the given name, URL parameters, and query.
+       */
+      makeHref: function (to, params, query) {
+        var path = this.makePath(to, params, query);
+        return (location === HashLocation) ? '#' + path : path;
+      },
+
+      /**
+       * Transitions to the URL specified in the arguments by pushing
+       * a new URL onto the history stack.
+       */
+      transitionTo: function (to, params, query) {
+        invariant(
+          typeof location !== 'string',
+          'You cannot use transitionTo with a static location'
+        );
+
+        var path = this.makePath(to, params, query);
+
+        if (pendingTransition) {
+          // Replace so pending location does not stay in history.
+          location.replace(path);
+        } else {
+          location.push(path);
+        }
+      },
+
+      /**
+       * Transitions to the URL specified in the arguments by replacing
+       * the current URL in the history stack.
+       */
+      replaceWith: function (to, params, query) {
+        invariant(
+          typeof location !== 'string',
+          'You cannot use replaceWith with a static location'
+        );
+
+        location.replace(this.makePath(to, params, query));
+      },
+
+      /**
+       * Transitions to the previous URL if one is available. Returns true if the
+       * router was able to go back, false otherwise.
+       *
+       * Note: The router only tracks history entries in your application, not the
+       * current browser session, so you can safely call this function without guarding
+       * against sending the user back to some other site. However, when using
+       * RefreshLocation (which is the fallback for HistoryLocation in browsers that
+       * don't support HTML5 history) this method will *always* send the client back
+       * because we cannot reliably track history length.
+       */
+      goBack: function () {
+        invariant(
+          typeof location !== 'string',
+          'You cannot use goBack with a static location'
+        );
+
+        if (History.length > 1 || location === RefreshLocation) {
+          location.pop();
+          return true;
+        }
+
+        warning(false, 'goBack() was ignored because there is no router history');
+
+        return false;
+      },
+
+      handleAbort: options.onAbort || function (abortReason) {
+        if (typeof location === 'string')
+          throw new Error('Unhandled aborted transition! Reason: ' + abortReason);
+
+        if (abortReason instanceof Cancellation) {
+          return;
+        } else if (abortReason instanceof Redirect) {
+          location.replace(this.makePath(abortReason.to, abortReason.params, abortReason.query));
+        } else {
+          location.pop();
+        }
+      },
+
+      handleError: options.onError || function (error) {
+        // Throw so we don't silently swallow async errors.
+        throw error; // This error probably originated in a transition hook.
+      },
+
+      handleLocationChange: function (change) {
+        this.dispatch(change.path, change.type);
+      },
+
+      /**
+       * Performs a transition to the given path and calls callback(error, abortReason)
+       * when the transition is finished. If both arguments are null the router's state
+       * was updated. Otherwise the transition did not complete.
+       *
+       * In a transition, a router first determines which routes are involved by beginning
+       * with the current route, up the route tree to the first parent route that is shared
+       * with the destination route, and back down the tree to the destination route. The
+       * willTransitionFrom hook is invoked on all route handlers we're transitioning away
+       * from, in reverse nesting order. Likewise, the willTransitionTo hook is invoked on
+       * all route handlers we're transitioning to.
+       *
+       * Both willTransitionFrom and willTransitionTo hooks may either abort or redirect the
+       * transition. To resolve asynchronously, they may use the callback argument. If no
+       * hooks wait, the transition is fully synchronous.
+       */
+      dispatch: function (path, action) {
+        this.cancelPendingTransition();
+
+        var prevPath = state.path;
+        var isRefreshing = action == null;
+
+        if (prevPath === path && !isRefreshing)
+          return; // Nothing to do!
+
+        // Record the scroll position as early as possible to
+        // get it before browsers try update it automatically.
+        if (prevPath && action === LocationActions.PUSH)
+          this.recordScrollPosition(prevPath);
+
+        var match = this.match(path);
+
+        warning(
+          match != null,
+          'No route matches path "%s". Make sure you have <Route path="%s"> somewhere in your routes',
+          path, path
+        );
+
+        if (match == null)
+          match = {};
+
+        var prevRoutes = state.routes || [];
+        var prevParams = state.params || {};
+        var prevQuery = state.query || {};
+
+        var nextRoutes = match.routes || [];
+        var nextParams = match.params || {};
+        var nextQuery = match.query || {};
+
+        var fromRoutes, toRoutes;
+        if (prevRoutes.length) {
+          fromRoutes = prevRoutes.filter(function (route) {
+            return !hasMatch(nextRoutes, route, prevParams, nextParams, prevQuery, nextQuery);
+          });
+
+          toRoutes = nextRoutes.filter(function (route) {
+            return !hasMatch(prevRoutes, route, prevParams, nextParams, prevQuery, nextQuery);
+          });
+        } else {
+          fromRoutes = [];
+          toRoutes = nextRoutes;
+        }
+
+        var transition = new Transition(path, this.replaceWith.bind(this, path));
+        pendingTransition = transition;
+
+        var fromComponents = mountedComponents.slice(prevRoutes.length - fromRoutes.length);
+
+        transition.from(fromRoutes, fromComponents, function (error) {
+          if (error || transition.abortReason)
+            return dispatchHandler.call(Router, error, transition); // No need to continue.
+
+          transition.to(toRoutes, nextParams, nextQuery, function (error) {
+            dispatchHandler.call(Router, error, transition, {
+              path: path,
+              action: action,
+              pathname: match.pathname,
+              routes: nextRoutes,
+              params: nextParams,
+              query: nextQuery
+            });
+          });
+        });
+      },
+
+      /**
+       * Starts this router and calls callback(router, state) when the route changes.
+       *
+       * If the router's location is static (i.e. a URL path in a server environment)
+       * the callback is called only once. Otherwise, the location should be one of the
+       * Router.*Location objects (e.g. Router.HashLocation or Router.HistoryLocation).
+       */
+      run: function (callback) {
+        invariant(
+          !this.isRunning,
+          'Router is already running'
+        );
+
+        dispatchHandler = function (error, transition, newState) {
+          if (error)
+            Router.handleError(error);
+
+          if (pendingTransition !== transition)
+            return;
+
+          pendingTransition = null;
+
+          if (transition.abortReason) {
+            Router.handleAbort(transition.abortReason);
+          } else {
+            callback.call(this, this, nextState = newState);
+          }
+        };
+
+        if (typeof location === 'string') {
+          Router.dispatch(location, null);
+        } else {
+          if (location.addChangeListener)
+            location.addChangeListener(Router.handleLocationChange);
+
+          this.isRunning = true;
+
+          // Bootstrap using the current path.
+          this.refresh();
+        }
+      },
+
+      refresh: function () {
+        Router.dispatch(location.getCurrentPath(), null);
+      },
+
+      stop: function () {
+        this.cancelPendingTransition();
+
+        if (location.removeChangeListener)
+          location.removeChangeListener(Router.handleLocationChange);
+
+        this.isRunning = false;
+      }
+
+    },
+
+    mixins: [ NavigationContext, StateContext, Scrolling ],
+
+    propTypes: {
+      children: PropTypes.falsy
+    },
+
+    childContextTypes: {
+      getRouteAtDepth: React.PropTypes.func.isRequired,
+      setRouteComponentAtDepth: React.PropTypes.func.isRequired,
+      routeHandlers: React.PropTypes.array.isRequired
+    },
+
+    getChildContext: function () {
+      return {
+        getRouteAtDepth: this.getRouteAtDepth,
+        setRouteComponentAtDepth: this.setRouteComponentAtDepth,
+        routeHandlers: [ this ]
+      };
+    },
+
+    getInitialState: function () {
+      return (state = nextState);
+    },
+
+    componentWillReceiveProps: function () {
+      this.setState(state = nextState);
+    },
+
+    componentWillUnmount: function () {
+      Router.stop();
+    },
+
+    getLocation: function () {
+      return location;
+    },
+
+    getScrollBehavior: function () {
+      return scrollBehavior;
+    },
+
+    getRouteAtDepth: function (depth) {
+      var routes = this.state.routes;
+      return routes && routes[depth];
+    },
+
+    setRouteComponentAtDepth: function (depth, component) {
+      mountedComponents[depth] = component;
+    },
+
+    render: function () {
+      var route = this.getRouteAtDepth(0);
+      return route ? React.createElement(route.handler, this.props) : null;
+    }
+
+  });
+
+  Router.clearAllRoutes();
+
+  if (options.routes)
+    Router.addRoutes(options.routes);
+
+  return Router;
+}
+
+module.exports = createRouter;
+
+}).call(this,require('_process'))
+},{"./Cancellation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Cancellation.js","./History":"/Users/jakesendar/doc_app/node_modules/react-router/modules/History.js","./NavigationContext":"/Users/jakesendar/doc_app/node_modules/react-router/modules/NavigationContext.js","./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/modules/PropTypes.js","./Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Redirect.js","./Routing":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Routing.js","./Scrolling":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Scrolling.js","./StateContext":"/Users/jakesendar/doc_app/node_modules/react-router/modules/StateContext.js","./Transition":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Transition.js","./actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/modules/actions/LocationActions.js","./behaviors/ImitateBrowserBehavior":"/Users/jakesendar/doc_app/node_modules/react-router/modules/behaviors/ImitateBrowserBehavior.js","./isReactChildren":"/Users/jakesendar/doc_app/node_modules/react-router/modules/isReactChildren.js","./locations/HashLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HashLocation.js","./locations/HistoryLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HistoryLocation.js","./locations/RefreshLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/RefreshLocation.js","./utils/Path":"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/Path.js","./utils/supportsHistory":"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/supportsHistory.js","_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/index.js":[function(require,module,exports){
+exports.DefaultRoute = require('./components/DefaultRoute');
+exports.Link = require('./components/Link');
+exports.NotFoundRoute = require('./components/NotFoundRoute');
+exports.Redirect = require('./components/Redirect');
+exports.Route = require('./components/Route');
+exports.RouteHandler = require('./components/RouteHandler');
+
+exports.HashLocation = require('./locations/HashLocation');
+exports.HistoryLocation = require('./locations/HistoryLocation');
+exports.RefreshLocation = require('./locations/RefreshLocation');
+
+exports.ImitateBrowserBehavior = require('./behaviors/ImitateBrowserBehavior');
+exports.ScrollToTopBehavior = require('./behaviors/ScrollToTopBehavior');
+
+exports.History = require('./History');
+exports.Navigation = require('./Navigation');
+exports.RouteHandlerMixin = require('./RouteHandlerMixin');
+exports.State = require('./State');
+
+exports.create = require('./createRouter');
+exports.run = require('./runRouter');
+
+
+},{"./History":"/Users/jakesendar/doc_app/node_modules/react-router/modules/History.js","./Navigation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/Navigation.js","./RouteHandlerMixin":"/Users/jakesendar/doc_app/node_modules/react-router/modules/RouteHandlerMixin.js","./State":"/Users/jakesendar/doc_app/node_modules/react-router/modules/State.js","./behaviors/ImitateBrowserBehavior":"/Users/jakesendar/doc_app/node_modules/react-router/modules/behaviors/ImitateBrowserBehavior.js","./behaviors/ScrollToTopBehavior":"/Users/jakesendar/doc_app/node_modules/react-router/modules/behaviors/ScrollToTopBehavior.js","./components/DefaultRoute":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/DefaultRoute.js","./components/Link":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Link.js","./components/NotFoundRoute":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/NotFoundRoute.js","./components/Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Redirect.js","./components/Route":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/Route.js","./components/RouteHandler":"/Users/jakesendar/doc_app/node_modules/react-router/modules/components/RouteHandler.js","./createRouter":"/Users/jakesendar/doc_app/node_modules/react-router/modules/createRouter.js","./locations/HashLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HashLocation.js","./locations/HistoryLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HistoryLocation.js","./locations/RefreshLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/RefreshLocation.js","./runRouter":"/Users/jakesendar/doc_app/node_modules/react-router/modules/runRouter.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/isReactChildren.js":[function(require,module,exports){
+var React = require('react');
+
+function isValidChild(object) {
+  return object == null || React.isValidElement(object);
+}
+
+function isReactChildren(object) {
+  return isValidChild(object) || (Array.isArray(object) && object.every(isValidChild));
+}
+
+module.exports = isReactChildren;
+
+},{"react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HashLocation.js":[function(require,module,exports){
+var LocationActions = require('../actions/LocationActions');
+var History = require('../History');
+
+/**
+ * Returns the current URL path from the `hash` portion of the URL, including
+ * query string.
+ */
+function getHashPath() {
+  return decodeURI(
+    // We can't use window.location.hash here because it's not
+    // consistent across browsers - Firefox will pre-decode it!
+    window.location.href.split('#')[1] || ''
+  );
+}
+
+var _actionType;
+
+function ensureSlash() {
+  var path = getHashPath();
+
+  if (path.charAt(0) === '/')
+    return true;
+
+  HashLocation.replace('/' + path);
+
+  return false;
+}
+
+var _changeListeners = [];
+
+function notifyChange(type) {
+  if (type === LocationActions.PUSH)
+    History.length += 1;
+
+  var change = {
+    path: getHashPath(),
+    type: type
+  };
+
+  _changeListeners.forEach(function (listener) {
+    listener(change);
+  });
+}
+
+var _isListening = false;
+
+function onHashChange() {
+  if (ensureSlash()) {
+    // If we don't have an _actionType then all we know is the hash
+    // changed. It was probably caused by the user clicking the Back
+    // button, but may have also been the Forward button or manual
+    // manipulation. So just guess 'pop'.
+    notifyChange(_actionType || LocationActions.POP);
+    _actionType = null;
+  }
+}
+
+/**
+ * A Location that uses `window.location.hash`.
+ */
+var HashLocation = {
+
+  addChangeListener: function (listener) {
+    _changeListeners.push(listener);
+
+    // Do this BEFORE listening for hashchange.
+    ensureSlash();
+
+    if (!_isListening) {
+      if (window.addEventListener) {
+        window.addEventListener('hashchange', onHashChange, false);
+      } else {
+        window.attachEvent('onhashchange', onHashChange);
+      }
+
+      _isListening = true;
+    }
+  },
+
+  removeChangeListener: function(listener) {
+    _changeListeners = _changeListeners.filter(function (l) {
+      return l !== listener;
+    });
+
+    if (_changeListeners.length === 0) {
+      if (window.removeEventListener) {
+        window.removeEventListener('hashchange', onHashChange, false);
+      } else {
+        window.removeEvent('onhashchange', onHashChange);
+      }
+
+      _isListening = false;
+    }
+  },
+
+  push: function (path) {
+    _actionType = LocationActions.PUSH;
+    window.location.hash = encodeURI(path);
+  },
+
+  replace: function (path) {
+    _actionType = LocationActions.REPLACE;
+    window.location.replace(
+      window.location.pathname + window.location.search + '#' + encodeURI(path)
+    );
+  },
+
+  pop: function () {
+    _actionType = LocationActions.POP;
+    History.back();
+  },
+
+  getCurrentPath: getHashPath,
+
+  toString: function () {
+    return '<HashLocation>';
+  }
+
+};
+
+module.exports = HashLocation;
+
+},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/modules/History.js","../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/modules/actions/LocationActions.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HistoryLocation.js":[function(require,module,exports){
+var LocationActions = require('../actions/LocationActions');
+var History = require('../History');
+
+/**
+ * Returns the current URL path from `window.location`, including query string.
+ */
+function getWindowPath() {
+  return decodeURI(
+    window.location.pathname + window.location.search
+  );
+}
+
+var _changeListeners = [];
+
+function notifyChange(type) {
+  var change = {
+    path: getWindowPath(),
+    type: type
+  };
+
+  _changeListeners.forEach(function (listener) {
+    listener(change);
+  });
+}
+
+var _isListening = false;
+
+function onPopState() {
+  notifyChange(LocationActions.POP);
+}
+
+/**
+ * A Location that uses HTML5 history.
+ */
+var HistoryLocation = {
+
+  addChangeListener: function (listener) {
+    _changeListeners.push(listener);
+
+    if (!_isListening) {
+      if (window.addEventListener) {
+        window.addEventListener('popstate', onPopState, false);
+      } else {
+        window.attachEvent('popstate', onPopState);
+      }
+
+      _isListening = true;
+    }
+  },
+
+  removeChangeListener: function(listener) {
+    _changeListeners = _changeListeners.filter(function (l) {
+      return l !== listener;
+    });
+
+    if (_changeListeners.length === 0) {
+      if (window.addEventListener) {
+        window.removeEventListener('popstate', onPopState);
+      } else {
+        window.removeEvent('popstate', onPopState);
+      }
+
+      _isListening = false;
+    }
+  },
+
+  push: function (path) {
+    window.history.pushState({ path: path }, '', encodeURI(path));
+    History.length += 1;
+    notifyChange(LocationActions.PUSH);
+  },
+
+  replace: function (path) {
+    window.history.replaceState({ path: path }, '', encodeURI(path));
+    notifyChange(LocationActions.REPLACE);
+  },
+
+  pop: History.back,
+
+  getCurrentPath: getWindowPath,
+
+  toString: function () {
+    return '<HistoryLocation>';
+  }
+
+};
+
+module.exports = HistoryLocation;
+
+},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/modules/History.js","../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/modules/actions/LocationActions.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/RefreshLocation.js":[function(require,module,exports){
+var HistoryLocation = require('./HistoryLocation');
+var History = require('../History');
+
+/**
+ * A Location that uses full page refreshes. This is used as
+ * the fallback for HistoryLocation in browsers that do not
+ * support the HTML5 history API.
+ */
+var RefreshLocation = {
+
+  push: function (path) {
+    window.location = encodeURI(path);
+  },
+
+  replace: function (path) {
+    window.location.replace(encodeURI(path));
+  },
+
+  pop: History.back,
+
+  getCurrentPath: HistoryLocation.getCurrentPath,
+
+  toString: function () {
+    return '<RefreshLocation>';
+  }
+
+};
+
+module.exports = RefreshLocation;
+
+},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/modules/History.js","./HistoryLocation":"/Users/jakesendar/doc_app/node_modules/react-router/modules/locations/HistoryLocation.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/runRouter.js":[function(require,module,exports){
+var createRouter = require('./createRouter');
+
+/**
+ * A high-level convenience method that creates, configures, and
+ * runs a router in one shot. The method signature is:
+ *
+ *   Router.run(routes[, location ], callback);
+ *
+ * Using `window.location.hash` to manage the URL, you could do:
+ *
+ *   Router.run(routes, function (Handler) {
+ *     React.render(<Handler/>, document.body);
+ *   });
+ * 
+ * Using HTML5 history and a custom "cursor" prop:
+ * 
+ *   Router.run(routes, Router.HistoryLocation, function (Handler) {
+ *     React.render(<Handler cursor={cursor}/>, document.body);
+ *   });
+ *
+ * Returns the newly created router.
+ *
+ * Note: If you need to specify further options for your router such
+ * as error/abort handling or custom scroll behavior, use Router.create
+ * instead.
+ *
+ *   var router = Router.create(options);
+ *   router.run(function (Handler) {
+ *     // ...
+ *   });
+ */
+function runRouter(routes, location, callback) {
+  if (typeof location === 'function') {
+    callback = location;
+    location = null;
+  }
+
+  var router = createRouter({
+    routes: routes,
+    location: location
+  });
+
+  router.run(callback);
+
+  return router;
+}
+
+module.exports = runRouter;
+
+},{"./createRouter":"/Users/jakesendar/doc_app/node_modules/react-router/modules/createRouter.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/Path.js":[function(require,module,exports){
+var invariant = require('react/lib/invariant');
+var merge = require('qs/lib/utils').merge;
+var qs = require('qs');
+
+var paramCompileMatcher = /:([a-zA-Z_$][a-zA-Z0-9_$]*)|[*.()\[\]\\+|{}^$]/g;
+var paramInjectMatcher = /:([a-zA-Z_$][a-zA-Z0-9_$?]*[?]?)|[*]/g;
+var paramInjectTrailingSlashMatcher = /\/\/\?|\/\?\/|\/\?/g;
+var queryMatcher = /\?(.+)/;
+
+var _compiledPatterns = {};
+
+function compilePattern(pattern) {
+  if (!(pattern in _compiledPatterns)) {
+    var paramNames = [];
+    var source = pattern.replace(paramCompileMatcher, function (match, paramName) {
+      if (paramName) {
+        paramNames.push(paramName);
+        return '([^/?#]+)';
+      } else if (match === '*') {
+        paramNames.push('splat');
+        return '(.*?)';
+      } else {
+        return '\\' + match;
+      }
+    });
+
+    _compiledPatterns[pattern] = {
+      matcher: new RegExp('^' + source + '$', 'i'),
+      paramNames: paramNames
+    };
+  }
+
+  return _compiledPatterns[pattern];
+}
+
+var Path = {
+
+  /**
+   * Returns an array of the names of all parameters in the given pattern.
+   */
+  extractParamNames: function (pattern) {
+    return compilePattern(pattern).paramNames;
+  },
+
+  /**
+   * Extracts the portions of the given URL path that match the given pattern
+   * and returns an object of param name => value pairs. Returns null if the
+   * pattern does not match the given path.
+   */
+  extractParams: function (pattern, path) {
+    var object = compilePattern(pattern);
+    var match = path.match(object.matcher);
+
+    if (!match)
+      return null;
+
+    var params = {};
+
+    object.paramNames.forEach(function (paramName, index) {
+      params[paramName] = match[index + 1];
+    });
+
+    return params;
+  },
+
+  /**
+   * Returns a version of the given route path with params interpolated. Throws
+   * if there is a dynamic segment of the route path for which there is no param.
+   */
+  injectParams: function (pattern, params) {
+    params = params || {};
+
+    var splatIndex = 0;
+
+    return pattern.replace(paramInjectMatcher, function (match, paramName) {
+      paramName = paramName || 'splat';
+
+      // If param is optional don't check for existence
+      if (paramName.slice(-1) !== '?') {
+        invariant(
+          params[paramName] != null,
+          'Missing "' + paramName + '" parameter for path "' + pattern + '"'
+        );
+      } else {
+        paramName = paramName.slice(0, -1);
+
+        if (params[paramName] == null)
+          return '';
+      }
+
+      var segment;
+      if (paramName === 'splat' && Array.isArray(params[paramName])) {
+        segment = params[paramName][splatIndex++];
+
+        invariant(
+          segment != null,
+          'Missing splat # ' + splatIndex + ' for path "' + pattern + '"'
+        );
+      } else {
+        segment = params[paramName];
+      }
+
+      return segment;
+    }).replace(paramInjectTrailingSlashMatcher, '/');
+  },
+
+  /**
+   * Returns an object that is the result of parsing any query string contained
+   * in the given path, null if the path contains no query string.
+   */
+  extractQuery: function (path) {
+    var match = path.match(queryMatcher);
+    return match && qs.parse(match[1]);
+  },
+
+  /**
+   * Returns a version of the given path without the query string.
+   */
+  withoutQuery: function (path) {
+    return path.replace(queryMatcher, '');
+  },
+
+  /**
+   * Returns a version of the given path with the parameters in the given
+   * query merged into the query string.
+   */
+  withQuery: function (path, query) {
+    var existingQuery = Path.extractQuery(path);
+
+    if (existingQuery)
+      query = query ? merge(existingQuery, query) : existingQuery;
+
+    var queryString = qs.stringify(query, { indices: false });
+
+    if (queryString)
+      return Path.withoutQuery(path) + '?' + decodeURIComponent(queryString);
+
+    return path;
+  },
+
+  /**
+   * Returns true if the given path is absolute.
+   */
+  isAbsolute: function (path) {
+    return path.charAt(0) === '/';
+  },
+
+  /**
+   * Returns a normalized version of the given path.
+   */
+  normalize: function (path, parentRoute) {
+    return path.replace(/^\/*/, '/');
+  },
+
+  /**
+   * Joins two URL paths together.
+   */
+  join: function (a, b) {
+    return a.replace(/\/*$/, '/') + b;
+  }
+
+};
+
+module.exports = Path;
+
+},{"qs":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/index.js","qs/lib/utils":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/getWindowScrollPosition.js":[function(require,module,exports){
+var invariant = require('react/lib/invariant');
+var canUseDOM = require('react/lib/ExecutionEnvironment').canUseDOM;
+
+/**
+ * Returns the current scroll position of the window as { x, y }.
+ */
+function getWindowScrollPosition() {
+  invariant(
+    canUseDOM,
+    'Cannot get current scroll position without a DOM'
+  );
+
+  return {
+    x: window.pageXOffset || document.documentElement.scrollLeft,
+    y: window.pageYOffset || document.documentElement.scrollTop
+  };
+}
+
+module.exports = getWindowScrollPosition;
+
+},{"react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/modules/utils/supportsHistory.js":[function(require,module,exports){
+function supportsHistory() {
+  /*! taken from modernizr
+   * https://github.com/Modernizr/Modernizr/blob/master/LICENSE
+   * https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
+   * changed to avoid false negatives for Windows Phones: https://github.com/rackt/react-router/issues/586
+   */
+  var ua = navigator.userAgent;
+  if ((ua.indexOf('Android 2.') !== -1 ||
+      (ua.indexOf('Android 4.0') !== -1)) &&
+      ua.indexOf('Mobile Safari') !== -1 &&
+      ua.indexOf('Chrome') === -1 &&
+      ua.indexOf('Windows Phone') === -1) {
+    return false;
+  }
+  return (window.history && 'pushState' in window.history);
+}
+
+module.exports = supportsHistory;
+
+},{}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/index.js":[function(require,module,exports){
+module.exports = require('./lib/');
+
+},{"./lib/":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/index.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/index.js":[function(require,module,exports){
+// Load modules
+
+var Stringify = require('./stringify');
+var Parse = require('./parse');
+
+
+// Declare internals
+
+var internals = {};
+
+
+module.exports = {
+    stringify: Stringify,
+    parse: Parse
+};
+
+},{"./parse":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/parse.js","./stringify":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/stringify.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/parse.js":[function(require,module,exports){
+// Load modules
+
+var Utils = require('./utils');
+
+
+// Declare internals
+
+var internals = {
+    delimiter: '&',
+    depth: 5,
+    arrayLimit: 20,
+    parameterLimit: 1000
+};
+
+
+internals.parseValues = function (str, options) {
+
+    var obj = {};
+    var parts = str.split(options.delimiter, options.parameterLimit === Infinity ? undefined : options.parameterLimit);
+
+    for (var i = 0, il = parts.length; i < il; ++i) {
+        var part = parts[i];
+        var pos = part.indexOf(']=') === -1 ? part.indexOf('=') : part.indexOf(']=') + 1;
+
+        if (pos === -1) {
+            obj[Utils.decode(part)] = '';
+        }
+        else {
+            var key = Utils.decode(part.slice(0, pos));
+            var val = Utils.decode(part.slice(pos + 1));
+
+            if (!obj.hasOwnProperty(key)) {
+                obj[key] = val;
+            }
+            else {
+                obj[key] = [].concat(obj[key]).concat(val);
+            }
+        }
+    }
+
+    return obj;
+};
+
+
+internals.parseObject = function (chain, val, options) {
+
+    if (!chain.length) {
+        return val;
+    }
+
+    var root = chain.shift();
+
+    var obj = {};
+    if (root === '[]') {
+        obj = [];
+        obj = obj.concat(internals.parseObject(chain, val, options));
+    }
+    else {
+        var cleanRoot = root[0] === '[' && root[root.length - 1] === ']' ? root.slice(1, root.length - 1) : root;
+        var index = parseInt(cleanRoot, 10);
+        var indexString = '' + index;
+        if (!isNaN(index) &&
+            root !== cleanRoot &&
+            indexString === cleanRoot &&
+            index >= 0 &&
+            index <= options.arrayLimit) {
+
+            obj = [];
+            obj[index] = internals.parseObject(chain, val, options);
+        }
+        else {
+            obj[cleanRoot] = internals.parseObject(chain, val, options);
+        }
+    }
+
+    return obj;
+};
+
+
+internals.parseKeys = function (key, val, options) {
+
+    if (!key) {
+        return;
+    }
+
+    // The regex chunks
+
+    var parent = /^([^\[\]]*)/;
+    var child = /(\[[^\[\]]*\])/g;
+
+    // Get the parent
+
+    var segment = parent.exec(key);
+
+    // Don't allow them to overwrite object prototype properties
+
+    if (Object.prototype.hasOwnProperty(segment[1])) {
+        return;
+    }
+
+    // Stash the parent if it exists
+
+    var keys = [];
+    if (segment[1]) {
+        keys.push(segment[1]);
+    }
+
+    // Loop through children appending to the array until we hit depth
+
+    var i = 0;
+    while ((segment = child.exec(key)) !== null && i < options.depth) {
+
+        ++i;
+        if (!Object.prototype.hasOwnProperty(segment[1].replace(/\[|\]/g, ''))) {
+            keys.push(segment[1]);
+        }
+    }
+
+    // If there's a remainder, just add whatever is left
+
+    if (segment) {
+        keys.push('[' + key.slice(segment.index) + ']');
+    }
+
+    return internals.parseObject(keys, val, options);
+};
+
+
+module.exports = function (str, options) {
+
+    if (str === '' ||
+        str === null ||
+        typeof str === 'undefined') {
+
+        return {};
+    }
+
+    options = options || {};
+    options.delimiter = typeof options.delimiter === 'string' || Utils.isRegExp(options.delimiter) ? options.delimiter : internals.delimiter;
+    options.depth = typeof options.depth === 'number' ? options.depth : internals.depth;
+    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : internals.arrayLimit;
+    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : internals.parameterLimit;
+
+    var tempObj = typeof str === 'string' ? internals.parseValues(str, options) : str;
+    var obj = {};
+
+    // Iterate over the keys and setup the new object
+
+    var keys = Object.keys(tempObj);
+    for (var i = 0, il = keys.length; i < il; ++i) {
+        var key = keys[i];
+        var newObj = internals.parseKeys(key, tempObj[key], options);
+        obj = Utils.merge(obj, newObj);
+    }
+
+    return Utils.compact(obj);
+};
+
+},{"./utils":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/stringify.js":[function(require,module,exports){
+// Load modules
+
+var Utils = require('./utils');
+
+
+// Declare internals
+
+var internals = {
+    delimiter: '&',
+    indices: true
+};
+
+
+internals.stringify = function (obj, prefix, options) {
+
+    if (Utils.isBuffer(obj)) {
+        obj = obj.toString();
+    }
+    else if (obj instanceof Date) {
+        obj = obj.toISOString();
+    }
+    else if (obj === null) {
+        obj = '';
+    }
+
+    if (typeof obj === 'string' ||
+        typeof obj === 'number' ||
+        typeof obj === 'boolean') {
+
+        return [encodeURIComponent(prefix) + '=' + encodeURIComponent(obj)];
+    }
+
+    var values = [];
+
+    if (typeof obj === 'undefined') {
+        return values;
+    }
+
+    var objKeys = Object.keys(obj);
+    for (var i = 0, il = objKeys.length; i < il; ++i) {
+        var key = objKeys[i];
+        if (!options.indices &&
+            Array.isArray(obj)) {
+
+            values = values.concat(internals.stringify(obj[key], prefix, options));
+        }
+        else {
+            values = values.concat(internals.stringify(obj[key], prefix + '[' + key + ']', options));
+        }
+    }
+
+    return values;
+};
+
+
+module.exports = function (obj, options) {
+
+    options = options || {};
+    var delimiter = typeof options.delimiter === 'undefined' ? internals.delimiter : options.delimiter;
+    options.indices = typeof options.indices === 'boolean' ? options.indices : internals.indices;
+
+    var keys = [];
+
+    if (typeof obj !== 'object' ||
+        obj === null) {
+
+        return '';
+    }
+
+    var objKeys = Object.keys(obj);
+    for (var i = 0, il = objKeys.length; i < il; ++i) {
+        var key = objKeys[i];
+        keys = keys.concat(internals.stringify(obj[key], key, options));
+    }
+
+    return keys.join(delimiter);
+};
+
+},{"./utils":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js":[function(require,module,exports){
+// Load modules
+
+
+// Declare internals
+
+var internals = {};
+
+
+exports.arrayToObject = function (source) {
+
+    var obj = {};
+    for (var i = 0, il = source.length; i < il; ++i) {
+        if (typeof source[i] !== 'undefined') {
+
+            obj[i] = source[i];
+        }
+    }
+
+    return obj;
+};
+
+
+exports.merge = function (target, source) {
+
+    if (!source) {
+        return target;
+    }
+
+    if (typeof source !== 'object') {
+        if (Array.isArray(target)) {
+            target.push(source);
+        }
+        else {
+            target[source] = true;
+        }
+
+        return target;
+    }
+
+    if (typeof target !== 'object') {
+        target = [target].concat(source);
+        return target;
+    }
+
+    if (Array.isArray(target) &&
+        !Array.isArray(source)) {
+
+        target = exports.arrayToObject(target);
+    }
+
+    var keys = Object.keys(source);
+    for (var k = 0, kl = keys.length; k < kl; ++k) {
+        var key = keys[k];
+        var value = source[key];
+
+        if (!target[key]) {
+            target[key] = value;
+        }
+        else {
+            target[key] = exports.merge(target[key], value);
+        }
+    }
+
+    return target;
+};
+
+
+exports.decode = function (str) {
+
+    try {
+        return decodeURIComponent(str.replace(/\+/g, ' '));
+    } catch (e) {
+        return str;
+    }
+};
+
+
+exports.compact = function (obj, refs) {
+
+    if (typeof obj !== 'object' ||
+        obj === null) {
+
+        return obj;
+    }
+
+    refs = refs || [];
+    var lookup = refs.indexOf(obj);
+    if (lookup !== -1) {
+        return refs[lookup];
+    }
+
+    refs.push(obj);
+
+    if (Array.isArray(obj)) {
+        var compacted = [];
+
+        for (var i = 0, il = obj.length; i < il; ++i) {
+            if (typeof obj[i] !== 'undefined') {
+                compacted.push(obj[i]);
+            }
+        }
+
+        return compacted;
+    }
+
+    var keys = Object.keys(obj);
+    for (i = 0, il = keys.length; i < il; ++i) {
+        var key = keys[i];
+        obj[key] = exports.compact(obj[key], refs);
+    }
+
+    return obj;
+};
+
+
+exports.isRegExp = function (obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+
+
+exports.isBuffer = function (obj) {
+
+    if (obj === null ||
+        typeof obj === 'undefined') {
+
+        return false;
+    }
+
+    return !!(obj.constructor &&
+        obj.constructor.isBuffer &&
+        obj.constructor.isBuffer(obj));
+};
+
 },{}],"/Users/jakesendar/doc_app/node_modules/react/lib/AutoFocusMixin.js":[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
@@ -27512,7 +30306,46 @@ function createNodesFromMarkup(markup, handleScript) {
 module.exports = createNodesFromMarkup;
 
 }).call(this,require('_process'))
-},{"./ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","./createArrayFrom":"/Users/jakesendar/doc_app/node_modules/react/lib/createArrayFrom.js","./getMarkupWrap":"/Users/jakesendar/doc_app/node_modules/react/lib/getMarkupWrap.js","./invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js","_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js"}],"/Users/jakesendar/doc_app/node_modules/react/lib/dangerousStyleValue.js":[function(require,module,exports){
+},{"./ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","./createArrayFrom":"/Users/jakesendar/doc_app/node_modules/react/lib/createArrayFrom.js","./getMarkupWrap":"/Users/jakesendar/doc_app/node_modules/react/lib/getMarkupWrap.js","./invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js","_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js"}],"/Users/jakesendar/doc_app/node_modules/react/lib/cx.js":[function(require,module,exports){
+/**
+ * Copyright 2013-2014, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @providesModule cx
+ */
+
+/**
+ * This function is used to mark string literals representing CSS class names
+ * so that they can be transformed statically. This allows for modularization
+ * and minification of CSS class names.
+ *
+ * In static_upstream, this function is actually implemented, but it should
+ * eventually be replaced with something more descriptive, and the transform
+ * that is used in the main stack should be ported for use elsewhere.
+ *
+ * @param string|object className to modularize, or an object of key/values.
+ *                      In the object case, the values are conditions that
+ *                      determine if the className keys should be included.
+ * @param [string ...]  Variable list of classNames in the string case.
+ * @return string       Renderable space-separated CSS className.
+ */
+function cx(classNames) {
+  if (typeof classNames == 'object') {
+    return Object.keys(classNames).filter(function(className) {
+      return classNames[className];
+    }).join(' ');
+  } else {
+    return Array.prototype.join.call(arguments, ' ');
+  }
+}
+
+module.exports = cx;
+
+},{}],"/Users/jakesendar/doc_app/node_modules/react/lib/dangerousStyleValue.js":[function(require,module,exports){
 /**
  * Copyright 2013-2014, Facebook, Inc.
  * All rights reserved.

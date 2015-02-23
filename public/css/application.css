@@ -1,3 +1,7 @@
-.html {
-  font-size: 40px;
+.lead-results-row {
+  cursor: pointer;
+}
+.lead-results-row:hover {
+  background: #446cd2;
+  color: white;
 }
