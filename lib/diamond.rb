@@ -11,4 +11,10 @@ class Diamond
     @client.execute("SELECT TOP 20 * FROM [825-Austin].dbo.lead").each {|r| results << r}
     results
   end
+
+  def get_lead_detail(leads_360_id)
+    results = []
+    @client.execute("SELECT * FROM [adm_manager].dbo.lead_detail where Leads360ID = '#{leads_360_id}'").each {|r| results << r}
+    results.first
+  end
 end

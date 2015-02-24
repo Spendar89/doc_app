@@ -35,7 +35,7 @@ end
 get '/leads/:id' do
   content_type :json
 
-  @v = Velocify.new
-  @lead_data = @v.get_lead_by_id params[:id]
-  @v.convert_lead(@lead_data).to_json
+  @d = Diamond.new
+  @lead_data = @d.get_lead_detail params[:id]
+  @lead_data.to_json
 end

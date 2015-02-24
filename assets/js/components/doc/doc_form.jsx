@@ -7,13 +7,19 @@ var DocForm = React.createClass({
         return _.map(
             this.props.customFields, function (field, fieldName) {
                 return (
-                    <DocInput  updateFieldValue={self.props.updateCustomFieldValue} 
-                        fieldName={fieldName}
-                        fieldValue={field.value}
-                        customMethod={field.customMethod}/>
+                    <div>
+                    {self.renderDocInputHeader(field)}
+                    <DocInput  field={field} updateField={self.props.updateCustomField} fieldName={fieldName} />
+                    </div>
                 );
             }
         );
+    },
+
+    renderDocInputHeader: function (field) {
+        if (field.header) {
+            return <h2 className="doc-input-header"> {field.header} </h2>
+        }
     },
 
     transformCustomFields: function () {

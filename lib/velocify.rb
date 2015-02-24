@@ -23,7 +23,7 @@ class Velocify
     end
   end
 
-  def get_leads_by_phone(phone = 8042017803)
+  def get_leads_by_phone(phone)
     begin
       res = request(:get_leads_by_phone, {phone: phone})
       res[:get_leads_by_phone_response][:get_leads_by_phone_result][:leads][:lead]

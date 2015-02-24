@@ -1,4 +1,4 @@
-var LeadBlock = require('./lead_block.jsx')
+//var LeadBlock = require('./lead_block.jsx')
 
 var LeadIndexTemplate = React.createClass({
 
@@ -16,7 +16,6 @@ var LeadIndexTemplate = React.createClass({
     render: function() {
         return (
             <div className="app-template-div container">
-                <LeadBlock handleLead={this.handleLead}/>
             </div>
         )
 

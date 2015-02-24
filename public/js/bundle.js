@@ -47,13 +47,19 @@ var DocForm = React.createClass({displayName: "DocForm",
         return _.map(
             this.props.customFields, function (field, fieldName) {
                 return (
-                    React.createElement(DocInput, {updateFieldValue: self.props.updateCustomFieldValue, 
-                        fieldName: fieldName, 
-                        fieldValue: field.value, 
-                        customMethod: field.customMethod})
+                    React.createElement("div", null, 
+                    self.renderDocInputHeader(field), 
+                    React.createElement(DocInput, {field: field, updateField: self.props.updateCustomField, fieldName: fieldName})
+                    )
                 );
             }
         );
+    },
+
+    renderDocInputHeader: function (field) {
+        if (field.header) {
+            return React.createElement("h2", {className: "doc-input-header"}, " ", field.header, " ")
+        }
     },
 
     transformCustomFields: function () {
@@ -86,9 +92,34 @@ module.exports = DocForm;
 },{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
 var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
-        this.props.updateFieldValue(this.props.fieldName, 
-                                    e.target.value, 
-                                    this.props.customMethod)
+        var field = _.extend(this.props.field, {})
+        field.value = e.target.value;
+        this.props.updateField(this.props.fieldName, field);
+        //this.props.updateFieldValue(this.props.fieldName, 
+                                    //e.target.value, 
+                                    //this.props.customMethod)
+    },
+
+    renderInput: function () {
+        var renderOptions = function (option) {
+            return React.createElement("option", {value: option}, " ", option, " ")
+
+        };
+        if (this.props.field.options) {
+            return (
+                React.createElement("select", {className: "doc-block-input form-control", onChange: this.handleChange, value: this.props.field.value}, 
+                    _.map(this.props.field.options, renderOptions)
+                )
+            )
+        } else {
+            return (
+                React.createElement("input", {onChange: this.handleChange, 
+                    value: this.props.field.value, 
+                    className: "doc-block-input form-control", 
+                    type: this.props.field.type || "text"})
+            )
+        }
+
     },
 
     render: function() {
@@ -97,10 +128,7 @@ var DocInput = React.createClass({displayName: "DocInput",
                 React.createElement("label", {className: "form-label"}, 
                     this.props.fieldName
                 ), 
-                React.createElement("input", {onChange: this.handleChange, 
-                        value: this.props.fieldValue, 
-                        className: "doc-block-input form-control", 
-                        type: "text"})
+                this.renderInput()
             )
         );
 
@@ -111,66 +139,8 @@ var DocInput = React.createClass({displayName: "DocInput",
 module.exports = DocInput;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_block.jsx":[function(require,module,exports){
-var LeadInput = require('./lead_input.jsx');
-var LeadsList = require('./leads_list.jsx');
-
-var LeadBlock = React.createClass({displayName: "LeadBlock",
-
-    getInitialState: function () {
-        return { 
-            leads: [],
-            phone: ""
-        }
-    },
-
-    fetchLeads: function () {
-        $.get('/leads?phone=' + this.state.phone, function(data) {
-            this.setState({leads: data})
-        }.bind(this))
-    },
-    
-    handleChange: function (e) {
-        this.setState({phone: e.target.value})
-    },
-
-    handleClick: function (e) {
-        e.preventDefault();
-        this.fetchLeads();
-    },
-
-    renderLeadsList: function () {
-    },
-
-    render: function() {
-        return (
-            React.createElement("div", {className: "lead-block row"}, 
-                React.createElement("h4", {className: "col-sm-12"}, "Search for a lead by phone number:"), 
-                React.createElement("div", {className: "form-group col-sm-12 row"}, 
-                    React.createElement("div", {className: "col-sm-8"}, 
-                        React.createElement("input", {onChange: this.handleChange, 
-                                className: "lead-block-input form-control", 
-                                type: "text"})
-                    ), 
-                    React.createElement("div", {className: "col-sm-4"}, 
-                        React.createElement("button", {className: "btn btn-submit pull-right", onClick: this.handleClick}, 
-                            "Search For Leads"
-                        )
-                    )
-                ), 
-                React.createElement(LeadsList, {leads: this.state.leads, handleLead: this.props.handleLead})
-            )
-        )
-
-    }
-
-});
-
-module.exports = LeadBlock;
-
-
-},{"./lead_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_input.jsx","./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/leads_list.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_index_template.jsx":[function(require,module,exports){
-var LeadBlock = require('./lead_block.jsx')
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_index_template.jsx":[function(require,module,exports){
+//var LeadBlock = require('./lead_block.jsx')
 
 var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
 
@@ -187,8 +157,7 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
 
     render: function() {
         return (
-            React.createElement("div", {className: "app-template-div container"}, 
-                React.createElement(LeadBlock, {handleLead: this.handleLead})
+            React.createElement("div", {className: "app-template-div container"}
             )
         )
 
@@ -198,31 +167,6 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
 
 module.exports = LeadIndexTemplate;
 
-
-
-},{"./lead_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_input.jsx":[function(require,module,exports){
-
-var LeadInput = React.createClass({displayName: "LeadInput",
-    handleChange: function (e) {
-        //this.props.updateFieldValue(this.props.fieldName, 
-                                    //e.target.value, 
-                                    //this.props.customMethod)
-    },
-
-    render: function() {
-        return (
-            React.createElement("div", {className: "lead-input form-group"}, 
-                React.createElement("input", {onChange: this.handleChange, 
-                        className: "lead-block-input form-control", 
-                        type: "text"})
-            )
-        );
-
-    }
-
-});
-
-module.exports = LeadInput;
 
 
 },{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_show_template.jsx":[function(require,module,exports){
@@ -237,15 +181,154 @@ var fetchLead = function (leadId, callback) {
 
 var getCustomFields = function (lead) {
     return {
-        Phone: {
-            value: lead.home_phone
+        "First Name": {
+            header: "Bio",
+            value: lead["FName"]
         },
-        Name: {
-            value: lead.first_name
+        "Middle Initial": {
+            value: lead["MInitial"]
         },
-        Email: {
-            value: lead.email_1,
+        "Last Name": {
+            value: lead["LName"]
+        },
+        "Date of Birth": {
+            value: lead["DateOfBirth"]
+        },
+        "Gender": {
+            value: lead["Gender"]
+        },
+        "Ethnicity": {
+            value: lead["Ethnicity"]
+        },
+        "Home Phone": {
+            value: lead["Phone"]
+        },
+        "Mobile Phone": {
+            value: lead["PhoneMobile"]
+        },
+        "Work Phone": {
+            value: lead["PhoneOther"]
+        },
+        "Address 1": {
+            value: lead["Address"]
+        },
+        "City": {
+            value: lead["City"]
+        },
+        "Zip": {
+            value: lead["Zip"]
+        },
+        "Address 2": {
+            value: lead["Address2"]
+        },
+        "State": {
+            value: lead["State"]
+        },
+        "Country": {
+            value: lead["Country"]
+        },
+        "Email": {
+            value: lead["Email"],
             customMethod: "setName"
+        },
+        "Marital Status": {
+            value: lead["MaritalStatus"]    
+        },
+        "SSN": {
+            value: lead["SSN"]
+        },
+        "Drivers License No": {
+            value: lead["DriversLicense"]
+        },
+        "Drivers License State": {
+            value: lead["DriversLicenseState"]
+        },
+        "Secondary Education": {
+            header: "Previous Education",
+            value: lead["SecondaryEducation"]
+        },
+        "POG": {
+            value: lead["POG"]
+        },
+        "HS Grad Date": {
+            value: lead["HSGradDate"]
+        },
+        "Highest Level of Education.": {
+            value: lead["HighestLevelEducation"]
+        },
+        "Previous College": {
+           value: lead["PreviousCollege"] 
+        },
+        "Campus": {
+            header: "Enrollment Info",
+            value: lead["Campus"]
+        },
+        "Admissions Rep": {
+
+        },
+        "Admissions Rep Email": {
+
+        },
+        "Program": {
+            header: "Select Program",
+            value: lead["Program"],
+            options: ["", "Accounting", "Finance", "English"],
+            customMethod: "setStartDate"
+        },
+        "Start Date": {
+            value: lead["StartDate"]
+
+        },
+        "Grad Date": {
+            value: lead["GradDate"]
+        },
+        "Weeks": {
+            type: "number",
+            value: lead["Weeks"]
+        },
+        "Student Type": {
+            value: lead["StudentType"]
+        },
+        "Session": {
+            value: lead["Session"]
+        },
+        "Contract Signed Date": {
+            value: lead["ContractSignedDate"]    
+        },
+        "Institution/Location": {
+            header: "Post Secondary Education",
+            value: lead["InstitutionLocation"]
+        },
+        "Type of Diploma/Degree": {
+
+        },
+        "Field of Study": {
+
+        },
+        "Start Data": {
+            
+        },
+        "End Date": {
+
+        },
+        "Graduated": {
+            value: lead["Graduated"]
+        },
+        "Program Results in Diploma": {
+            header: "Additional Info",
+            value: lead["Diplorma"]
+        },
+        "Requires National Certification": {
+            
+        },
+        "Funding Type": {
+
+        },
+        "MOU Month": {
+
+        },
+        "MOU Year": {
+
         }
     }
 };
@@ -263,12 +346,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         this.setState({customFields: getCustomFields(lead)});
     },
 
-    updateCustomFieldValue: function (fieldName, fieldValue, customMethod) {
+    updateCustomField: function (fieldName, field) {
         var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = {value: fieldValue, customMethod: customMethod};
+        cf[fieldName] = field;
         this.setState({customFields: cf})
-        if (customMethod) {
-            CustomMethods[customMethod](this);
+        if (field.customMethod) {
+            CustomMethods[field.customMethod](this);
         }
     },
 
@@ -292,7 +375,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     render: function() {
         return (
             React.createElement("div", {className: "app-template-div container"}, 
-                React.createElement(DocForm, {updateCustomFieldValue: this.updateCustomFieldValue, customFields: this.state.customFields, lead: this.state.lead})
+                React.createElement(DocForm, {updateCustomField: this.updateCustomField, customFields: this.state.customFields, lead: this.state.lead})
             )
         )
 
@@ -303,55 +386,34 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/leads_list.jsx":[function(require,module,exports){
-var LeadsList = React.createClass({displayName: "LeadsList",
+},{"./../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
+var CustomMethods = { setStartDate: function (form) {
+        var dates = {
+            "Accounting": {"start": "4/1/2015", "grad": "6/1/2015", "weeks": 8},
+            "Finance": {"start": "5/1/2015", "grad": "9/1/2015", "weeks": 27},
+            "English": {"start": "3/8/2015", "grad": "11/1/2015", "weeks": 30}
+        }
+        var program = form.state.customFields.Program.value;
 
-    handleClick: function(lead) {
-        console.log("LEAD 1", lead)
-        window.location.href = "#/leads/" + lead.id;
-        //this.props.handleLead(lead);
+        if (!program) return false;
+
+        var startDate = dates[program]["start"];
+        var gradDate = dates[program]["grad"];
+        var weeks = dates[program]["weeks"];
+
+        var startField = _.extend(form.state.customFields["Start Date"], {});
+        startField.value = new Date(startDate);
+        form.updateCustomField("Start Date", startField)
+
+        var gradField = _.extend(form.state.customFields["Grad Date"], {});
+        gradField.value = new Date(gradDate);
+        form.updateCustomField("Grad Date", gradField)
+
+        var weeksField = _.extend(form.state.customFields["Weeks"], {});
+        weeksField.value = weeks;
+        form.updateCustomField("End Date", weeksField)
     },
 
-    renderLeads: function () {
-       return this.props.leads.map(function (lead) {
-           return (
-                    React.createElement("tr", {className: "lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
-                           React.createElement("td", {className: "lead-results-field"}, 
-                               React.createElement("span", {className: "lead-results-field-value"}, lead.first_name, " ", lead.last_name)
-                           ), 
-                           React.createElement("td", {className: "lead-results-field"}, 
-                               React.createElement("span", {className: "lead-results-field-value"}, lead.email_1)
-                           ), 
-                           React.createElement("td", {className: "lead-results-field"}, 
-                               React.createElement("span", {className: "lead-results-field-value"}, lead.id)
-                           )
-                   )
-           )
-        }, this)
-    },
-
-    render: function () {
-        return (
-            React.createElement("div", {className: "leads-list col-sm-12"}, 
-               React.createElement("table", {className: "lead-div table table-striped table-bordered table-striped"}, 
-                   React.createElement("tr", null, 
-                       React.createElement("th", null, "Name"), 
-                       React.createElement("th", null, "Email"), 
-                       React.createElement("th", null, "Id")
-                   ), 
-                    this.renderLeads()
-                )
-            )
-        )
-    }
-
-})
-
-module.exports = LeadsList;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
-var CustomMethods = {
     setName: function (form) {
         var nameValue;
         if (form.state.customFields.Email.value === "jakesendar@gmail.com") {
@@ -359,7 +421,9 @@ var CustomMethods = {
         } else {
             nameValue = "Dude Man"
         };
-        form.updateCustomFieldValue("Name", nameValue);
+        var field = _.extend(form.state.customFields["First Name"], {});
+        field.value = nameValue;
+        form.updateCustomFieldValue("First Name", field);
     }
 }
 
