@@ -2,8 +2,8 @@
 React = require('react')
 _ = require('lodash')
 
-var LeadIndexTemplate = require('./components/lead/lead_index_template.jsx');
-var LeadShowTemplate = require('./components/lead/lead_show_template.jsx');
+var LeadIndexTemplate = require('./components/lead//index/template.jsx');
+var LeadShowTemplate = require('./components/lead/show/template.jsx');
 
 var Router = require('react-router'); // or var Router = ReactRouter; in browsers
 var DefaultRoute = Router.DefaultRoute;
@@ -37,7 +37,7 @@ Router.run(routes, function (Handler, state) {
 });
 
 
-},{"./components/lead/lead_index_template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_index_template.jsx","./components/lead/lead_show_template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/lead_show_template.jsx","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react-router":"/Users/jakesendar/doc_app/node_modules/react-router/modules/index.js"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx":[function(require,module,exports){
+},{"./components/lead//index/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx","./components/lead/show/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react-router":"/Users/jakesendar/doc_app/node_modules/react-router/modules/index.js"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx":[function(require,module,exports){
 var DocInput = require('./doc_input.jsx');
 
 var DocForm = React.createClass({displayName: "DocForm",
@@ -48,8 +48,10 @@ var DocForm = React.createClass({displayName: "DocForm",
             this.props.customFields, function (field, fieldName) {
                 return (
                     React.createElement("div", null, 
-                    self.renderDocInputHeader(field), 
-                    React.createElement(DocInput, {field: field, updateField: self.props.updateCustomField, fieldName: fieldName})
+                        self.renderDocInputHeader(field), 
+                        React.createElement(DocInput, {field: field, 
+                                  updateField: self.props.updateCustomField, 
+                                  fieldName: fieldName})
                     )
                 );
             }
@@ -79,7 +81,8 @@ var DocForm = React.createClass({displayName: "DocForm",
         return (
             React.createElement("form", {className: "doc-form col-sm-12"}, 
                 this.renderDocInputs(), 
-                React.createElement("input", {type: "submit", onClick: this.handleSubmit})
+                React.createElement("input", {className: "btn-submit btn col-sm-12", 
+                        type: "submit", onClick: this.handleSubmit})
             )
         );
     }
@@ -94,6 +97,7 @@ var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
         field.value = e.target.value;
+        console.log(field)
         this.props.updateField(this.props.fieldName, field);
         //this.props.updateFieldValue(this.props.fieldName, 
                                     //e.target.value, 
@@ -109,6 +113,29 @@ var DocInput = React.createClass({displayName: "DocInput",
             return (
                 React.createElement("select", {className: "doc-block-input form-control", onChange: this.handleChange, value: this.props.field.value}, 
                     _.map(this.props.field.options, renderOptions)
+                )
+            )
+        } else if (this.props.field.type === "radio") {
+            return (
+                React.createElement("div", {className: "radio-group col-sm-12"}, 
+                    React.createElement("div", {className: "radio"}, 
+                        React.createElement("label", null, 
+                            React.createElement("input", {onChange: this.handleChange, 
+                                    value: true, 
+                                    checked: this.props.field.value === "true", 
+                                    type: "radio"}), 
+                            "True"
+                        )
+                    ), 
+                    React.createElement("div", {className: "radio"}, 
+                        React.createElement("label", null, 
+                            React.createElement("input", {onChange: this.handleChange, 
+                                    checked: this.props.field.value === "false", 
+                                    value: false, 
+                                    type: "radio"}), 
+                            "False"
+                        )
+                    )
                 )
             )
         } else {
@@ -139,25 +166,124 @@ var DocInput = React.createClass({displayName: "DocInput",
 module.exports = DocInput;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_index_template.jsx":[function(require,module,exports){
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx":[function(require,module,exports){
+var LeadsList = React.createClass({displayName: "LeadsList",
+
+    handleClick: function(lead) {
+        window.location.href = "#/leads/" + lead.id;
+        //this.props.handleLead(lead);
+    },
+
+    renderLeads: function () {
+       return this.props.leads.map(function (lead) {
+           return (
+                    React.createElement("tr", {className: "lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
+                           React.createElement("td", {className: "lead-results-field"}, 
+                               React.createElement("span", {className: "lead-results-field-value"}, lead.first_name, " ", lead.last_name)
+                           ), 
+                           React.createElement("td", {className: "lead-results-field"}, 
+                               React.createElement("span", {className: "lead-results-field-value"}, lead.email_1)
+                           ), 
+                           React.createElement("td", {className: "lead-results-field"}, 
+                               React.createElement("span", {className: "lead-results-field-value"}, lead.id)
+                           )
+                   )
+           )
+        }, this)
+    },
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "leads-list col-sm-12"}, 
+               React.createElement("table", {className: "lead-div table table-striped table-bordered table-striped"}, 
+                   React.createElement("tr", null, 
+                       React.createElement("th", null, "Name"), 
+                       React.createElement("th", null, "Email"), 
+                       React.createElement("th", null, "Id")
+                   ), 
+                    this.renderLeads()
+                )
+            )
+        )
+    }
+
+})
+
+module.exports = LeadsList;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx":[function(require,module,exports){
+var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
+    setInitialState: function () {
+        return {
+            phone: ""
+        }
+    },
+
+    handleChange: function (e) {
+        e.preventDefault();
+        this.setState({phone: e.target.value})
+    },
+
+    handleClick: function (e) {
+        e.preventDefault();
+        this.props.handleSubmit(this.state.phone);
+    },
+
+    render: function() {
+        return (
+            React.createElement("div", {className: "leads-search-block form-group row col-sm-12"}, 
+                React.createElement("div", {className: "col-sm-8"}, 
+                    React.createElement("input", {onChange: this.handleChange, 
+                            className: "lead-block-input form-control", 
+                            type: "text"})
+                ), 
+                React.createElement("div", {className: "col-sm-4"}, 
+                    React.createElement("input", {type: "submit", 
+                            onClick: this.handleClick, 
+                            className: "btn btn-submit col-sm-12"})
+                )
+            )
+        );
+
+    }
+
+});
+
+module.exports = LeadsSearchBlock;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx":[function(require,module,exports){
 //var LeadBlock = require('./lead_block.jsx')
+var LeadsList = require('./leads_list.jsx');
+var LeadsSearchBlock = require('./leads_search_block.jsx');
+
+var fetchLeads = function (phone, callback) {
+    return $.get('/leads?phone=' + phone, function (data) {
+        return callback(data)
+    });
+};
 
 var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
 
     getInitialState: function () {
         return {
-            lead: false
+            leads: []
         }
     },
 
-    handleLead: function (lead) {
-        console.log("LEAD:", lead)
-        this.setState({lead: lead})
+    handleSearchSubmit: function (phone) {
+        fetchLeads(phone, function (data) {
+            this.setState({leads: data})
+        }.bind(this)); 
     },
 
     render: function() {
         return (
-            React.createElement("div", {className: "app-template-div container"}
+            React.createElement("div", {className: "lead-index-template container"}, 
+                React.createElement("h1", {className: "col-sm-12"}, "Get Leads By Phone Number:"), 
+                React.createElement(LeadsSearchBlock, {handleSubmit: this.handleSearchSubmit}), 
+                React.createElement(LeadsList, {leads: this.state.leads})
             )
         )
 
@@ -169,168 +295,15 @@ module.exports = LeadIndexTemplate;
 
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/lead_show_template.jsx":[function(require,module,exports){
-var DocForm = require('./../doc/doc_form.jsx')
-var CustomMethods = require('./../../lib/custom_methods.js');
+},{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
+var DocForm = require('./../../doc/doc_form.jsx')
+var CustomMethods = require('./../../../lib/custom_methods.js');
+var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
     return $.get('/leads/' + leadId, function(data) {
         return callback(data)
-    })
-};
-
-var getCustomFields = function (lead) {
-    return {
-        "First Name": {
-            header: "Bio",
-            value: lead["FName"]
-        },
-        "Middle Initial": {
-            value: lead["MInitial"]
-        },
-        "Last Name": {
-            value: lead["LName"]
-        },
-        "Date of Birth": {
-            value: lead["DateOfBirth"]
-        },
-        "Gender": {
-            value: lead["Gender"]
-        },
-        "Ethnicity": {
-            value: lead["Ethnicity"]
-        },
-        "Home Phone": {
-            value: lead["Phone"]
-        },
-        "Mobile Phone": {
-            value: lead["PhoneMobile"]
-        },
-        "Work Phone": {
-            value: lead["PhoneOther"]
-        },
-        "Address 1": {
-            value: lead["Address"]
-        },
-        "City": {
-            value: lead["City"]
-        },
-        "Zip": {
-            value: lead["Zip"]
-        },
-        "Address 2": {
-            value: lead["Address2"]
-        },
-        "State": {
-            value: lead["State"]
-        },
-        "Country": {
-            value: lead["Country"]
-        },
-        "Email": {
-            value: lead["Email"],
-            customMethod: "setName"
-        },
-        "Marital Status": {
-            value: lead["MaritalStatus"]    
-        },
-        "SSN": {
-            value: lead["SSN"]
-        },
-        "Drivers License No": {
-            value: lead["DriversLicense"]
-        },
-        "Drivers License State": {
-            value: lead["DriversLicenseState"]
-        },
-        "Secondary Education": {
-            header: "Previous Education",
-            value: lead["SecondaryEducation"]
-        },
-        "POG": {
-            value: lead["POG"]
-        },
-        "HS Grad Date": {
-            value: lead["HSGradDate"]
-        },
-        "Highest Level of Education.": {
-            value: lead["HighestLevelEducation"]
-        },
-        "Previous College": {
-           value: lead["PreviousCollege"] 
-        },
-        "Campus": {
-            header: "Enrollment Info",
-            value: lead["Campus"]
-        },
-        "Admissions Rep": {
-
-        },
-        "Admissions Rep Email": {
-
-        },
-        "Program": {
-            header: "Select Program",
-            value: lead["Program"],
-            options: ["", "Accounting", "Finance", "English"],
-            customMethod: "setStartDate"
-        },
-        "Start Date": {
-            value: lead["StartDate"]
-
-        },
-        "Grad Date": {
-            value: lead["GradDate"]
-        },
-        "Weeks": {
-            type: "number",
-            value: lead["Weeks"]
-        },
-        "Student Type": {
-            value: lead["StudentType"]
-        },
-        "Session": {
-            value: lead["Session"]
-        },
-        "Contract Signed Date": {
-            value: lead["ContractSignedDate"]    
-        },
-        "Institution/Location": {
-            header: "Post Secondary Education",
-            value: lead["InstitutionLocation"]
-        },
-        "Type of Diploma/Degree": {
-
-        },
-        "Field of Study": {
-
-        },
-        "Start Data": {
-            
-        },
-        "End Date": {
-
-        },
-        "Graduated": {
-            value: lead["Graduated"]
-        },
-        "Program Results in Diploma": {
-            header: "Additional Info",
-            value: lead["Diplorma"]
-        },
-        "Requires National Certification": {
-            
-        },
-        "Funding Type": {
-
-        },
-        "MOU Month": {
-
-        },
-        "MOU Year": {
-
-        }
-    }
+    });
 };
 
 var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
@@ -343,7 +316,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     setCustomFieldsFromLead: function (lead) {
-        this.setState({customFields: getCustomFields(lead)});
+        this.setState({customFields: CustomFieldsManager.setLeadFields(lead)});
     },
 
     updateCustomField: function (fieldName, field) {
@@ -375,18 +348,183 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     render: function() {
         return (
             React.createElement("div", {className: "app-template-div container"}, 
-                React.createElement(DocForm, {updateCustomField: this.updateCustomField, customFields: this.state.customFields, lead: this.state.lead})
+                React.createElement("div", {className: "col-sm-8 col-sm-offset-2"}, 
+                    React.createElement("h1", null, " Create Document for Signing: "), 
+                    React.createElement(DocForm, {updateCustomField: this.updateCustomField, 
+                             customFields: this.state.customFields, 
+                             lead: this.state.lead})
+                )
             )
         )
-
     }
-
 });
 
 module.exports = LeadShowTemplate;
 
 
-},{"./../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
+},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
+CustomFieldsManager = {
+    setLeadFields: function (lead) {
+        return {
+            "First Name": {
+                header: "Bio",
+                value: lead["FName"]
+            },
+            "Middle Initial": {
+                value: lead["MInitial"]
+            },
+            "Last Name": {
+                value: lead["LName"]
+            },
+            "Date of Birth": {
+                value: lead["DateOfBirth"]
+            },
+            "Gender": {
+                value: lead["Gender"]
+            },
+            "Ethnicity": {
+                value: lead["Ethnicity"]
+            },
+            "Home Phone": {
+                value: lead["Phone"]
+            },
+            "Mobile Phone": {
+                value: lead["PhoneMobile"]
+            },
+            "Work Phone": {
+                value: lead["PhoneOther"]
+            },
+            "Address 1": {
+                value: lead["Address"]
+            },
+            "City": {
+                value: lead["City"]
+            },
+            "Zip": {
+                value: lead["Zip"]
+            },
+            "Address 2": {
+                value: lead["Address2"]
+            },
+            "State": {
+                value: lead["State"]
+            },
+            "Country": {
+                value: lead["Country"]
+            },
+            "Email": {
+                value: lead["Email"],
+                customMethod: "setName"
+            },
+            "Marital Status": {
+                value: lead["MaritalStatus"]    
+            },
+            "SSN": {
+                value: lead["SSN"]
+            },
+            "Drivers License No": {
+                value: lead["DriversLicense"]
+            },
+            "Drivers License State": {
+                value: lead["DriversLicenseState"]
+            },
+            "Secondary Education": {
+                header: "Previous Education",
+                value: lead["SecondaryEducation"]
+            },
+            "POG": {
+                value: lead["POG"]
+            },
+            "HS Grad Date": {
+                value: lead["HSGradDate"]
+            },
+            "Highest Level of Education.": {
+                value: lead["HighestLevelEducation"]
+            },
+            "Previous College": {
+               value: lead["PreviousCollege"] 
+            },
+            "Campus": {
+                header: "Enrollment Info",
+                value: lead["Campus"]
+            },
+            "Admissions Rep": {
+
+            },
+            "Admissions Rep Email": {
+
+            },
+            "Program": {
+                header: "Select Program",
+                value: lead["Program"],
+                options: ["", "Accounting", "Finance", "English"],
+                customMethod: "setStartDate"
+            },
+            "Start Date": {
+                value: lead["StartDate"]
+
+            },
+            "Grad Date": {
+                value: lead["GradDate"]
+            },
+            "Weeks": {
+                type: "number",
+                value: lead["Weeks"]
+            },
+            "Student Type": {
+                value: lead["StudentType"]
+            },
+            "Session": {
+                value: lead["Session"]
+            },
+            "Contract Signed Date": {
+                value: lead["ContractSignedDate"]    
+            },
+            "Institution/Location": {
+                header: "Post Secondary Education",
+                value: lead["InstitutionLocation"]
+            },
+            "Type of Diploma/Degree": {
+
+            },
+            "Field of Study": {
+
+            },
+            "Start Data": {
+                
+            },
+            "End Date": {
+
+            },
+            "Graduated": {
+                value: lead["Graduated"]
+            },
+            "Program Results in Diploma": {
+                header: "Additional Info",
+                type: "radio",
+                value: lead["Diploma"]
+            },
+            "Requires National Certification": {
+                type: "radio",
+                value: lead["Certification"]
+            },
+            "Funding Type": {
+
+            },
+            "MOU Month": {
+
+            },
+            "MOU Year": {
+
+            }
+        }
+    }
+}
+
+module.exports = CustomFieldsManager;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
 var CustomMethods = { setStartDate: function (form) {
         var dates = {
             "Accounting": {"start": "4/1/2015", "grad": "6/1/2015", "weeks": 8},

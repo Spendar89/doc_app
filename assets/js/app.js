@@ -1,8 +1,8 @@
 React = require('react')
 _ = require('lodash')
 
-var LeadIndexTemplate = require('./components/lead/lead_index_template.jsx');
-var LeadShowTemplate = require('./components/lead/lead_show_template.jsx');
+var LeadIndexTemplate = require('./components/lead//index/template.jsx');
+var LeadShowTemplate = require('./components/lead/show/template.jsx');
 
 var Router = require('react-router'); // or var Router = ReactRouter; in browsers
 var DefaultRoute = Router.DefaultRoute;

@@ -23,6 +23,11 @@ class DocMaker
     )
   end
 
+  def get_custom_field_names
+    template = @client.get_template({template_id: @document.template_id})
+    template.custom_fields.map{|cf| cf.name}
+  end
+
   # convenience method for optaining signature_request_id from @sent_signature
   def get_signature_request_id
     @sent_signature ? @sent_signature.signature_request_id : false

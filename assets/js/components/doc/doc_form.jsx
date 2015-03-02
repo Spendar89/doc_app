@@ -8,8 +8,10 @@ var DocForm = React.createClass({
             this.props.customFields, function (field, fieldName) {
                 return (
                     <div>
-                    {self.renderDocInputHeader(field)}
-                    <DocInput  field={field} updateField={self.props.updateCustomField} fieldName={fieldName} />
+                        {self.renderDocInputHeader(field)}
+                        <DocInput field={field} 
+                                  updateField={self.props.updateCustomField} 
+                                  fieldName={fieldName} />
                     </div>
                 );
             }
@@ -39,7 +41,8 @@ var DocForm = React.createClass({
         return (
             <form className="doc-form col-sm-12">
                 {this.renderDocInputs()}
-                <input type="submit" onClick={this.handleSubmit}/>
+                <input  className="btn-submit btn col-sm-12" 
+                        type="submit" onClick={this.handleSubmit}/>
             </form>
         );
     }
