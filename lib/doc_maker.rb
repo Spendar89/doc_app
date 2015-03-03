@@ -24,8 +24,14 @@ class DocMaker
   end
 
   def get_custom_field_names
-    template = @client.get_template({template_id: @document.template_id})
-    template.custom_fields.map{|cf| cf.name}
+    template = @client.get_template(
+      { template_id: @document.template_id }
+    )
+    cf_hash = {}
+    template.custom_fields.each do |cf| 
+      cf_hash[cf.name] = {name: cf.name, type: cf.type}
+    end
+    cf_hash
   end
 
   # convenience method for optaining signature_request_id from @sent_signature

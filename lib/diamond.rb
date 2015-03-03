@@ -3,7 +3,8 @@ class Diamond
   attr_accessor :client
 
   def initialize
-    @client = TinyTds::Client.new username: 'sci\jsendar', password: 'Pass020215$', host: '10.10.17.7'
+    #@client = TinyTds::Client.new username: 'sci\jsendar', password: 'Pass020215$', host: '10.10.17.7'
+    @client = {}
   end
 
   def test_execute
@@ -13,8 +14,9 @@ class Diamond
   end
 
   def get_lead_detail(leads_360_id)
-    results = []
-    @client.execute("SELECT * FROM [adm_manager].dbo.lead_detail where Leads360ID = '#{leads_360_id}'").each {|r| results << r}
-    results.first
+    #results = []
+    #@client.execute("SELECT * FROM [adm_manager].dbo.lead_detail where Leads360ID = '#{leads_360_id}'").each {|r| results << r}
+    #results.first
+    {"FName" => "Jake", "LName" => "Sendar"}
   end
 end

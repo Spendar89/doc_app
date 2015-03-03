@@ -297,7 +297,6 @@ module.exports = LeadIndexTemplate;
 
 },{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
 var DocForm = require('./../../doc/doc_form.jsx')
-var CustomMethods = require('./../../../lib/custom_methods.js');
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -316,20 +315,20 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     setCustomFieldsFromLead: function (lead) {
-        this.setState({customFields: CustomFieldsManager.setLeadFields(lead)});
+        CustomFieldsManager.fetchCustomFields(lead, function(data) {
+            this.setState({customFields: data});
+        }.bind(this));
     },
 
     updateCustomField: function (fieldName, field) {
         var cf = _.extend(this.state.customFields, {});
         cf[fieldName] = field;
-        this.setState({customFields: cf})
-        if (field.customMethod) {
-            CustomMethods[field.customMethod](this);
-        }
+        this.setState({customFields: cf});
+        if (field.customMethod) field.customMethod(this);
     },
 
     setStateFromLead: function (lead) {
-        this.setState({lead: lead})
+        this.setState({lead: lead});
         this.setCustomFieldsFromLead(lead);
     },
     
@@ -362,175 +361,214 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
+},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
+var CUSTOM_METHODS = require('./custom_methods.js');
+
+var CUSTOM_OPTIONS = {
+    "Program": ["", "Accounting", "Finance", "English"]
+}
+
 CustomFieldsManager = {
-    setLeadFields: function (lead) {
-        return {
-            "First Name": {
-                header: "Bio",
-                value: lead["FName"]
-            },
-            "Middle Initial": {
-                value: lead["MInitial"]
-            },
-            "Last Name": {
-                value: lead["LName"]
-            },
-            "Date of Birth": {
-                value: lead["DateOfBirth"]
-            },
-            "Gender": {
-                value: lead["Gender"]
-            },
-            "Ethnicity": {
-                value: lead["Ethnicity"]
-            },
-            "Home Phone": {
-                value: lead["Phone"]
-            },
-            "Mobile Phone": {
-                value: lead["PhoneMobile"]
-            },
-            "Work Phone": {
-                value: lead["PhoneOther"]
-            },
-            "Address 1": {
-                value: lead["Address"]
-            },
-            "City": {
-                value: lead["City"]
-            },
-            "Zip": {
-                value: lead["Zip"]
-            },
-            "Address 2": {
-                value: lead["Address2"]
-            },
-            "State": {
-                value: lead["State"]
-            },
-            "Country": {
-                value: lead["Country"]
-            },
-            "Email": {
-                value: lead["Email"],
-                customMethod: "setName"
-            },
-            "Marital Status": {
-                value: lead["MaritalStatus"]    
-            },
-            "SSN": {
-                value: lead["SSN"]
-            },
-            "Drivers License No": {
-                value: lead["DriversLicense"]
-            },
-            "Drivers License State": {
-                value: lead["DriversLicenseState"]
-            },
-            "Secondary Education": {
-                header: "Previous Education",
-                value: lead["SecondaryEducation"]
-            },
-            "POG": {
-                value: lead["POG"]
-            },
-            "HS Grad Date": {
-                value: lead["HSGradDate"]
-            },
-            "Highest Level of Education.": {
-                value: lead["HighestLevelEducation"]
-            },
-            "Previous College": {
-               value: lead["PreviousCollege"] 
-            },
-            "Campus": {
-                header: "Enrollment Info",
-                value: lead["Campus"]
-            },
-            "Admissions Rep": {
 
-            },
-            "Admissions Rep Email": {
+    fetchCustomFields: function (lead, callback) {
+        // Fetches field object from server
+        return $.get('/docs/123/field_names', function(data) {
+            var fields = data;
 
-            },
-            "Program": {
-                header: "Select Program",
-                value: lead["Program"],
-                options: ["", "Accounting", "Finance", "English"],
-                customMethod: "setStartDate"
-            },
-            "Start Date": {
-                value: lead["StartDate"]
+            _.each(data, function (field, name) {
+                // prepopulates form with diamond lead data if template field
+                // name matches diamond lead column name
+                fields[name] = _.extend(field, {
+                    value: lead[name]
+                });
 
-            },
-            "Grad Date": {
-                value: lead["GradDate"]
-            },
-            "Weeks": {
-                type: "number",
-                value: lead["Weeks"]
-            },
-            "Student Type": {
-                value: lead["StudentType"]
-            },
-            "Session": {
-                value: lead["Session"]
-            },
-            "Contract Signed Date": {
-                value: lead["ContractSignedDate"]    
-            },
-            "Institution/Location": {
-                header: "Post Secondary Education",
-                value: lead["InstitutionLocation"]
-            },
-            "Type of Diploma/Degree": {
-
-            },
-            "Field of Study": {
-
-            },
-            "Start Data": {
+                // Adds options if CUSTOM_OPTIONS has matching key
+                if (CUSTOM_OPTIONS[name]) {
+                    fields[name].options = CUSTOM_OPTIONS[name];
+                };
                 
-            },
-            "End Date": {
+                //Adds customMethod if CUSTOM_METHODS has matching key
+                if (CUSTOM_METHODS[name]) {
+                    fields[name].customMethod = CUSTOM_METHODS[name];
+                };
 
-            },
-            "Graduated": {
-                value: lead["Graduated"]
-            },
-            "Program Results in Diploma": {
-                header: "Additional Info",
-                type: "radio",
-                value: lead["Diploma"]
-            },
-            "Requires National Certification": {
-                type: "radio",
-                value: lead["Certification"]
-            },
-            "Funding Type": {
+                return field;
+            });
 
-            },
-            "MOU Month": {
-
-            },
-            "MOU Year": {
-
-            }
-        }
+            return callback(fields);
+        });
     }
+
+    //setLeadFields: function (lead) {
+        //return {
+            //"First Name": {
+                //header: "Bio",
+                //value: lead["FName"]
+            //},
+            //"Middle Initial": {
+                //value: lead["MInitial"]
+            //},
+            //"Last Name": {
+                //value: lead["LName"]
+            //},
+            //"Date of Birth": {
+                //value: lead["DateOfBirth"]
+            //},
+            //"Gender": {
+                //value: lead["Gender"]
+            //},
+            //"Ethnicity": {
+                //value: lead["Ethnicity"]
+            //},
+            //"Home Phone": {
+                //value: lead["Phone"]
+            //},
+            //"Mobile Phone": {
+                //value: lead["PhoneMobile"]
+            //},
+            //"Work Phone": {
+                //value: lead["PhoneOther"]
+            //},
+            //"Address 1": {
+                //value: lead["Address"]
+            //},
+            //"City": {
+                //value: lead["City"]
+            //},
+            //"Zip": {
+                //value: lead["Zip"]
+            //},
+            //"Address 2": {
+                //value: lead["Address2"]
+            //},
+            //"State": {
+                //value: lead["State"]
+            //},
+            //"Country": {
+                //value: lead["Country"]
+            //},
+            //"Email": {
+                //value: lead["Email"],
+                //customMethod: "setName"
+            //},
+            //"Marital Status": {
+                //value: lead["MaritalStatus"]    
+            //},
+            //"SSN": {
+                //value: lead["SSN"]
+            //},
+            //"Drivers License No": {
+                //value: lead["DriversLicense"]
+            //},
+            //"Drivers License State": {
+                //value: lead["DriversLicenseState"]
+            //},
+            //"Secondary Education": {
+                //header: "Previous Education",
+                //value: lead["SecondaryEducation"]
+            //},
+            //"POG": {
+                //value: lead["POG"]
+            //},
+            //"HS Grad Date": {
+                //value: lead["HSGradDate"]
+            //},
+            //"Highest Level of Education.": {
+                //value: lead["HighestLevelEducation"]
+            //},
+            //"Previous College": {
+               //value: lead["PreviousCollege"] 
+            //},
+            //"Campus": {
+                //header: "Enrollment Info",
+                //value: lead["Campus"]
+            //},
+            //"Admissions Rep": {
+
+            //},
+            //"Admissions Rep Email": {
+
+            //},
+            //"Program": {
+                //header: "Select Program",
+                //value: lead["Program"],
+                //options: ["", "Accounting", "Finance", "English"],
+                //customMethod: "setStartDate"
+            //},
+            //"Start Date": {
+                //value: lead["StartDate"]
+
+            //},
+            //"Grad Date": {
+                //value: lead["GradDate"]
+            //},
+            //"Weeks": {
+                //type: "number",
+                //value: lead["Weeks"]
+            //},
+            //"Student Type": {
+                //value: lead["StudentType"]
+            //},
+            //"Session": {
+                //value: lead["Session"]
+            //},
+            //"Contract Signed Date": {
+                //value: lead["ContractSignedDate"]    
+            //},
+            //"Institution/Location": {
+                //header: "Post Secondary Education",
+                //value: lead["InstitutionLocation"]
+            //},
+            //"Type of Diploma/Degree": {
+
+            //},
+            //"Field of Study": {
+
+            //},
+            //"Start Data": {
+                
+            //},
+            //"End Date": {
+
+            //},
+            //"Graduated": {
+                //value: lead["Graduated"]
+            //},
+            //"Program Results in Diploma": {
+                //header: "Additional Info",
+                //type: "radio",
+                //value: lead["Diploma"]
+            //},
+            //"Requires National Certification": {
+                //type: "radio",
+                //value: lead["Certification"]
+            //},
+            //"Funding Type": {
+
+            //},
+            //"MOU Month": {
+
+            //},
+            //"MOU Year": {
+
+            //}
+        //}
+    //}
 }
 
 module.exports = CustomFieldsManager;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
-var CustomMethods = { setStartDate: function (form) {
+},{"./custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
+var CustomMethods = { 
+    
+    "Program": function (form) {
         var dates = {
             "Accounting": {"start": "4/1/2015", "grad": "6/1/2015", "weeks": 8},
             "Finance": {"start": "5/1/2015", "grad": "9/1/2015", "weeks": 27},
             "English": {"start": "3/8/2015", "grad": "11/1/2015", "weeks": 30}
-        }
+        };
+
         var program = form.state.customFields.Program.value;
 
         if (!program) return false;
@@ -539,29 +577,29 @@ var CustomMethods = { setStartDate: function (form) {
         var gradDate = dates[program]["grad"];
         var weeks = dates[program]["weeks"];
 
-        var startField = _.extend(form.state.customFields["Start Date"], {});
+        var startField = _.extend(form.state.customFields["StartDate"], {});
         startField.value = new Date(startDate);
-        form.updateCustomField("Start Date", startField)
+        form.updateCustomField("StartDate", startField)
 
-        var gradField = _.extend(form.state.customFields["Grad Date"], {});
+        var gradField = _.extend(form.state.customFields["GradDate"], {});
         gradField.value = new Date(gradDate);
-        form.updateCustomField("Grad Date", gradField)
+        form.updateCustomField("GradDate", gradField)
 
         var weeksField = _.extend(form.state.customFields["Weeks"], {});
         weeksField.value = weeks;
-        form.updateCustomField("End Date", weeksField)
+        form.updateCustomField("EndDate", weeksField)
     },
 
-    setName: function (form) {
+    "Email": function (form) {
         var nameValue;
         if (form.state.customFields.Email.value === "jakesendar@gmail.com") {
-            nameValue = "Jake Sendar";
+            nameValue = "Jake";
         } else {
-            nameValue = "Dude Man"
+            nameValue = "Dude";
         };
-        var field = _.extend(form.state.customFields["First Name"], {});
+        var field = _.extend(form.state.customFields["FName"], {});
         field.value = nameValue;
-        form.updateCustomFieldValue("First Name", field);
+        form.updateCustomField("FName", field);
     }
 }
 

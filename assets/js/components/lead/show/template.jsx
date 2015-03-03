@@ -1,5 +1,4 @@
 var DocForm = require('./../../doc/doc_form.jsx')
-var CustomMethods = require('./../../../lib/custom_methods.js');
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -18,20 +17,20 @@ var LeadShowTemplate = React.createClass({
     },
 
     setCustomFieldsFromLead: function (lead) {
-        this.setState({customFields: CustomFieldsManager.setLeadFields(lead)});
+        CustomFieldsManager.fetchCustomFields(lead, function(data) {
+            this.setState({customFields: data});
+        }.bind(this));
     },
 
     updateCustomField: function (fieldName, field) {
         var cf = _.extend(this.state.customFields, {});
         cf[fieldName] = field;
-        this.setState({customFields: cf})
-        if (field.customMethod) {
-            CustomMethods[field.customMethod](this);
-        }
+        this.setState({customFields: cf});
+        if (field.customMethod) field.customMethod(this);
     },
 
     setStateFromLead: function (lead) {
-        this.setState({lead: lead})
+        this.setState({lead: lead});
         this.setCustomFieldsFromLead(lead);
     },
     
