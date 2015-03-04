@@ -18,7 +18,8 @@ post '/docs' do
   @name = "Jake Sendar"
   doc_maker = DocMaker.new(@document)
   doc_maker.request_signature(@email, @name)
-  doc_maker.get_signature_request_id.to_json
+  { signature_request_id: doc_maker.get_signature_request_id, 
+    url: doc_maker.get_signing_url }.to_json
 end
 
 get '/docs/:template_id/field_names' do
@@ -33,7 +34,7 @@ get '/leads' do
   content_type :json
   @v = Velocify.new
   @lead_data = @v.get_leads_by_phone params[:phone]
-  return [] unless @lead_data
+  return [].to_json unless @lead_data
   @lead_data.map { |lead| @v.convert_lead(lead) }.to_json
 end
 

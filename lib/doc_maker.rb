@@ -38,6 +38,10 @@ class DocMaker
   def get_signature_request_id
     @sent_signature ? @sent_signature.signature_request_id : false
   end
+
+  def get_signing_url
+    @sent_signature ? @sent_signature.signing_url : false
+  end
 end
 
 

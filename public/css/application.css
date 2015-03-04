@@ -6,6 +6,16 @@
   color: white;
 }
 
+.ajax-loader {
+  background: url("/images/ajax-loader.gif");
+  height: 40px;
+  width: 40px;
+  background-size: cover;
+  top: 150px;
+  left: 45%;
+  position: absolute;
+}
+
 .doc-form {
   margin-bottom: 20px;
 }

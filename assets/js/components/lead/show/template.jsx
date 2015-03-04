@@ -1,4 +1,5 @@
-var DocForm = require('./../../doc/doc_form.jsx')
+var DocForm = require('./../../doc/new/doc_form.jsx')
+var DocSignatureBlock = require('./../../doc/show/doc_signature_block.jsx')
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -13,6 +14,7 @@ var LeadShowTemplate = React.createClass({
         return {
             lead: {},
             customFields: {}
+
         }
     },
 
@@ -46,6 +48,10 @@ var LeadShowTemplate = React.createClass({
         }
     },
 
+    handleFormComplete: function (data) {
+        window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
+    },
+
     render: function() {
         return (
             <div className="app-template-div container">
@@ -53,6 +59,7 @@ var LeadShowTemplate = React.createClass({
                     <h1> Create Document for Signing: </h1>
                     <DocForm updateCustomField={this.updateCustomField} 
                              customFields={this.state.customFields} 
+                             onComplete={this.handleFormComplete}
                              lead={this.state.lead} />
                 </div>
             </div>

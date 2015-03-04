@@ -4,6 +4,7 @@ _ = require('lodash')
 
 var LeadIndexTemplate = require('./components/lead//index/template.jsx');
 var LeadShowTemplate = require('./components/lead/show/template.jsx');
+var DocShowTemplate = require('./components/doc/show/template.jsx');
 
 var Router = require('react-router'); // or var Router = ReactRouter; in browsers
 var DefaultRoute = Router.DefaultRoute;
@@ -28,7 +29,8 @@ var App = React.createClass({displayName: "App",
 var routes = (
     React.createElement(Route, {name: "app", path: "/", handler: App}, 
         React.createElement(Route, {name: "leads", handler: LeadIndexTemplate}), 
-        React.createElement(Route, {name: "lead", path: "/leads/:leadId", handler: LeadShowTemplate})
+        React.createElement(Route, {name: "lead", path: "/leads/:leadId", handler: LeadShowTemplate}), 
+        React.createElement(Route, {name: "doc", path: "/docs/:signatureRequestId", handler: DocShowTemplate})
     )
 );
 
@@ -37,7 +39,7 @@ Router.run(routes, function (Handler, state) {
 });
 
 
-},{"./components/lead//index/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx","./components/lead/show/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react-router":"/Users/jakesendar/doc_app/node_modules/react-router/modules/index.js"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx":[function(require,module,exports){
+},{"./components/doc/show/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/show/template.jsx","./components/lead//index/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx","./components/lead/show/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react-router":"/Users/jakesendar/doc_app/node_modules/react-router/modules/index.js"}],"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx":[function(require,module,exports){
 var DocInput = require('./doc_input.jsx');
 
 var DocForm = React.createClass({displayName: "DocForm",
@@ -73,8 +75,8 @@ var DocForm = React.createClass({displayName: "DocForm",
     handleSubmit: function (e) {
         e.preventDefault();
         $.post("/docs", this.transformCustomFields(), function (data) {
-            console.log(data)
-        });
+            this.props.onComplete(data)
+        }.bind(this));
     },
 
     render: function() {
@@ -92,7 +94,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 module.exports = DocForm;
 
 
-},{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/doc_input.jsx":[function(require,module,exports){
+},{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_input.jsx":[function(require,module,exports){
 var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
@@ -166,18 +168,54 @@ var DocInput = React.createClass({displayName: "DocInput",
 module.exports = DocInput;
 
 
+},{}],"/Users/jakesendar/doc_app/assets/js/components/doc/show/doc_signature_block.jsx":[function(require,module,exports){
+var DocSignatureBlock = React.createClass({displayName: "DocSignatureBlock",
+
+    render: function() {
+        var signatureUrl = this.props.signatureData && this.props.signatureData.url;
+        return React.createElement("div", null, signatureUrl)
+    }
+
+});
+
+module.exports = DocSignatureBlock;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/doc/show/template.jsx":[function(require,module,exports){
+var DocShowTemplate = React.createClass({displayName: "DocShowTemplate",
+
+    render: function() {
+        var id = this.props.params.signatureRequestId;
+        var signatureUrl = "https://www.hellosign.com/editor/sign?guid=" + id;
+        return (
+            React.createElement("div", {className: "container"}, 
+                React.createElement("div", {className: "col-sm-10 col-sm-offset-1"}, 
+                    React.createElement("div", {className: "jumbotron"}, 
+                        React.createElement("h1", null, "Your Document is Ready"), 
+                        React.createElement("p", null, React.createElement("b", null, "Signature Request Id:"), " ", this.props.params.signatureRequestId), 
+                        React.createElement("p", null, React.createElement("a", {className: "btn btn-lg btn-primary", href: signatureUrl}, "Click to Sign "))
+                    )
+                )
+            )
+        )
+    }
+
+});
+
+module.exports = DocShowTemplate;
+
+
 },{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx":[function(require,module,exports){
 var LeadsList = React.createClass({displayName: "LeadsList",
 
     handleClick: function(lead) {
         window.location.href = "#/leads/" + lead.id;
-        //this.props.handleLead(lead);
     },
 
     renderLeads: function () {
-       return this.props.leads.map(function (lead) {
+       return this.props.leads.map(function (lead, i) {
            return (
-                    React.createElement("tr", {className: "lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
+                    React.createElement("tr", {key: i, className: "lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
                            React.createElement("td", {className: "lead-results-field"}, 
                                React.createElement("span", {className: "lead-results-field-value"}, lead.first_name, " ", lead.last_name)
                            ), 
@@ -193,15 +231,23 @@ var LeadsList = React.createClass({displayName: "LeadsList",
     },
 
     render: function () {
+        var searchingStyle={
+            visibility: (this.props.searching ? "visible" : "hidden")
+        };
+        var tableStyle={
+            visibility: (this.props.leads.length > 0 ? "visible" : "hidden")
+        };
+
         return (
             React.createElement("div", {className: "leads-list col-sm-12"}, 
-               React.createElement("table", {className: "lead-div table table-striped table-bordered table-striped"}, 
+                React.createElement("div", {className: "ajax-loader", style: searchingStyle}), 
+                React.createElement("table", {style: tableStyle, className: "lead-div table table-striped table-bordered table-striped"}, 
                    React.createElement("tr", null, 
                        React.createElement("th", null, "Name"), 
                        React.createElement("th", null, "Email"), 
                        React.createElement("th", null, "Id")
                    ), 
-                    this.renderLeads()
+                   this.renderLeads()
                 )
             )
         )
@@ -214,15 +260,23 @@ module.exports = LeadsList;
 
 },{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx":[function(require,module,exports){
 var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
-    setInitialState: function () {
+    getInitialState: function () {
         return {
-            phone: ""
+            phone: "",
+            isValid: false
         }
     },
 
     handleChange: function (e) {
         e.preventDefault();
-        this.setState({phone: e.target.value})
+        var phone = e.target.value;
+        var isValid = this.handleValidation(phone) ? true : false;
+        this.setState({phone: phone, isValid: isValid});
+    },
+
+    handleValidation: function (phoneNumber) {
+        var reg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
+        return phoneNumber.match(reg);
     },
 
     handleClick: function (e) {
@@ -236,10 +290,11 @@ var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
                 React.createElement("div", {className: "col-sm-8"}, 
                     React.createElement("input", {onChange: this.handleChange, 
                             className: "lead-block-input form-control", 
-                            type: "text"})
+                            type: "tel"})
                 ), 
                 React.createElement("div", {className: "col-sm-4"}, 
                     React.createElement("input", {type: "submit", 
+                            disabled: !this.state.isValid, 
                             onClick: this.handleClick, 
                             className: "btn btn-submit col-sm-12"})
                 )
@@ -254,7 +309,6 @@ module.exports = LeadsSearchBlock;
 
 
 },{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx":[function(require,module,exports){
-//var LeadBlock = require('./lead_block.jsx')
 var LeadsList = require('./leads_list.jsx');
 var LeadsSearchBlock = require('./leads_search_block.jsx');
 
@@ -268,13 +322,15 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
 
     getInitialState: function () {
         return {
+            searching: false,
             leads: []
         }
     },
 
     handleSearchSubmit: function (phone) {
+        this.setState({searching: true, leads: []});
         fetchLeads(phone, function (data) {
-            this.setState({leads: data})
+            this.setState({leads: data, searching: false})
         }.bind(this)); 
     },
 
@@ -283,7 +339,7 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
             React.createElement("div", {className: "lead-index-template container"}, 
                 React.createElement("h1", {className: "col-sm-12"}, "Get Leads By Phone Number:"), 
                 React.createElement(LeadsSearchBlock, {handleSubmit: this.handleSearchSubmit}), 
-                React.createElement(LeadsList, {leads: this.state.leads})
+                React.createElement(LeadsList, {leads: this.state.leads, searching: this.state.searching})
             )
         )
 
@@ -296,7 +352,8 @@ module.exports = LeadIndexTemplate;
 
 
 },{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
-var DocForm = require('./../../doc/doc_form.jsx')
+var DocForm = require('./../../doc/new/doc_form.jsx')
+var DocSignatureBlock = require('./../../doc/show/doc_signature_block.jsx')
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -311,6 +368,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         return {
             lead: {},
             customFields: {}
+
         }
     },
 
@@ -344,6 +402,10 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         }
     },
 
+    handleFormComplete: function (data) {
+        window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
+    },
+
     render: function() {
         return (
             React.createElement("div", {className: "app-template-div container"}, 
@@ -351,6 +413,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                     React.createElement("h1", null, " Create Document for Signing: "), 
                     React.createElement(DocForm, {updateCustomField: this.updateCustomField, 
                              customFields: this.state.customFields, 
+                             onComplete: this.handleFormComplete, 
                              lead: this.state.lead})
                 )
             )
@@ -361,7 +424,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
+},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./../../doc/show/doc_signature_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/show/doc_signature_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
 var CUSTOM_METHODS = require('./custom_methods.js');
 
 var CUSTOM_OPTIONS = {
