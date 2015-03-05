@@ -1,4 +1,4 @@
-require 'tiny_tds'
+#require 'tiny_tds'
 class Diamond
   attr_accessor :client
 
