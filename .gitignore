@@ -34,4 +34,3 @@ build/
 .rvmrc
 .powenv
 /node_modules/
-/public/vendor/
