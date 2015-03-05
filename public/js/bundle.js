@@ -83,7 +83,7 @@ var DocForm = React.createClass({displayName: "DocForm",
         return (
             React.createElement("form", {className: "doc-form col-sm-12"}, 
                 this.renderDocInputs(), 
-                React.createElement("input", {className: "btn-submit btn col-sm-12", 
+                React.createElement("input", {required: true, className: "btn-submit btn col-sm-12", 
                         type: "submit", onClick: this.handleSubmit})
             )
         );
@@ -99,11 +99,7 @@ var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
         field.value = e.target.value;
-        console.log(field)
         this.props.updateField(this.props.fieldName, field);
-        //this.props.updateFieldValue(this.props.fieldName, 
-                                    //e.target.value, 
-                                    //this.props.customMethod)
     },
 
     renderInput: function () {
@@ -142,7 +138,7 @@ var DocInput = React.createClass({displayName: "DocInput",
             )
         } else {
             return (
-                React.createElement("input", {onChange: this.handleChange, 
+                React.createElement("input", {required: "required", onChange: this.handleChange, 
                     value: this.props.field.value, 
                     className: "doc-block-input form-control", 
                     type: this.props.field.type || "text"})

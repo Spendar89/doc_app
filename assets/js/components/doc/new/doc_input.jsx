@@ -2,11 +2,7 @@ var DocInput = React.createClass({
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
         field.value = e.target.value;
-        console.log(field)
         this.props.updateField(this.props.fieldName, field);
-        //this.props.updateFieldValue(this.props.fieldName, 
-                                    //e.target.value, 
-                                    //this.props.customMethod)
     },
 
     renderInput: function () {
@@ -45,7 +41,7 @@ var DocInput = React.createClass({
             )
         } else {
             return (
-                <input  onChange={this.handleChange} 
+                <input required="required" onChange={this.handleChange} 
                     value={this.props.field.value} 
                     className="doc-block-input form-control" 
                     type={this.props.field.type || "text"} />

@@ -41,7 +41,7 @@ var DocForm = React.createClass({
         return (
             <form className="doc-form col-sm-12">
                 {this.renderDocInputs()}
-                <input  className="btn-submit btn col-sm-12" 
+                <input required className="btn-submit btn col-sm-12" 
                         type="submit" onClick={this.handleSubmit}/>
             </form>
         );
