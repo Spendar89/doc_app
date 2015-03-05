@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'sinatra'
 require './lib/doc_maker'
 require './models/document'
