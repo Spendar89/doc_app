@@ -1,5 +1,4 @@
 var DocForm = require('./../../doc/new/doc_form.jsx')
-var DocSignatureBlock = require('./../../doc/show/doc_signature_block.jsx')
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -13,7 +12,7 @@ var LeadShowTemplate = React.createClass({
     getInitialState: function () {
         return {
             lead: {},
-            customFields: {}
+            customFields: false
 
         }
     },
@@ -56,7 +55,7 @@ var LeadShowTemplate = React.createClass({
         return (
             <div className="app-template-div container">
                 <div className="col-sm-8 col-sm-offset-2">
-                    <h1> Create Document for Signing: </h1>
+                    <h1 className="page-header"> Create Document for Signing: </h1>
                     <DocForm updateCustomField={this.updateCustomField} 
                              customFields={this.state.customFields} 
                              onComplete={this.handleFormComplete}

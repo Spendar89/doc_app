@@ -1,10 +1,6 @@
 .lead-results-row {
   cursor: pointer;
 }
-.lead-results-row:hover {
-  background: #446cd2;
-  color: white;
-}
 
 .ajax-loader {
   background: url("/images/ajax-loader.gif");
@@ -18,4 +14,15 @@
 
 .doc-form {
   margin-bottom: 20px;
+}
+
+.page-header {
+  text-align: center;
+}
+
+.navbar-brand {
+  padding: 5px 5px;
+}
+.navbar-brand img {
+  height: 100%;
 }

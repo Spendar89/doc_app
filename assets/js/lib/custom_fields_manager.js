@@ -1,13 +1,20 @@
 var CUSTOM_METHODS = require('./custom_methods.js');
+var PROGRAM_DATA = require('./data/program_data.js');
 
 var CUSTOM_OPTIONS = {
-    "Program": ["", "Accounting", "Finance", "English"]
-}
+    "Program": _.keys(PROGRAM_DATA),
+    "StartDate": []
+};
+
+var DISABLED_FIELDS = [
+    "GradDate", "Weeks", "Morning", "Evening", "Afternoon"
+];
 
 CustomFieldsManager = {
 
     fetchCustomFields: function (lead, callback) {
         // Fetches field object from server
+        // TODO: pass in template_id...
         return $.get('/docs/123/field_names', function(data) {
             var fields = data;
 
@@ -26,6 +33,11 @@ CustomFieldsManager = {
                 //Adds customMethod if CUSTOM_METHODS has matching key
                 if (CUSTOM_METHODS[name]) {
                     fields[name].customMethod = CUSTOM_METHODS[name];
+                };
+
+                if (_.include(DISABLED_FIELDS, name)) {
+                    console.log("Disabling", name)
+                    fields[name].disabled = true;
                 };
 
                 return field;

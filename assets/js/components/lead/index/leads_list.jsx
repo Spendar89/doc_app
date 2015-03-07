@@ -33,13 +33,15 @@ var LeadsList = React.createClass({
         return (
             <div className="leads-list col-sm-12">
                 <div className="ajax-loader" style={searchingStyle}></div>
-                <table style={tableStyle} className="lead-div table table-striped table-bordered table-striped">
+                <table style={tableStyle} className="lead-div table table-hover table-bordered">
+                    <tbody>
                    <tr>
                        <th>Name</th>
                        <th>Email</th>
                        <th>Id</th>
                    </tr>
                    {this.renderLeads()}
+                   </tbody>
                 </table>
             </div>
         )

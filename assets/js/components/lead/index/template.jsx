@@ -26,7 +26,7 @@ var LeadIndexTemplate = React.createClass({
     render: function() {
         return (
             <div className="lead-index-template container">
-                <h1 className="col-sm-12">Get Leads By Phone Number:</h1>
+                <h1 className="page-header col-sm-12">Get Leads By Phone Number:</h1>
                 <LeadsSearchBlock handleSubmit={this.handleSearchSubmit}/>
                 <LeadsList leads={this.state.leads} searching={this.state.searching}/>
             </div>

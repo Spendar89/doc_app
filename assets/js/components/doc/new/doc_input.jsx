@@ -12,16 +12,27 @@ var DocInput = React.createClass({
         };
         if (this.props.field.options) {
             return (
-                <select className="doc-block-input form-control" onChange={this.handleChange} value={this.props.field.value}>
-                    {_.map(this.props.field.options, renderOptions)}
-                </select>
+                <div className="select">
+                    <label className="form-label">
+                        {this.props.fieldName}
+                    </label>
+                    <select className="doc-block-input form-control" 
+                            disabled={this.props.field.disabled}
+                            onChange={this.handleChange} value={this.props.field.value}>
+                        {_.map(this.props.field.options, renderOptions)}
+                    </select>
+                </div>
             )
         } else if (this.props.field.type === "radio") {
             return (
                 <div className="radio-group col-sm-12">
+                    <label className="form-label">
+                        {this.props.fieldName}
+                    </label>
                     <div className="radio">
                         <label>
-                            <input  onChange={this.handleChange}
+                            <input  disabled={this.props.field.disabled}
+                                    onChange={this.handleChange}
                                     value={true}
                                     checked={this.props.field.value === "true"}
                                     type="radio" />
@@ -30,7 +41,8 @@ var DocInput = React.createClass({
                     </div>
                     <div className="radio">
                         <label>
-                            <input  onChange={this.handleChange}
+                            <input  disabled={this.props.field.disabled}
+                                    onChange={this.handleChange}
                                     checked={this.props.field.value === "false"}
                                     value={false}
                                     type="radio" />
@@ -39,12 +51,31 @@ var DocInput = React.createClass({
                     </div>
                 </div>
             )
+        } else if (this.props.field.type === "checkbox") {
+            return (
+                <div className="checkbox">
+                    <label>
+                        <input  disabled={this.props.field.disabled}
+                                onChange={this.handleChange}
+                                checked={this.props.field.value}
+                                value={this.props.field.value}
+                                type="checkbox" />
+                        {this.props.fieldName}
+                    </label>
+                </div>
+            )
         } else {
             return (
-                <input required="required" onChange={this.handleChange} 
-                    value={this.props.field.value} 
-                    className="doc-block-input form-control" 
-                    type={this.props.field.type || "text"} />
+                <div className="default-input">
+                    <label className="form-label">
+                        {this.props.fieldName}
+                    </label>
+                    <input  disabled={this.props.field.disabled}
+                            onChange={this.handleChange} 
+                            value={this.props.field.value} 
+                            className="doc-block-input form-control" 
+                            type={this.props.field.type || "text"} />
+                </div>
             )
         }
 
@@ -53,9 +84,6 @@ var DocInput = React.createClass({
     render: function() {
         return (
             <div className="doc-input form-group">
-                <label className="form-label">
-                    {this.props.fieldName}
-                </label>
                 {this.renderInput()}
             </div>
         );

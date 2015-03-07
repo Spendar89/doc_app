@@ -38,12 +38,21 @@ var DocForm = React.createClass({
     },
 
     render: function() {
+        var searchingStyle={
+            visibility: (!this.props.customFields ? "visible" : "hidden")
+        };
+        var formStyle={
+            visibility: (this.props.customFields ? "visible" : "hidden")
+        };
         return (
-            <form className="doc-form col-sm-12">
-                {this.renderDocInputs()}
-                <input required className="btn-submit btn col-sm-12" 
-                        type="submit" onClick={this.handleSubmit}/>
-            </form>
+            <div>
+                <div className="ajax-loader" style={searchingStyle}></div>
+                <form className="doc-form col-sm-12" style={formStyle}>
+                    {this.renderDocInputs()}
+                    <input required className="btn-submit btn col-sm-12" 
+                            type="submit" onClick={this.handleSubmit}/>
+                </form>
+            </div>
         );
     }
 

@@ -16,8 +16,15 @@ var App = React.createClass({displayName: "App",
     render: function () {
         return (
             React.createElement("div", null, 
-                React.createElement("header", null, 
-                    React.createElement("ul", null
+                React.createElement("header", null
+                ), 
+                React.createElement("nav", {className: "navbar navbar-default"}, 
+                    React.createElement("div", {className: "container-fluid"}, 
+                        React.createElement("div", {className: "navbar-header"}, 
+                            React.createElement("a", {className: "navbar-brand", href: "#"}, 
+                                React.createElement("img", {alt: "Brand", src: "/images/sci-logo.png"})
+                            )
+                        )
                     )
                 ), 
                 React.createElement(RouteHandler, React.__spread({},  this.props))
@@ -80,11 +87,20 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     render: function() {
+        var searchingStyle={
+            visibility: (!this.props.customFields ? "visible" : "hidden")
+        };
+        var formStyle={
+            visibility: (this.props.customFields ? "visible" : "hidden")
+        };
         return (
-            React.createElement("form", {className: "doc-form col-sm-12"}, 
-                this.renderDocInputs(), 
-                React.createElement("input", {required: true, className: "btn-submit btn col-sm-12", 
-                        type: "submit", onClick: this.handleSubmit})
+            React.createElement("div", null, 
+                React.createElement("div", {className: "ajax-loader", style: searchingStyle}), 
+                React.createElement("form", {className: "doc-form col-sm-12", style: formStyle}, 
+                    this.renderDocInputs(), 
+                    React.createElement("input", {required: true, className: "btn-submit btn col-sm-12", 
+                            type: "submit", onClick: this.handleSubmit})
+                )
             )
         );
     }
@@ -109,16 +125,27 @@ var DocInput = React.createClass({displayName: "DocInput",
         };
         if (this.props.field.options) {
             return (
-                React.createElement("select", {className: "doc-block-input form-control", onChange: this.handleChange, value: this.props.field.value}, 
-                    _.map(this.props.field.options, renderOptions)
+                React.createElement("div", {className: "select"}, 
+                    React.createElement("label", {className: "form-label"}, 
+                        this.props.fieldName
+                    ), 
+                    React.createElement("select", {className: "doc-block-input form-control", 
+                            disabled: this.props.field.disabled, 
+                            onChange: this.handleChange, value: this.props.field.value}, 
+                        _.map(this.props.field.options, renderOptions)
+                    )
                 )
             )
         } else if (this.props.field.type === "radio") {
             return (
                 React.createElement("div", {className: "radio-group col-sm-12"}, 
+                    React.createElement("label", {className: "form-label"}, 
+                        this.props.fieldName
+                    ), 
                     React.createElement("div", {className: "radio"}, 
                         React.createElement("label", null, 
-                            React.createElement("input", {onChange: this.handleChange, 
+                            React.createElement("input", {disabled: this.props.field.disabled, 
+                                    onChange: this.handleChange, 
                                     value: true, 
                                     checked: this.props.field.value === "true", 
                                     type: "radio"}), 
@@ -127,7 +154,8 @@ var DocInput = React.createClass({displayName: "DocInput",
                     ), 
                     React.createElement("div", {className: "radio"}, 
                         React.createElement("label", null, 
-                            React.createElement("input", {onChange: this.handleChange, 
+                            React.createElement("input", {disabled: this.props.field.disabled, 
+                                    onChange: this.handleChange, 
                                     checked: this.props.field.value === "false", 
                                     value: false, 
                                     type: "radio"}), 
@@ -136,12 +164,31 @@ var DocInput = React.createClass({displayName: "DocInput",
                     )
                 )
             )
+        } else if (this.props.field.type === "checkbox") {
+            return (
+                React.createElement("div", {className: "checkbox"}, 
+                    React.createElement("label", null, 
+                        React.createElement("input", {disabled: this.props.field.disabled, 
+                                onChange: this.handleChange, 
+                                checked: this.props.field.value, 
+                                value: this.props.field.value, 
+                                type: "checkbox"}), 
+                        this.props.fieldName
+                    )
+                )
+            )
         } else {
             return (
-                React.createElement("input", {required: "required", onChange: this.handleChange, 
-                    value: this.props.field.value, 
-                    className: "doc-block-input form-control", 
-                    type: this.props.field.type || "text"})
+                React.createElement("div", {className: "default-input"}, 
+                    React.createElement("label", {className: "form-label"}, 
+                        this.props.fieldName
+                    ), 
+                    React.createElement("input", {disabled: this.props.field.disabled, 
+                            onChange: this.handleChange, 
+                            value: this.props.field.value, 
+                            className: "doc-block-input form-control", 
+                            type: this.props.field.type || "text"})
+                )
             )
         }
 
@@ -150,9 +197,6 @@ var DocInput = React.createClass({displayName: "DocInput",
     render: function() {
         return (
             React.createElement("div", {className: "doc-input form-group"}, 
-                React.createElement("label", {className: "form-label"}, 
-                    this.props.fieldName
-                ), 
                 this.renderInput()
             )
         );
@@ -162,19 +206,6 @@ var DocInput = React.createClass({displayName: "DocInput",
 });
 
 module.exports = DocInput;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/doc/show/doc_signature_block.jsx":[function(require,module,exports){
-var DocSignatureBlock = React.createClass({displayName: "DocSignatureBlock",
-
-    render: function() {
-        var signatureUrl = this.props.signatureData && this.props.signatureData.url;
-        return React.createElement("div", null, signatureUrl)
-    }
-
-});
-
-module.exports = DocSignatureBlock;
 
 
 },{}],"/Users/jakesendar/doc_app/assets/js/components/doc/show/template.jsx":[function(require,module,exports){
@@ -237,13 +268,15 @@ var LeadsList = React.createClass({displayName: "LeadsList",
         return (
             React.createElement("div", {className: "leads-list col-sm-12"}, 
                 React.createElement("div", {className: "ajax-loader", style: searchingStyle}), 
-                React.createElement("table", {style: tableStyle, className: "lead-div table table-striped table-bordered table-striped"}, 
+                React.createElement("table", {style: tableStyle, className: "lead-div table table-hover table-bordered"}, 
+                    React.createElement("tbody", null, 
                    React.createElement("tr", null, 
                        React.createElement("th", null, "Name"), 
                        React.createElement("th", null, "Email"), 
                        React.createElement("th", null, "Id")
                    ), 
                    this.renderLeads()
+                   )
                 )
             )
         )
@@ -333,7 +366,7 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
     render: function() {
         return (
             React.createElement("div", {className: "lead-index-template container"}, 
-                React.createElement("h1", {className: "col-sm-12"}, "Get Leads By Phone Number:"), 
+                React.createElement("h1", {className: "page-header col-sm-12"}, "Get Leads By Phone Number:"), 
                 React.createElement(LeadsSearchBlock, {handleSubmit: this.handleSearchSubmit}), 
                 React.createElement(LeadsList, {leads: this.state.leads, searching: this.state.searching})
             )
@@ -349,7 +382,6 @@ module.exports = LeadIndexTemplate;
 
 },{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
 var DocForm = require('./../../doc/new/doc_form.jsx')
-var DocSignatureBlock = require('./../../doc/show/doc_signature_block.jsx')
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -363,7 +395,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     getInitialState: function () {
         return {
             lead: {},
-            customFields: {}
+            customFields: false
 
         }
     },
@@ -406,7 +438,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         return (
             React.createElement("div", {className: "app-template-div container"}, 
                 React.createElement("div", {className: "col-sm-8 col-sm-offset-2"}, 
-                    React.createElement("h1", null, " Create Document for Signing: "), 
+                    React.createElement("h1", {className: "page-header"}, " Create Document for Signing: "), 
                     React.createElement(DocForm, {updateCustomField: this.updateCustomField, 
                              customFields: this.state.customFields, 
                              onComplete: this.handleFormComplete, 
@@ -420,17 +452,24 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./../../doc/show/doc_signature_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/show/doc_signature_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
+},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
 var CUSTOM_METHODS = require('./custom_methods.js');
+var PROGRAM_DATA = require('./data/program_data.js');
 
 var CUSTOM_OPTIONS = {
-    "Program": ["", "Accounting", "Finance", "English"]
-}
+    "Program": _.keys(PROGRAM_DATA),
+    "StartDate": []
+};
+
+var DISABLED_FIELDS = [
+    "GradDate", "Weeks", "Morning", "Evening", "Afternoon"
+];
 
 CustomFieldsManager = {
 
     fetchCustomFields: function (lead, callback) {
         // Fetches field object from server
+        // TODO: pass in template_id...
         return $.get('/docs/123/field_names', function(data) {
             var fields = data;
 
@@ -449,6 +488,11 @@ CustomFieldsManager = {
                 //Adds customMethod if CUSTOM_METHODS has matching key
                 if (CUSTOM_METHODS[name]) {
                     fields[name].customMethod = CUSTOM_METHODS[name];
+                };
+
+                if (_.include(DISABLED_FIELDS, name)) {
+                    console.log("Disabling", name)
+                    fields[name].disabled = true;
                 };
 
                 return field;
@@ -618,35 +662,42 @@ CustomFieldsManager = {
 module.exports = CustomFieldsManager;
 
 
-},{"./custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
-var CustomMethods = { 
-    
-    "Program": function (form) {
-        var dates = {
-            "Accounting": {"start": "4/1/2015", "grad": "6/1/2015", "weeks": 8},
-            "Finance": {"start": "5/1/2015", "grad": "9/1/2015", "weeks": 27},
-            "English": {"start": "3/8/2015", "grad": "11/1/2015", "weeks": 30}
-        };
+},{"./custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
+var PROGRAM_DATA = require('./data/program_data.js');
 
+var CustomMethods = { 
+    "Program": function (form) {
         var program = form.state.customFields.Program.value;
 
         if (!program) return false;
 
-        var startDate = dates[program]["start"];
-        var gradDate = dates[program]["grad"];
-        var weeks = dates[program]["weeks"];
-
+        // Updates StartDate with date options
         var startField = _.extend(form.state.customFields["StartDate"], {});
-        startField.value = new Date(startDate);
-        form.updateCustomField("StartDate", startField)
+        startField.options = _.keys(PROGRAM_DATA[program]["dates"]);
+        form.updateCustomField("StartDate", startField);
+
+        // If key matches custom field name, it updates field
+        var updateCustomFieldFromData = function (fieldName) {
+            var field = _.extend(form.state.customFields[fieldName], {});
+            if (field) {
+                field.value = PROGRAM_DATA[program][fieldName];
+                form.updateCustomField(fieldName, field);
+            };
+        }
+
+        _.each(_.keys(PROGRAM_DATA[program]), updateCustomFieldFromData);
+
+    },
+
+    "StartDate": function (form) {
+        var program = form.state.customFields.Program.value;
+        var startDate = form.state.customFields.StartDate.value;
+
+        if (!program || !startDate) return false;
 
         var gradField = _.extend(form.state.customFields["GradDate"], {});
-        gradField.value = new Date(gradDate);
+        gradField.value = new Date(PROGRAM_DATA[program]["dates"][startDate]);
         form.updateCustomField("GradDate", gradField)
-
-        var weeksField = _.extend(form.state.customFields["Weeks"], {});
-        weeksField.value = weeks;
-        form.updateCustomField("EndDate", weeksField)
     },
 
     "Email": function (form) {
@@ -663,6 +714,83 @@ var CustomMethods = {
 }
 
 module.exports = CustomMethods;
+
+
+},{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js":[function(require,module,exports){
+module.exports = { 
+    "Administrative Assistant Morning": { 
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false,                                             
+        "Weeks": 27, 
+        "terms": 9,
+        "clockHours": 650, 
+        "quarterHours": 46.5, 
+        "totalMonths": 7, 
+        "regFee": 50,
+        "tuition": 13350,                                    
+        "otherFees": false, 
+        "total": 13400,
+        "dates": {
+            "1/12/15": "7/5/15",
+            "2/2/15": "7/26/15",
+            "2/23/15": "8/16/15",
+            "3/23/15": "9/7/15",
+            "4/13/15": "9/27/15",
+            "5/4/15": "10/18/15",
+            "5/26/15": "11/8/15",
+            "6/15/15": "11/29/15",
+            "7/6/15": "12/20/15"
+        }
+    },
+
+    "Administrative Assistant Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 27,
+        "terms": 9,
+        "clockHours": 650, 
+        "quarterHours": 46.5, 
+        "totalMonths": 7, 
+        "regFee": 50,
+        "tuition": 13350,                                    
+        "otherFees": false, 
+        "total": 13400,
+        "dates": { 
+            "1/12/15": "7/5/15",
+            "2/2/15": "7/26/15",
+            "2/23/15": "8/16/15",
+            "3/23/15": "9/7/15",
+            "4/13/15": "9/27/15",
+            "5/4/15": "10/18/15",
+            "5/26/15": "11/8/15",
+            "6/15/15": "11/29/15",
+            "7/6/15": "12/20/15"
+        }
+    },
+
+    "Business Account Specialist Morning": {
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false, 
+        "Weeks": 33, 
+        "clockHours": 806, 
+        "quarterHours":61.5, 
+        "totalMonths": 8, 
+        "regFee": 50,
+        "tuition": 15950,
+        "otherFees": false, 
+        "total": 16000,
+        "dates": { 
+            "1/12/15": "3/6/16",
+            "2/2/15": "4/3/16",
+            "2/23/15": "4/24/16",
+            "3/23/15": "5/15/16",
+            "4/13/15": "6/5/16"
+        }
+    }
+}
 
 
 },{}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){

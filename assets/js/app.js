@@ -16,9 +16,16 @@ var App = React.createClass({
         return (
             <div>
                 <header>
-                    <ul>
-                    </ul>
                 </header>
+                <nav className="navbar navbar-default">
+                    <div className="container-fluid">
+                        <div className="navbar-header">
+                            <a className="navbar-brand" href="#">
+                                <img alt="Brand" src="/images/sci-logo.png"/>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
                 <RouteHandler {...this.props}/>
             </div>
         );
