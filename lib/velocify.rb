@@ -23,6 +23,15 @@ class Velocify
     end
   end
 
+  def get_leads_by_email(email)
+    begin
+      res = request(:get_leads_by_email, {email: email})
+      res[:get_leads_by_email_response][:get_leads_by_email_result][:leads][:lead]
+    rescue
+      return nil
+    end
+  end
+
   def get_leads_by_phone(phone)
     begin
       res = request(:get_leads_by_phone, {phone: phone})

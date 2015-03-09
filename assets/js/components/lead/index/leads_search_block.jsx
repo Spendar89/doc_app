@@ -1,26 +1,34 @@
 var LeadsSearchBlock = React.createClass({
     getInitialState: function () {
         return {
-            phone: "",
+            input: "",
+            isEmail: false,
             isValid: false
         }
     },
 
     handleChange: function (e) {
         e.preventDefault();
-        var phone = e.target.value;
-        var isValid = this.handleValidation(phone) ? true : false;
-        this.setState({phone: phone, isValid: isValid});
+        var input = e.target.value;
+        var isEmail = this.handleEmailValidation(input) ? true : false;
+        var isPhone = this.handlePhoneValidation(input) ? true : false;
+        var isValid = (isEmail || isPhone)  ? true : false;
+        this.setState({input: input, isValid: isValid, isEmail: isEmail});
     },
 
-    handleValidation: function (phoneNumber) {
-        var reg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
-        return phoneNumber.match(reg);
+    handleEmailValidation: function (input) {
+        var emailReg = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        return input.match(emailReg);
+    },
+
+    handlePhoneValidation: function (input) {
+        var phoneReg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
+        return input.match(phoneReg);
     },
 
     handleClick: function (e) {
         e.preventDefault();
-        this.props.handleSubmit(this.state.phone);
+        this.props.handleSubmit(this.state.input, this.state.isEmail);
     },
 
     render: function() {

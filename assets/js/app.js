@@ -34,6 +34,7 @@ var App = React.createClass({
 
 var routes = (
     <Route name="app" path="/" handler={App}>
+        <DefaultRoute handler={LeadIndexTemplate} />
         <Route name="leads" handler={LeadIndexTemplate}/>
         <Route name="lead" path="/leads/:leadId" handler={LeadShowTemplate}/>
         <Route name="doc" path="/docs/:signatureRequestId" handler={DocShowTemplate}/>

@@ -34,7 +34,11 @@ end
 get '/leads' do
   content_type :json
   @v = Velocify.new
-  @lead_data = @v.get_leads_by_phone params[:phone]
+  if params[:phone]
+    @lead_data = @v.get_leads_by_phone(params[:phone])
+  else
+    @lead_data = @v.get_leads_by_email(params[:email])
+  end
   return [].to_json unless @lead_data
   @lead_data.map { |lead| @v.convert_lead(lead) }.to_json
 end

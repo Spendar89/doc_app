@@ -35,6 +35,7 @@ var App = React.createClass({displayName: "App",
 
 var routes = (
     React.createElement(Route, {name: "app", path: "/", handler: App}, 
+        React.createElement(DefaultRoute, {handler: LeadIndexTemplate}), 
         React.createElement(Route, {name: "leads", handler: LeadIndexTemplate}), 
         React.createElement(Route, {name: "lead", path: "/leads/:leadId", handler: LeadShowTemplate}), 
         React.createElement(Route, {name: "doc", path: "/docs/:signatureRequestId", handler: DocShowTemplate})
@@ -291,26 +292,34 @@ module.exports = LeadsList;
 var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
     getInitialState: function () {
         return {
-            phone: "",
+            input: "",
+            isEmail: false,
             isValid: false
         }
     },
 
     handleChange: function (e) {
         e.preventDefault();
-        var phone = e.target.value;
-        var isValid = this.handleValidation(phone) ? true : false;
-        this.setState({phone: phone, isValid: isValid});
+        var input = e.target.value;
+        var isEmail = this.handleEmailValidation(input) ? true : false;
+        var isPhone = this.handlePhoneValidation(input) ? true : false;
+        var isValid = (isEmail || isPhone)  ? true : false;
+        this.setState({input: input, isValid: isValid, isEmail: isEmail});
     },
 
-    handleValidation: function (phoneNumber) {
-        var reg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
-        return phoneNumber.match(reg);
+    handleEmailValidation: function (input) {
+        var emailReg = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        return input.match(emailReg);
+    },
+
+    handlePhoneValidation: function (input) {
+        var phoneReg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
+        return input.match(phoneReg);
     },
 
     handleClick: function (e) {
         e.preventDefault();
-        this.props.handleSubmit(this.state.phone);
+        this.props.handleSubmit(this.state.input, this.state.isEmail);
     },
 
     render: function() {
@@ -341,8 +350,14 @@ module.exports = LeadsSearchBlock;
 var LeadsList = require('./leads_list.jsx');
 var LeadsSearchBlock = require('./leads_search_block.jsx');
 
-var fetchLeads = function (phone, callback) {
-    return $.get('/leads?phone=' + phone, function (data) {
+var fetchLeads = function (phone, isEmail, callback) {
+    var url;
+    if (isEmail) {
+        url = '/leads?email='
+    } else {
+        url = '/leads?phone='
+    }
+    return $.get(url + phone, function (data) {
         return callback(data)
     });
 };
@@ -356,9 +371,9 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
         }
     },
 
-    handleSearchSubmit: function (phone) {
+    handleSearchSubmit: function (phone, isEmail) {
         this.setState({searching: true, leads: []});
-        fetchLeads(phone, function (data) {
+        fetchLeads(phone, isEmail, function (data) {
             this.setState({leads: data, searching: false})
         }.bind(this)); 
     },
@@ -366,7 +381,7 @@ var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
     render: function() {
         return (
             React.createElement("div", {className: "lead-index-template container"}, 
-                React.createElement("h1", {className: "page-header col-sm-12"}, "Get Leads By Phone Number:"), 
+                React.createElement("h1", {className: "page-header col-sm-12"}, "Search Leads By Phone Or Email:"), 
                 React.createElement(LeadsSearchBlock, {handleSubmit: this.handleSearchSubmit}), 
                 React.createElement(LeadsList, {leads: this.state.leads, searching: this.state.searching})
             )
