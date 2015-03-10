@@ -1,4 +1,5 @@
 var CUSTOM_METHODS = require('./custom_methods.js');
+//var CUSTOM_VALIDATORS = require('./custom_validators.js');
 var PROGRAM_DATA = require('./data/program_data.js');
 
 var CUSTOM_OPTIONS = {
@@ -12,17 +13,25 @@ var DISABLED_FIELDS = [
 
 CustomFieldsManager = {
 
-    fetchCustomFields: function (lead, callback) {
+    fetchCustomFields: function (lead, templateId, customFields, callback) {
         // Fetches field object from server
         // TODO: pass in template_id...
-        return $.get('/docs/123/field_names', function(data) {
+        return $.get('/docs/' + templateId + '/field_names', function(data) {
             var fields = data;
 
             _.each(data, function (field, name) {
                 // prepopulates form with diamond lead data if template field
+                var fieldValue;
+
+                if (customFields[name]) {
+                    fieldValue = customFields[name].value || lead[name];
+                } else {
+                    fieldValue = lead[name];
+                }
+
                 // name matches diamond lead column name
                 fields[name] = _.extend(field, {
-                    value: lead[name]
+                    value: fieldValue
                 });
 
                 // Adds options if CUSTOM_OPTIONS has matching key
@@ -36,7 +45,6 @@ CustomFieldsManager = {
                 };
 
                 if (_.include(DISABLED_FIELDS, name)) {
-                    console.log("Disabling", name)
                     fields[name].disabled = true;
                 };
 

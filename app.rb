@@ -14,19 +14,20 @@ end
 
 post '/docs' do
   content_type :json
-  @document = Document.new(params)
-  @email = "jakesendar@gmail.com"
-  @name = "Jake Sendar"
+  @document = Document.new(params[:custom_fields], params[:template_id])
+  @email = params[:email]
+  @name = params[:name]
+  #title is set to template_id/lead_id combo for uniqueness
+  @title= "doc_#{params[:template_id]}_#{params[:lead_id]}"
   doc_maker = DocMaker.new(@document)
-  doc_maker.request_signature(@email, @name)
+  doc_maker.request_signature(@email, @name, @title)
   { signature_request_id: doc_maker.get_signature_request_id, 
     url: doc_maker.get_signing_url }.to_json
 end
 
 get '/docs/:template_id/field_names' do
   content_type :json
-  #TODO: pass in template_id to document...
-  @document = Document.new({})
+  @document = Document.new({}, params[:template_id])
   doc_maker = DocMaker.new(@document)
   doc_maker.get_custom_field_names.to_json
 end

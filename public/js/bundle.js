@@ -82,7 +82,13 @@ var DocForm = React.createClass({displayName: "DocForm",
 
     handleSubmit: function (e) {
         e.preventDefault();
-        $.post("/docs", this.transformCustomFields(), function (data) {
+        $.post("/docs", {
+            custom_fields: this.transformCustomFields(), 
+            template_id: this.props.templateId,
+            lead_id: this.props.leadId,
+            email: this.props.email,
+            name: this.props.name
+        }, function (data) {
             this.props.onComplete(data)
         }.bind(this));
     },
@@ -395,8 +401,37 @@ module.exports = LeadIndexTemplate;
 
 
 
-},{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
-var DocForm = require('./../../doc/new/doc_form.jsx')
+},{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx":[function(require,module,exports){
+var LeadInputs = React.createClass({displayName: "LeadInputs",
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "col-sm-12"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("h4", {className: "control-label"}, "Enter the Recipient Info: "), 
+                    React.createElement("p", null, React.createElement("i", null, "You can specify the email address that will receive the signature request and the name of the recipient"))
+                ), 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("label", null, "Name:"), 
+                    React.createElement("input", {className: "form-control", value: this.props.name, onChange: this.props.onNameChange})
+                ), 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("label", null, "Email:"), 
+                    React.createElement("input", {className: "form-control", value: this.props.email, onChange: this.props.onEmailChange})
+                )
+            )
+        )
+
+    }
+});
+
+module.exports = LeadInputs;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
+var TemplateInput = require('./template_input.jsx');
+var LeadInputs = require('./lead_inputs.jsx');
+var DocForm = require('./../../doc/new/doc_form.jsx');
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
 var fetchLead = function (leadId, callback) {
@@ -410,13 +445,16 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     getInitialState: function () {
         return {
             lead: {},
-            customFields: false
+            customFields: false,
+            templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
+            name: "",
+            email: ""
 
         }
     },
 
     setCustomFieldsFromLead: function (lead) {
-        CustomFieldsManager.fetchCustomFields(lead, function(data) {
+        CustomFieldsManager.fetchCustomFields(lead, this.state.templateId, this.state.customFields, function(data) {
             this.setState({customFields: data});
         }.bind(this));
     },
@@ -429,8 +467,15 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     setStateFromLead: function (lead) {
-        this.setState({lead: lead});
+        this.setState({ lead: lead, 
+                      email: lead["Email"], 
+                      name: lead["FName"] + " " + lead["LName"]
+        });
         this.setCustomFieldsFromLead(lead);
+    },
+
+    handleTemplateInputSubmit: function () {
+       this.setCustomFieldsFromLead(this.state.lead);
     },
     
     componentWillMount: function () {
@@ -449,14 +494,39 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
     },
 
+    handleTemplateInputChange: function (e) {
+        var templateId = e.target.value;
+        this.setState({templateId: templateId});   
+    },
+
+    handleLeadEmailInputChange: function (e) {
+        var val = e.target.value;
+        this.setState({email: val})
+    },
+
+    handleLeadNameInputChange: function (e) {
+        var val = e.target.value;
+        this.setState({name: val});   
+    },
+
     render: function() {
         return (
             React.createElement("div", {className: "app-template-div container"}, 
-                React.createElement("div", {className: "col-sm-8 col-sm-offset-2"}, 
-                    React.createElement("h1", {className: "page-header"}, " Create Document for Signing: "), 
-                    React.createElement(DocForm, {updateCustomField: this.updateCustomField, 
+                React.createElement("h1", {className: "page-header"}, " Create Document for Signing: "), 
+                React.createElement("div", {className: "col-sm-4"}, 
+                    React.createElement(TemplateInput, {templateId: this.state.templateId, onChange: this.handleTemplateInputChange, onSubmit: this.handleTemplateInputSubmit}), 
+                    React.createElement(LeadInputs, {onEmailChange: this.handleLeadEmailInputChange, 
+                                onNameChange: this.handleLeadNameInputChange, 
+                                name: this.state.name, email: this.state.email})
+                ), 
+                React.createElement("div", {className: "col-sm-8"}, 
+                    React.createElement(DocForm, {templateId: this.state.templateId, 
+                             updateCustomField: this.updateCustomField, 
                              customFields: this.state.customFields, 
                              onComplete: this.handleFormComplete, 
+                             leadId: this.props.params.leadId, 
+                             email: this.state.email, 
+                             name: this.state.name, 
                              lead: this.state.lead})
                 )
             )
@@ -467,8 +537,32 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx"}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
+},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+var TemplateInput = React.createClass({displayName: "TemplateInput",
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "col-sm-12"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("h4", {className: "control-label"}, "Switch Your Template: "), 
+                    React.createElement("p", null, React.createElement("i", null, "Enter a different HelloSign Template ID to Update the Form Fields")), 
+                    React.createElement("input", {className: "form-control", value: this.props.templateId, onChange: this.props.onChange})
+                ), 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("input", {type: "submit", className: "form-control btn btn-success", onClick: this.props.onSubmit, value: "Update Template"})
+                )
+            )
+        )
+
+    }
+});
+
+module.exports = TemplateInput;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js":[function(require,module,exports){
 var CUSTOM_METHODS = require('./custom_methods.js');
+//var CUSTOM_VALIDATORS = require('./custom_validators.js');
 var PROGRAM_DATA = require('./data/program_data.js');
 
 var CUSTOM_OPTIONS = {
@@ -482,17 +576,25 @@ var DISABLED_FIELDS = [
 
 CustomFieldsManager = {
 
-    fetchCustomFields: function (lead, callback) {
+    fetchCustomFields: function (lead, templateId, customFields, callback) {
         // Fetches field object from server
         // TODO: pass in template_id...
-        return $.get('/docs/123/field_names', function(data) {
+        return $.get('/docs/' + templateId + '/field_names', function(data) {
             var fields = data;
 
             _.each(data, function (field, name) {
                 // prepopulates form with diamond lead data if template field
+                var fieldValue;
+
+                if (customFields[name]) {
+                    fieldValue = customFields[name].value || lead[name];
+                } else {
+                    fieldValue = lead[name];
+                }
+
                 // name matches diamond lead column name
                 fields[name] = _.extend(field, {
-                    value: lead[name]
+                    value: fieldValue
                 });
 
                 // Adds options if CUSTOM_OPTIONS has matching key
@@ -506,7 +608,6 @@ CustomFieldsManager = {
                 };
 
                 if (_.include(DISABLED_FIELDS, name)) {
-                    console.log("Disabling", name)
                     fields[name].disabled = true;
                 };
 
@@ -716,15 +817,9 @@ var CustomMethods = {
     },
 
     "Email": function (form) {
-        var nameValue;
-        if (form.state.customFields.Email.value === "jakesendar@gmail.com") {
-            nameValue = "Jake";
-        } else {
-            nameValue = "Dude";
-        };
-        var field = _.extend(form.state.customFields["FName"], {});
-        field.value = nameValue;
-        form.updateCustomField("FName", field);
+        var emailField = form.state.customFields.Email;
+        emailField.type = "email";
+        // TODO: Add email validation;
     }
 }
 

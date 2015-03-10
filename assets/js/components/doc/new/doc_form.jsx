@@ -32,7 +32,13 @@ var DocForm = React.createClass({
 
     handleSubmit: function (e) {
         e.preventDefault();
-        $.post("/docs", this.transformCustomFields(), function (data) {
+        $.post("/docs", {
+            custom_fields: this.transformCustomFields(), 
+            template_id: this.props.templateId,
+            lead_id: this.props.leadId,
+            email: this.props.email,
+            name: this.props.name
+        }, function (data) {
             this.props.onComplete(data)
         }.bind(this));
     },

@@ -17,6 +17,6 @@ class Diamond
     #results = []
     #@client.execute("SELECT * FROM [adm_manager].dbo.lead_detail where Leads360ID = '#{leads_360_id}'").each {|r| results << r}
     #results.first
-    {"FName" => "Jake", "LName" => "Sendar"}
+    {"FName" => "Jake", "LName" => "Sendar", "Phone" => "2022554618", "Address" => "8708 Brickyard Rd", "Email" => "jakesendar@gmail.com"}
   end
 end

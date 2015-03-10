@@ -36,15 +36,9 @@ var CustomMethods = {
     },
 
     "Email": function (form) {
-        var nameValue;
-        if (form.state.customFields.Email.value === "jakesendar@gmail.com") {
-            nameValue = "Jake";
-        } else {
-            nameValue = "Dude";
-        };
-        var field = _.extend(form.state.customFields["FName"], {});
-        field.value = nameValue;
-        form.updateCustomField("FName", field);
+        var emailField = form.state.customFields.Email;
+        emailField.type = "email";
+        // TODO: Add email validation;
     }
 }
 
