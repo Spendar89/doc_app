@@ -1,5 +1,6 @@
 var TemplateInput = require('./template_input.jsx');
 var LeadInputs = require('./lead_inputs.jsx');
+var LeadData = require('./lead_data.jsx');
 var DocForm = require('./../../doc/new/doc_form.jsx');
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
@@ -15,6 +16,7 @@ var LeadShowTemplate = React.createClass({
         return {
             lead: {},
             customFields: false,
+            leadUpdates: {},
             templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
             name: "",
             email: ""
@@ -33,6 +35,12 @@ var LeadShowTemplate = React.createClass({
         cf[fieldName] = field;
         this.setState({customFields: cf});
         if (field.customMethod) field.customMethod(this);
+    },
+
+    updateLeadUpdate: function (key, value) {
+        var lu = _.extend(this.state.leadUpdates, {});
+        lu[key] = value;
+        this.setState({leadUpdates: lu});
     },
 
     setStateFromLead: function (lead) {
@@ -80,15 +88,15 @@ var LeadShowTemplate = React.createClass({
 
     render: function() {
         return (
-            <div className="app-template-div container">
+            <div className="app-template-div container-fluid">
                 <h1 className="page-header"> Create Document for Signing: </h1>
-                <div className="col-sm-4">
+                <div className="col-sm-3">
                     <TemplateInput templateId={this.state.templateId} onChange={this.handleTemplateInputChange} onSubmit={this.handleTemplateInputSubmit}/>
                     <LeadInputs onEmailChange={this.handleLeadEmailInputChange} 
                                 onNameChange={this.handleLeadNameInputChange} 
                                 name={this.state.name} email={this.state.email} />
                 </div>
-                <div className="col-sm-8">
+                <div className="col-sm-6">
                     <DocForm templateId={this.state.templateId} 
                              updateCustomField={this.updateCustomField} 
                              customFields={this.state.customFields} 
@@ -97,6 +105,11 @@ var LeadShowTemplate = React.createClass({
                              email={this.state.email}
                              name={this.state.name}
                              lead={this.state.lead} />
+                </div>
+                <div className="col-sm-3">
+                    <LeadData lead={this.state.lead} 
+                              leadUpdates={this.state.leadUpdates} 
+                              customFields={this.state.customFields}/>
                 </div>
             </div>
         )

@@ -401,7 +401,63 @@ module.exports = LeadIndexTemplate;
 
 
 
-},{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx":[function(require,module,exports){
+},{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx":[function(require,module,exports){
+
+var LeadData = React.createClass({displayName: "LeadData",
+
+    renderInput: function (key, value) {
+        var customField = this.props.customFields[key] || this.props.leadUpdates[key];
+
+        var getRowClasses = function () {
+            if (customField && customField.value != value) {
+                return "danger";
+            } else {
+                return "success";
+            }
+        };
+
+        return (
+            React.createElement("tr", {className: getRowClasses()}, 
+                React.createElement("td", null, React.createElement("label", null, key)), 
+                React.createElement("td", null, value)
+            )
+        )
+    },
+
+    renderInputs: function () {
+        return _.map(
+            this.props.lead, function (value, key) {
+                if (!key.match(/UserDefined/)) {
+                    return this.renderInput(key, value)
+                }
+            }.bind(this)
+        );
+    },
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "col-sm-12"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("h4", {className: "control-label"}, "Lead Data"), 
+                    React.createElement("p", null, React.createElement("i", null, "This displays the current data for the selected lead")), 
+                    React.createElement("div", {className: "lead-table-div"}, 
+                        React.createElement("table", {className: "table table-condensed table-bordered"}, 
+                            React.createElement("tbody", null, 
+                                this.renderInputs()
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+    }
+});
+
+module.exports = LeadData;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx":[function(require,module,exports){
 var LeadInputs = React.createClass({displayName: "LeadInputs",
 
     render: function () {
@@ -431,6 +487,7 @@ module.exports = LeadInputs;
 },{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
 var TemplateInput = require('./template_input.jsx');
 var LeadInputs = require('./lead_inputs.jsx');
+var LeadData = require('./lead_data.jsx');
 var DocForm = require('./../../doc/new/doc_form.jsx');
 var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
 
@@ -446,6 +503,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         return {
             lead: {},
             customFields: false,
+            leadUpdates: {},
             templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
             name: "",
             email: ""
@@ -464,6 +522,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         cf[fieldName] = field;
         this.setState({customFields: cf});
         if (field.customMethod) field.customMethod(this);
+    },
+
+    updateLeadUpdate: function (key, value) {
+        var lu = _.extend(this.state.leadUpdates, {});
+        lu[key] = value;
+        this.setState({leadUpdates: lu});
     },
 
     setStateFromLead: function (lead) {
@@ -511,15 +575,15 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     render: function() {
         return (
-            React.createElement("div", {className: "app-template-div container"}, 
+            React.createElement("div", {className: "app-template-div container-fluid"}, 
                 React.createElement("h1", {className: "page-header"}, " Create Document for Signing: "), 
-                React.createElement("div", {className: "col-sm-4"}, 
+                React.createElement("div", {className: "col-sm-3"}, 
                     React.createElement(TemplateInput, {templateId: this.state.templateId, onChange: this.handleTemplateInputChange, onSubmit: this.handleTemplateInputSubmit}), 
                     React.createElement(LeadInputs, {onEmailChange: this.handleLeadEmailInputChange, 
                                 onNameChange: this.handleLeadNameInputChange, 
                                 name: this.state.name, email: this.state.email})
                 ), 
-                React.createElement("div", {className: "col-sm-8"}, 
+                React.createElement("div", {className: "col-sm-6"}, 
                     React.createElement(DocForm, {templateId: this.state.templateId, 
                              updateCustomField: this.updateCustomField, 
                              customFields: this.state.customFields, 
@@ -528,6 +592,11 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                              email: this.state.email, 
                              name: this.state.name, 
                              lead: this.state.lead})
+                ), 
+                React.createElement("div", {className: "col-sm-3"}, 
+                    React.createElement(LeadData, {lead: this.state.lead, 
+                              leadUpdates: this.state.leadUpdates, 
+                              customFields: this.state.customFields})
                 )
             )
         )
@@ -537,7 +606,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+},{"./../../../lib/custom_fields_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_fields_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
 var TemplateInput = React.createClass({displayName: "TemplateInput",
 
     render: function () {
@@ -786,40 +855,51 @@ var CustomMethods = {
         var program = form.state.customFields.Program.value;
 
         if (!program) return false;
-
+         
         // Updates StartDate with date options
         var startField = _.extend(form.state.customFields["StartDate"], {});
-        startField.options = _.keys(PROGRAM_DATA[program]["dates"]);
-        form.updateCustomField("StartDate", startField);
 
-        // If key matches custom field name, it updates field
-        var updateCustomFieldFromData = function (fieldName) {
-            var field = _.extend(form.state.customFields[fieldName], {});
-            if (field) {
-                field.value = PROGRAM_DATA[program][fieldName];
-                form.updateCustomField(fieldName, field);
-            };
-        }
+        $.get('/terms', {program_description: program}, function (data) {
 
-        _.each(_.keys(PROGRAM_DATA[program]), updateCustomFieldFromData);
+            PROGRAM_DATA[program]["terms"] = {};
+
+            _.each(data, function (term) {
+                var startDate = term["TermBeginDate"];
+                PROGRAM_DATA[program]["terms"][startDate] = term; 
+                startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
+                form.updateCustomField("StartDate", startField);
+                form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
+            })
+
+            var updateCustomFieldFromData = function (fieldName) {
+                var field = _.extend(form.state.customFields[fieldName], {});
+                if (field) {
+                    field.value = PROGRAM_DATA[program][fieldName];
+                    form.updateCustomField(fieldName, field);
+                };
+            }
+
+            _.each(_.keys(PROGRAM_DATA[program]), updateCustomFieldFromData);
+        })
 
     },
 
     "StartDate": function (form) {
         var program = form.state.customFields.Program.value;
         var startDate = form.state.customFields.StartDate.value;
+        var term = PROGRAM_DATA[program]["terms"][startDate];
 
         if (!program || !startDate) return false;
 
         var gradField = _.extend(form.state.customFields["GradDate"], {});
-        gradField.value = new Date(PROGRAM_DATA[program]["dates"][startDate]);
+        gradField.value = new Date(term["TermEndDate"]);
+        form.updateLeadUpdate("TermID", term["TermID"]);
         form.updateCustomField("GradDate", gradField)
     },
 
     "Email": function (form) {
         var emailField = form.state.customFields.Email;
         emailField.type = "email";
-        // TODO: Add email validation;
     }
 }
 
@@ -828,7 +908,7 @@ module.exports = CustomMethods;
 
 },{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js":[function(require,module,exports){
 module.exports = { 
-    "Administrative Assistant Morning": { 
+    "Administrative Assistant - Morning": { 
         "Morning": true, 
         "Afternoon": false, 
         "Evening": false,                                             
@@ -854,7 +934,7 @@ module.exports = {
         }
     },
 
-    "Administrative Assistant Evening": {
+    "Administrative Assistant - Evening": {
         "Morning": false, 
         "Afternoon": false, 
         "Evening": true,                                             
@@ -880,7 +960,7 @@ module.exports = {
         }
     },
 
-    "Business Account Specialist Morning": {
+    "Business Account Specialist - Morning": {
         "Morning": true, 
         "Afternoon": false, 
         "Evening": false, 

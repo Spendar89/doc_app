@@ -81,6 +81,7 @@ GEM
       tilt (>= 1.3.0, < 2.0)
     systemu (2.6.4)
     tilt (1.4.1)
+    tiny_tds (0.6.2)
     uuid (2.3.7)
       macaddr (~> 1.0)
     wasabi (3.3.0)
@@ -98,3 +99,4 @@ DEPENDENCIES
   savon (~> 2.8.0)
   sinatra
   sinatra-assetpack
+  tiny_tds

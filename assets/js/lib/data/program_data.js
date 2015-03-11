@@ -1,5 +1,5 @@
 module.exports = { 
-    "Administrative Assistant Morning": { 
+    "Administrative Assistant - Morning": { 
         "Morning": true, 
         "Afternoon": false, 
         "Evening": false,                                             
@@ -25,7 +25,7 @@ module.exports = {
         }
     },
 
-    "Administrative Assistant Evening": {
+    "Administrative Assistant - Evening": {
         "Morning": false, 
         "Afternoon": false, 
         "Evening": true,                                             
@@ -51,7 +51,7 @@ module.exports = {
         }
     },
 
-    "Business Account Specialist Morning": {
+    "Business Account Specialist - Morning": {
         "Morning": true, 
         "Afternoon": false, 
         "Evening": false, 

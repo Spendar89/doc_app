@@ -1,3 +1,4 @@
+require 'uri'
 require 'rubygems'
 require 'sinatra'
 require './lib/doc_maker'
@@ -23,6 +24,13 @@ post '/docs' do
   doc_maker.request_signature(@email, @name, @title)
   { signature_request_id: doc_maker.get_signature_request_id, 
     url: doc_maker.get_signing_url }.to_json
+end
+
+get '/terms' do
+  content_type :json
+  @diamond = Diamond.new
+  program_description = params[:program_description]
+  @diamond.get_program_terms(program_description).to_json
 end
 
 get '/docs/:template_id/field_names' do
