@@ -7,6 +7,14 @@ var CUSTOM_OPTIONS = {
     "StartDate": []
 };
 
+var CUSTOM_TYPES = {
+    "Date": "date",
+    "Email": "email",
+    "Phone": "tel",
+    "DateOfBirth": "date",
+    "DOB": "date"
+};
+
 var DISABLED_FIELDS = [
     "GradDate", "Weeks", "Morning", "Evening", "Afternoon"
 ];
@@ -43,6 +51,10 @@ CustomFieldsManager = {
                 if (CUSTOM_METHODS[name]) {
                     fields[name].customMethod = CUSTOM_METHODS[name];
                 };
+
+                if (CUSTOM_TYPES[name]) {
+                    fields[name].type = CUSTOM_TYPES[name]
+                }
 
                 if (_.include(DISABLED_FIELDS, name)) {
                     fields[name].disabled = true;

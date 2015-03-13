@@ -16,11 +16,11 @@ var LeadShowTemplate = React.createClass({
         return {
             lead: {},
             customFields: false,
+            syncRemote: true,
             leadUpdates: {},
             templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
             name: "",
             email: ""
-
         }
     },
 
@@ -30,11 +30,20 @@ var LeadShowTemplate = React.createClass({
         }.bind(this));
     },
 
+    fetchLeadDocuments: function (lead) {
+        $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
+            console.log("DOCS", data)
+        } )
+    },
+
     updateCustomField: function (fieldName, field) {
         var cf = _.extend(this.state.customFields, {});
         cf[fieldName] = field;
         this.setState({customFields: cf});
         if (field.customMethod) field.customMethod(this);
+        if (_.has(this.state.lead, fieldName)) {
+            this.updateLeadUpdate(fieldName, field.value)
+        }
     },
 
     updateLeadUpdate: function (key, value) {
@@ -43,12 +52,28 @@ var LeadShowTemplate = React.createClass({
         this.setState({leadUpdates: lu});
     },
 
+    updateLead: function (cb) {
+        $.ajax({
+            url: "/leads/" + this.state.lead["LeadsID"],
+            method: "PUT",
+            data: {lead: this.state.leadUpdates}
+        })
+        .success(function(data) {
+            if (cb) {
+                cb(data)   
+            } else {
+                fetchLead(this.props.params.leadId, this.setStateFromLead);
+            };
+        }.bind(this));
+    },
+
     setStateFromLead: function (lead) {
-        this.setState({ lead: lead, 
-                      email: lead["Email"], 
-                      name: lead["FName"] + " " + lead["LName"]
-        });
+        this.setState(
+            { lead: lead, 
+                email: lead["Email"], 
+                name: lead["FName"] + " " + lead["LName"] });
         this.setCustomFieldsFromLead(lead);
+        this.fetchLeadDocuments(lead)
     },
 
     handleTemplateInputSubmit: function () {
@@ -68,7 +93,14 @@ var LeadShowTemplate = React.createClass({
     },
 
     handleFormComplete: function (data) {
-        window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
+        var cb = function () {
+            window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
+        };
+        if (this.state.syncRemote) {
+            this.updateLead(cb)
+        } else {
+            cb()
+        };
     },
 
     handleTemplateInputChange: function (e) {
@@ -84,6 +116,11 @@ var LeadShowTemplate = React.createClass({
     handleLeadNameInputChange: function (e) {
         var val = e.target.value;
         this.setState({name: val});   
+    },
+
+    handleSync: function (e) {
+        var syncRemote = this.state.syncRemote;
+        this.setState({syncRemote: !syncRemote});
     },
 
     render: function() {
@@ -109,7 +146,10 @@ var LeadShowTemplate = React.createClass({
                 <div className="col-sm-3">
                     <LeadData lead={this.state.lead} 
                               leadUpdates={this.state.leadUpdates} 
-                              customFields={this.state.customFields}/>
+                              customFields={this.state.customFields}
+                              syncRemote={this.state.syncRemote}
+                              handleSync={this.handleSync}
+                              handleSubmit={this.updateLead} />
                 </div>
             </div>
         )

@@ -26,3 +26,11 @@
 .navbar-brand img {
   height: 100%;
 }
+
+.lead-table-div {
+  /*height: 400px;*/
+  /*overflow: scroll;*/
+  /*overflow-x: hidden;*/
+  /*margin-bottom: 15px;*/
+  border-radius: 4px;
+}

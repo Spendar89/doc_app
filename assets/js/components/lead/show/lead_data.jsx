@@ -2,13 +2,13 @@
 var LeadData = React.createClass({
 
     renderInput: function (key, value) {
-        var customField = this.props.customFields[key] || this.props.leadUpdates[key];
+        var leadUpdates = this.props.leadUpdates;
 
         var getRowClasses = function () {
-            if (customField && customField.value != value) {
+            if (leadUpdates[key] && leadUpdates[key] != value) {
                 return "danger";
             } else {
-                return "success";
+                return "fsuccess";
             }
         };
 
@@ -35,9 +35,15 @@ var LeadData = React.createClass({
             <div className="col-sm-12">
                 <div className="form-group">
                     <h4 className="control-label">Lead Data</h4>
-                    <p><i>This displays the current data for the selected lead</i></p>
+                    <p><i>This displays the current data for the selected lead. Red Rows  will be updated when synced.</i></p>
+                        <div className="checkbox">
+                            <label>
+                                <input type="checkbox" value={this.props.syncRemote} checked={this.props.syncRemote} onChange={this.props.handleSync} />
+                                Sync Lead Data With Server
+                            </label>
+                        </div>
                     <div className="lead-table-div">
-                        <table className="table table-condensed table-bordered">
+                        <table className="table table-condensed">
                             <tbody>
                                 {this.renderInputs()}
                             </tbody>

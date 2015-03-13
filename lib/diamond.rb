@@ -20,6 +20,11 @@ class Diamond
     #{"FName" => "Jake", "LName" => "Sendar", "Phone" => "2022554618", "Address" => "8708 Brickyard Rd", "Email" => "jakesendar@gmail.com"}
   end
 
+  def update_lead(id, lead)
+    l = lead.map { |k, v| "#{k} = '#{v}'"  }.join(', ')
+    @client.execute("UPDATE [825-Austin].dbo.lead SET #{l} WHERE LeadsID = '#{id}'").do
+  end
+
   #def get_program_courses(program_no)
     #results = []
     #@client.execute("SELECT * FROM [825-Austin].dbo.ProgramCourse where ProgramNo = '#{program_no}'").each {|r| results << r}
@@ -31,6 +36,16 @@ class Diamond
     #@client.execute("SELECT Term.TermID, Term.TermBeginDate, Term.TermEndDate FROM [825-Austin].dbo.CourseOffering INNER JOIN [825-Austin].dbo.Term ON [825-Austin].dbo.CourseOffering.TermID = Term.TermID where CourseNo = '#{course_no}'").each {|r| results << r}
     #results
   #end
+ 
+  def get_lead_documents(lead_id)
+    results = []
+    @client.execute("SELECT DocumentID FROM [825-Austin].dbo.leadDocuments WHERE LeadID = #{lead_id}").each{|r| results << r}
+    results
+  end
+
+  def add_document_to_lead(lead_id, document_id)
+    @client.execute("INSERT INTO [825-Austin].dbo.LeadDocuments VALUES (#{lead_id}, '#{document_id}')").do
+  end
 
   def get_program_terms(program_description)
     results = []

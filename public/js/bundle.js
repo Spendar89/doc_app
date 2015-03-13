@@ -406,13 +406,13 @@ module.exports = LeadIndexTemplate;
 var LeadData = React.createClass({displayName: "LeadData",
 
     renderInput: function (key, value) {
-        var customField = this.props.customFields[key] || this.props.leadUpdates[key];
+        var leadUpdates = this.props.leadUpdates;
 
         var getRowClasses = function () {
-            if (customField && customField.value != value) {
+            if (leadUpdates[key] && leadUpdates[key] != value) {
                 return "danger";
             } else {
-                return "success";
+                return "fsuccess";
             }
         };
 
@@ -439,9 +439,15 @@ var LeadData = React.createClass({displayName: "LeadData",
             React.createElement("div", {className: "col-sm-12"}, 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("h4", {className: "control-label"}, "Lead Data"), 
-                    React.createElement("p", null, React.createElement("i", null, "This displays the current data for the selected lead")), 
+                    React.createElement("p", null, React.createElement("i", null, "This displays the current data for the selected lead. Red Rows  will be updated when synced.")), 
+                        React.createElement("div", {className: "checkbox"}, 
+                            React.createElement("label", null, 
+                                React.createElement("input", {type: "checkbox", value: this.props.syncRemote, checked: this.props.syncRemote, onChange: this.props.handleSync}), 
+                                "Sync Lead Data With Server"
+                            )
+                        ), 
                     React.createElement("div", {className: "lead-table-div"}, 
-                        React.createElement("table", {className: "table table-condensed table-bordered"}, 
+                        React.createElement("table", {className: "table table-condensed"}, 
                             React.createElement("tbody", null, 
                                 this.renderInputs()
                             )
@@ -503,11 +509,11 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         return {
             lead: {},
             customFields: false,
+            syncRemote: true,
             leadUpdates: {},
             templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
             name: "",
             email: ""
-
         }
     },
 
@@ -517,11 +523,20 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         }.bind(this));
     },
 
+    fetchLeadDocuments: function (lead) {
+        $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
+            console.log("DOCS", data)
+        } )
+    },
+
     updateCustomField: function (fieldName, field) {
         var cf = _.extend(this.state.customFields, {});
         cf[fieldName] = field;
         this.setState({customFields: cf});
         if (field.customMethod) field.customMethod(this);
+        if (_.has(this.state.lead, fieldName)) {
+            this.updateLeadUpdate(fieldName, field.value)
+        }
     },
 
     updateLeadUpdate: function (key, value) {
@@ -530,12 +545,28 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         this.setState({leadUpdates: lu});
     },
 
+    updateLead: function (cb) {
+        $.ajax({
+            url: "/leads/" + this.state.lead["LeadsID"],
+            method: "PUT",
+            data: {lead: this.state.leadUpdates}
+        })
+        .success(function(data) {
+            if (cb) {
+                cb(data)   
+            } else {
+                fetchLead(this.props.params.leadId, this.setStateFromLead);
+            };
+        }.bind(this));
+    },
+
     setStateFromLead: function (lead) {
-        this.setState({ lead: lead, 
-                      email: lead["Email"], 
-                      name: lead["FName"] + " " + lead["LName"]
-        });
+        this.setState(
+            { lead: lead, 
+                email: lead["Email"], 
+                name: lead["FName"] + " " + lead["LName"] });
         this.setCustomFieldsFromLead(lead);
+        this.fetchLeadDocuments(lead)
     },
 
     handleTemplateInputSubmit: function () {
@@ -555,7 +586,14 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     handleFormComplete: function (data) {
-        window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
+        var cb = function () {
+            window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
+        };
+        if (this.state.syncRemote) {
+            this.updateLead(cb)
+        } else {
+            cb()
+        };
     },
 
     handleTemplateInputChange: function (e) {
@@ -571,6 +609,11 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     handleLeadNameInputChange: function (e) {
         var val = e.target.value;
         this.setState({name: val});   
+    },
+
+    handleSync: function (e) {
+        var syncRemote = this.state.syncRemote;
+        this.setState({syncRemote: !syncRemote});
     },
 
     render: function() {
@@ -596,7 +639,10 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                 React.createElement("div", {className: "col-sm-3"}, 
                     React.createElement(LeadData, {lead: this.state.lead, 
                               leadUpdates: this.state.leadUpdates, 
-                              customFields: this.state.customFields})
+                              customFields: this.state.customFields, 
+                              syncRemote: this.state.syncRemote, 
+                              handleSync: this.handleSync, 
+                              handleSubmit: this.updateLead})
                 )
             )
         )
@@ -639,6 +685,14 @@ var CUSTOM_OPTIONS = {
     "StartDate": []
 };
 
+var CUSTOM_TYPES = {
+    "Date": "date",
+    "Email": "email",
+    "Phone": "tel",
+    "DateOfBirth": "date",
+    "DOB": "date"
+};
+
 var DISABLED_FIELDS = [
     "GradDate", "Weeks", "Morning", "Evening", "Afternoon"
 ];
@@ -675,6 +729,10 @@ CustomFieldsManager = {
                 if (CUSTOM_METHODS[name]) {
                     fields[name].customMethod = CUSTOM_METHODS[name];
                 };
+
+                if (CUSTOM_TYPES[name]) {
+                    fields[name].type = CUSTOM_TYPES[name]
+                }
 
                 if (_.include(DISABLED_FIELDS, name)) {
                     fields[name].disabled = true;
