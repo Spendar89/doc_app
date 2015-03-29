@@ -17,7 +17,7 @@ var App = React.createClass({
             <div>
                 <header>
                 </header>
-                <nav className="navbar navbar-default">
+                <nav className="navbar navbar-default navbar-fixed-top">
                     <div className="container-fluid">
                         <div className="navbar-header">
                             <a className="navbar-brand" href="#">
@@ -27,7 +27,9 @@ var App = React.createClass({
                             <h3 className="pull-right">SCI Document Manager</h3>
                     </div>
                 </nav>
-                <RouteHandler {...this.props}/>
+                <div className="app-template-div container-fluid">
+                    <RouteHandler {...this.props}/>
+                </div>
             </div>
         );
     }

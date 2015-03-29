@@ -2,20 +2,26 @@ var DocInput = require('./doc_input.jsx');
 
 var DocForm = React.createClass({
 
+    getInitialState: function() {
+        return {
+            loaderText: "Downloading Template"
+        }
+
+    },
+
     renderDocInputs: function () {
-        var self = this;
         return _.map(
             this.props.customFields, function (field, fieldName) {
                 return (
                     <div>
-                        {self.renderDocInputHeader(field)}
+                        {this.renderDocInputHeader(field)}
                         <DocInput field={field} 
-                                  updateField={self.props.updateCustomField} 
-                                  callCustomMethod={self.props.callCustomMethod}
+                                  updateField={this.props.updateCustomField} 
+                                  callCustomMethod={this.props.callCustomMethod}
                                   fieldName={fieldName} />
                     </div>
                 );
-            }
+            }.bind(this)
         );
     },
 
@@ -51,14 +57,30 @@ var DocForm = React.createClass({
             this.props.onComplete(data)
         }.bind(this));
     },
-
-    render: function() {
-        var searchingStyle={
-            visibility: (!this.props.customFields ? "visible" : "hidden")
+    
+    searchingStyle: function() {
+        return {
+            display: (!this.props.customFields ? "block" : "none")
         };
-        var formStyle={
+    },
+
+    formStyle: function() {
+        return {
             visibility: (this.props.customFields ? "visible" : "hidden")
         };
+    },
+
+    componentDidMount: function() {
+        setTimeout(function() {
+            this.setState({loaderText: "Requesting Custom Fields"})
+        }.bind(this), 2000)
+
+        setTimeout(function() {
+            this.setState({loaderText: "Building Form"})
+        }.bind(this), 4000)
+    },
+
+    render: function() {
         return (
             <div className="doc-form-inner-div">
                 <div className="col-sm-12 doc-form-header-div">
@@ -66,8 +88,11 @@ var DocForm = React.createClass({
                     <input disabled={!this.isValid()} className="btn-submit btn col-sm-6" 
                             type="submit" value="Generate Doc for Signing" onClick={this.handleSubmit}/>
                 </div>
-                <div className="ajax-loader" style={searchingStyle}></div>
-                <form className="doc-form col-sm-12" style={formStyle}>
+                <div className="loader-div col-sm-4 col-sm-offset-4" style={this.searchingStyle()}>
+                    <div className="ajax-loader"></div>
+                    <div className="loader-text"><h3>{this.state.loaderText}</h3></div>
+                </div>
+                <form className="doc-form col-sm-12" style={this.formStyle()}>
                     <div className="doc-form-inputs">
                         {this.renderDocInputs()}
                     </div>

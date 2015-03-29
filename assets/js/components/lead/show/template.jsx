@@ -134,7 +134,7 @@ var LeadShowTemplate = React.createClass({
 
     render: function() {
         return (
-            <div className="app-template-div container-fluid">
+            <div className="app-template-inner">
                 <div className="col-sm-3 left-div">
                     <TemplateInput 
                         template={this.state.template} 

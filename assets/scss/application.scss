@@ -1,36 +1,74 @@
+body {
+  background: #FAFAFA;
+}
+
 .lead-results-row {
   cursor: pointer;
 }
 
 .left-div {
+  height: 100%;
   overflow-x: hidden;
   overflow-y: scroll;
 }
 
 .right-div {
-  height: 640px;
+  height: 100%;
   overflow-y: scroll;
   overflow-x: hidden;
 }
 
-.ajax-loader {
-  background: url("/images/ajax-loader.gif");
-  height: 40px;
-  width: 40px;
-  background-size: cover;
-  top: 150px;
-  left: 45%;
-  position: absolute;
+.middle-div {
+  background: white;
+  top: 5px;
+  padding-top: 15px;
+  border: 2pt solid grey;
+  /*box-shadow: 0px 0px 4px 1px;*/
+  height: 100%;
 }
+
+.loader-div {
+  top: 80px;
+
+  .loader-text {
+    text-align: center;
+  }
+
+  .ajax-loader {
+    background: url("/images/ajax-loader.gif");
+    height: 40px;
+    width: 40px;
+    background-size: cover;
+    margin-left: auto;
+    margin-right: auto;
+
+  }
+}
+
+.app-template-div {
+  position: absolute;
+  overflow: hidden;
+  padding: 0;
+  top: 10%;
+  height: 90%;
+  /*top: 0;*/
+  .app-template-inner {
+    height: 100%;
+  }
+}
+
 .doc-form-div {
+  height: 100%;
   .doc-form-inner-div {
+    height: 100%;
     .doc-form-header {
       padding: 0px;
       margin: 0px;
     }
     .doc-form {
+      height: 100%;
       .doc-form-inputs {
-        height: 620px;
+        height: 95%;
         overflow: scroll;
       }
       .doc-input {
@@ -51,6 +89,12 @@
 
 .page-header {
   text-align: center;
+}
+
+.navbar-default {
+  background:  grey;
+  color: white;
+  border: none;
 }
 
 .navbar-brand {

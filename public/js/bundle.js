@@ -18,7 +18,7 @@ var App = React.createClass({displayName: "App",
             React.createElement("div", null, 
                 React.createElement("header", null
                 ), 
-                React.createElement("nav", {className: "navbar navbar-default"}, 
+                React.createElement("nav", {className: "navbar navbar-default navbar-fixed-top"}, 
                     React.createElement("div", {className: "container-fluid"}, 
                         React.createElement("div", {className: "navbar-header"}, 
                             React.createElement("a", {className: "navbar-brand", href: "#"}, 
@@ -28,7 +28,9 @@ var App = React.createClass({displayName: "App",
                             React.createElement("h3", {className: "pull-right"}, "SCI Document Manager")
                     )
                 ), 
-                React.createElement(RouteHandler, React.__spread({},  this.props))
+                React.createElement("div", {className: "app-template-div container-fluid"}, 
+                    React.createElement(RouteHandler, React.__spread({},  this.props))
+                )
             )
         );
     }
@@ -53,20 +55,26 @@ var DocInput = require('./doc_input.jsx');
 
 var DocForm = React.createClass({displayName: "DocForm",
 
+    getInitialState: function() {
+        return {
+            loaderText: "Downloading Template"
+        }
+
+    },
+
     renderDocInputs: function () {
-        var self = this;
         return _.map(
             this.props.customFields, function (field, fieldName) {
                 return (
                     React.createElement("div", null, 
-                        self.renderDocInputHeader(field), 
+                        this.renderDocInputHeader(field), 
                         React.createElement(DocInput, {field: field, 
-                                  updateField: self.props.updateCustomField, 
-                                  callCustomMethod: self.props.callCustomMethod, 
+                                  updateField: this.props.updateCustomField, 
+                                  callCustomMethod: this.props.callCustomMethod, 
                                   fieldName: fieldName})
                     )
                 );
-            }
+            }.bind(this)
         );
     },
 
@@ -102,14 +110,30 @@ var DocForm = React.createClass({displayName: "DocForm",
             this.props.onComplete(data)
         }.bind(this));
     },
-
-    render: function() {
-        var searchingStyle={
-            visibility: (!this.props.customFields ? "visible" : "hidden")
+    
+    searchingStyle: function() {
+        return {
+            display: (!this.props.customFields ? "block" : "none")
         };
-        var formStyle={
+    },
+
+    formStyle: function() {
+        return {
             visibility: (this.props.customFields ? "visible" : "hidden")
         };
+    },
+
+    componentDidMount: function() {
+        setTimeout(function() {
+            this.setState({loaderText: "Requesting Custom Fields"})
+        }.bind(this), 2000)
+
+        setTimeout(function() {
+            this.setState({loaderText: "Building Form"})
+        }.bind(this), 4000)
+    },
+
+    render: function() {
         return (
             React.createElement("div", {className: "doc-form-inner-div"}, 
                 React.createElement("div", {className: "col-sm-12 doc-form-header-div"}, 
@@ -117,8 +141,11 @@ var DocForm = React.createClass({displayName: "DocForm",
                     React.createElement("input", {disabled: !this.isValid(), className: "btn-submit btn col-sm-6", 
                             type: "submit", value: "Generate Doc for Signing", onClick: this.handleSubmit})
                 ), 
-                React.createElement("div", {className: "ajax-loader", style: searchingStyle}), 
-                React.createElement("form", {className: "doc-form col-sm-12", style: formStyle}, 
+                React.createElement("div", {className: "loader-div col-sm-4 col-sm-offset-4", style: this.searchingStyle()}, 
+                    React.createElement("div", {className: "ajax-loader"}), 
+                    React.createElement("div", {className: "loader-text"}, React.createElement("h3", null, this.state.loaderText))
+                ), 
+                React.createElement("form", {className: "doc-form col-sm-12", style: this.formStyle()}, 
                     React.createElement("div", {className: "doc-form-inputs"}, 
                         this.renderDocInputs()
                     )
@@ -742,7 +769,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     render: function() {
         return (
-            React.createElement("div", {className: "app-template-div container-fluid"}, 
+            React.createElement("div", {className: "app-template-inner"}, 
                 React.createElement("div", {className: "col-sm-3 left-div"}, 
                     React.createElement(TemplateInput, {
                         template: this.state.template, 
