@@ -23,7 +23,7 @@ class DocMaker
     )
   end
 
-  def get_custom_field_names
+  def get_template
     template = @client.get_template(
       { template_id: @document.template_id }
     )
@@ -31,7 +31,7 @@ class DocMaker
     template.custom_fields.each do |cf| 
       cf_hash[cf.name] = {name: cf.name, type: cf.type}
     end
-    cf_hash
+    {custom_fields: cf_hash, id: template.template_id, title: template.title}
   end
 
   # convenience method for optaining signature_request_id from @sent_signature
@@ -41,6 +41,11 @@ class DocMaker
 
   def get_signing_url
     @sent_signature ? @sent_signature.signing_url : false
+  end
+
+  def self.download_doc(doc_id)
+    client = HelloSign.client
+    client.signature_request_files({signature_request_id: doc_id})
   end
 end
 

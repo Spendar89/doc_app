@@ -1,8 +1,9 @@
+var LeadDocs = require('./lead_docs.jsx');
 var TemplateInput = require('./template_input.jsx');
 var LeadInputs = require('./lead_inputs.jsx');
 var LeadData = require('./lead_data.jsx');
 var DocForm = require('./../../doc/new/doc_form.jsx');
-var CustomFieldsManager = require('./../../../lib/custom_fields_manager.js');
+var TemplateManager = require('./../../../lib/template_manager.js');
 
 var fetchLead = function (leadId, callback) {
     return $.get('/leads/' + leadId, function(data) {
@@ -18,22 +19,25 @@ var LeadShowTemplate = React.createClass({
             customFields: false,
             syncRemote: true,
             leadUpdates: {},
+            template: {id:"4fcfdb574166a271960025ff5dab3a3c941672a5", title: "Loading Template"},
             templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
             name: "",
             email: ""
         }
     },
 
-    setCustomFieldsFromLead: function (lead) {
-        CustomFieldsManager.fetchCustomFields(lead, this.state.templateId, this.state.customFields, function(data) {
-            this.setState({customFields: data});
+    setTemplateFromLead: function (lead) {
+        TemplateManager.fetchTemplate(lead, this.state.templateId, this.state.customFields, function(fields, template) {
+            this.setState({customFields: fields, template: template});
         }.bind(this));
     },
 
     fetchLeadDocuments: function (lead) {
+        console.log(lead)
         $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
             console.log("DOCS", data)
-        } )
+            this.setState({docs: data})
+        }.bind(this))
     },
 
     updateCustomField: function (fieldName, field) {
@@ -44,6 +48,11 @@ var LeadShowTemplate = React.createClass({
         if (_.has(this.state.lead, fieldName)) {
             this.updateLeadUpdate(fieldName, field.value)
         }
+    },
+
+    callCustomMethod: function(customMethod) {
+        console.log("calling custom Method")
+        customMethod(this);   
     },
 
     updateLeadUpdate: function (key, value) {
@@ -72,12 +81,12 @@ var LeadShowTemplate = React.createClass({
             { lead: lead, 
                 email: lead["Email"], 
                 name: lead["FName"] + " " + lead["LName"] });
-        this.setCustomFieldsFromLead(lead);
-        this.fetchLeadDocuments(lead)
+        this.setTemplateFromLead(lead);
+        this.fetchLeadDocuments(lead);
     },
 
     handleTemplateInputSubmit: function () {
-       this.setCustomFieldsFromLead(this.state.lead);
+       this.setTemplateFromLead(this.state.lead);
     },
     
     componentWillMount: function () {
@@ -126,24 +135,29 @@ var LeadShowTemplate = React.createClass({
     render: function() {
         return (
             <div className="app-template-div container-fluid">
-                <h1 className="page-header"> Create Document for Signing: </h1>
-                <div className="col-sm-3">
-                    <TemplateInput templateId={this.state.templateId} onChange={this.handleTemplateInputChange} onSubmit={this.handleTemplateInputSubmit}/>
+                <div className="col-sm-3 left-div">
+                    <TemplateInput 
+                        template={this.state.template} 
+                        onChange={this.handleTemplateInputChange} 
+                        onSubmit={this.handleTemplateInputSubmit}/>
                     <LeadInputs onEmailChange={this.handleLeadEmailInputChange} 
                                 onNameChange={this.handleLeadNameInputChange} 
                                 name={this.state.name} email={this.state.email} />
+                    <LeadDocs lead={this.state.lead} docs={this.state.docs} />
                 </div>
-                <div className="col-sm-6">
+                <div className="col-sm-6 doc-form-div middle-div">
                     <DocForm templateId={this.state.templateId} 
+                             template={this.state.template}
+                             callCustomMethod={this.callCustomMethod}
                              updateCustomField={this.updateCustomField} 
                              customFields={this.state.customFields} 
                              onComplete={this.handleFormComplete}
-                             leadId={this.props.params.leadId}
+                             lead={this.props.lead}
                              email={this.state.email}
                              name={this.state.name}
                              lead={this.state.lead} />
                 </div>
-                <div className="col-sm-3">
+                <div className="col-sm-3 right-div">
                     <LeadData lead={this.state.lead} 
                               leadUpdates={this.state.leadUpdates} 
                               customFields={this.state.customFields}

@@ -24,6 +24,7 @@ var App = React.createClass({
                                 <img alt="Brand" src="/images/sci-logo.png"/>
                             </a>
                         </div>
+                            <h3 className="pull-right">SCI Document Manager</h3>
                     </div>
                 </nav>
                 <RouteHandler {...this.props}/>

@@ -19,22 +19,32 @@ post '/docs' do
   @document = Document.new(params[:custom_fields], params[:template_id])
   @email = params[:email]
   @name = params[:name]
-  @lead_id = params[:lead_id]
-  #title is set to template_id/lead_id combo for uniqueness
-  @title= "doc_#{params[:template_id]}_#{params[:lead_id]}"
+  @leads_id = params[:leads_id]
+  #title is set to template_id/leads_id combo for uniqueness
+  @title = "doc_#{params[:template_title]}_#{@leads_id}"
   doc_maker = DocMaker.new(@document)
   doc_maker.request_signature(@email, @name, @title)
   @doc_id = doc_maker.get_signature_request_id
-  diamond.add_document_to_lead(@lead_id, @doc_id)
-  { signature_request_id: @doc_id, 
-    url: doc_maker.get_signing_url }.to_json
+  if @doc_id
+    diamond.add_document_to_lead(@leads_id, @doc_id, @title)
+    { signature_request_id: @doc_id, 
+      url: doc_maker.get_signing_url }.to_json
+  else
+    # handle Error...
+  end
 end
 
-get '/leads/:lead_id/docs' do
+get '/leads/:leads_id/docs/:doc_id' do
+  content_type :pdf
+  @doc_id = params[:doc_id]
+  DocMaker.download_doc(@doc_id)
+end
+
+get '/leads/:leads_id/docs' do
   content_type :json
   diamond = Diamond.new
-  lead_id = params[:lead_id]
-  diamond.get_lead_documents(lead_id).to_json
+  leads_id = params[:leads_id]
+  diamond.get_lead_documents(leads_id).to_json
 end
 
 get '/terms' do
@@ -44,11 +54,11 @@ get '/terms' do
   @diamond.get_program_terms(program_description).to_json
 end
 
-get '/docs/:template_id/field_names' do
+get '/templates/:template_id' do
   content_type :json
   @document = Document.new({}, params[:template_id])
   doc_maker = DocMaker.new(@document)
-  doc_maker.get_custom_field_names.to_json
+  doc_maker.get_template.to_json
 end
 
 get '/leads' do

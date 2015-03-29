@@ -11,6 +11,7 @@ var DocForm = React.createClass({
                         {self.renderDocInputHeader(field)}
                         <DocInput field={field} 
                                   updateField={self.props.updateCustomField} 
+                                  callCustomMethod={self.props.callCustomMethod}
                                   fieldName={fieldName} />
                     </div>
                 );
@@ -30,12 +31,20 @@ var DocForm = React.createClass({
         });
     },
 
+    isValid: function() {
+        return _.every(this.props.customFields, function(field, fieldName) {
+            console.log(fieldName + ": ", field.value)
+            return field.value != undefined;
+        });
+    },
+
     handleSubmit: function (e) {
         e.preventDefault();
         $.post("/docs", {
             custom_fields: this.transformCustomFields(), 
-            template_id: this.props.templateId,
-            lead_id: this.props.leadId,
+            template_id: this.props.template.id,
+            template_title: this.props.template.title,
+            leads_id: this.props.lead.LeadsID,
             email: this.props.email,
             name: this.props.name
         }, function (data) {
@@ -51,12 +60,17 @@ var DocForm = React.createClass({
             visibility: (this.props.customFields ? "visible" : "hidden")
         };
         return (
-            <div>
+            <div className="doc-form-inner-div">
+                <div className="col-sm-12 doc-form-header-div">
+                    <h2 className="col-sm-6 doc-form-header">{this.props.template.title}</h2>
+                    <input disabled={!this.isValid()} className="btn-submit btn col-sm-6" 
+                            type="submit" value="Generate Doc for Signing" onClick={this.handleSubmit}/>
+                </div>
                 <div className="ajax-loader" style={searchingStyle}></div>
                 <form className="doc-form col-sm-12" style={formStyle}>
-                    {this.renderDocInputs()}
-                    <input required className="btn-submit btn col-sm-12" 
-                            type="submit" onClick={this.handleSubmit}/>
+                    <div className="doc-form-inputs">
+                        {this.renderDocInputs()}
+                    </div>
                 </form>
             </div>
         );

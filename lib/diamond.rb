@@ -39,12 +39,16 @@ class Diamond
  
   def get_lead_documents(lead_id)
     results = []
-    @client.execute("SELECT DocumentID FROM [825-Austin].dbo.leadDocuments WHERE LeadID = #{lead_id}").each{|r| results << r}
+    @client.execute("SELECT DocumentID, Title FROM [825-Austin].dbo.leadDocuments WHERE LeadID = #{lead_id}").each{|r| results << r}
     results
   end
 
-  def add_document_to_lead(lead_id, document_id)
-    @client.execute("INSERT INTO [825-Austin].dbo.LeadDocuments VALUES (#{lead_id}, '#{document_id}')").do
+  def add_document_to_lead(lead_id, document_id, title)
+    @client.execute(
+      "INSERT INTO [825-Austin].dbo.leadDocuments 
+      (LeadID, DocumentID, Title) 
+      VALUES ('#{lead_id}', '#{document_id}', '#{title}')"
+    ).do
   end
 
   def get_program_terms(program_description)

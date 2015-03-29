@@ -1,3 +1,5 @@
+var DocOption = require('./doc_option.jsx');
+
 var DocInput = React.createClass({
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
@@ -5,12 +7,39 @@ var DocInput = React.createClass({
         this.props.updateField(this.props.fieldName, field);
     },
 
-    renderInput: function () {
-        var renderOptions = function (option) {
-            return <option value={option}> {option} </option>
+    callCustomMethod: function() {
+        var customMethod = this.props.field.customMethod;
+        if (customMethod)
+            console.log("Has Custom Method", this.props.fieldName)
+            this.props.callCustomMethod(customMethod)
+    },
 
-        };
+    renderDocOption: function(option, i) {
+            return <DocOption key={i} value={option} handleChange={this.handleChange} callCustomMethod={this.callCustomMethod}/>
+    },
+
+    //componentDidUpdate: function(prevProps, prevState) {
+        //var options = this.props.field.options;
+        //if (options && options != prevProps.field.options) {
+            //var value = options[0];
+            //console.log("handling update", value)
+                //this.handleChange({target: {value: value}});
+
+        //}
+    //},
+    
+    //componentDidMount: function() {
+        //if (this.props.field.options) {
+            //var value = this.props.field.options[0]
+            //console.log("handinglin change", value)
+            //this.handleChange({target: {value: value}});
+        //}
+
+    //},
+
+    renderInput: function () {
         if (this.props.field.options) {
+            var options = _.uniq(this.props.field.options.concat("Select One")).reverse()
             return (
                 <div className="select">
                     <label className="form-label">
@@ -19,7 +48,7 @@ var DocInput = React.createClass({
                     <select className="doc-block-input form-control" 
                             disabled={this.props.field.disabled}
                             onChange={this.handleChange} value={this.props.field.value}>
-                        {_.map(this.props.field.options, renderOptions)}
+                        {_.map(options, this.renderDocOption)}
                     </select>
                 </div>
             )
@@ -81,9 +110,15 @@ var DocInput = React.createClass({
 
     },
 
+    validationClass: function() {
+        return this.props.field.value == undefined
+            ? "invalid doc-input form-group"
+            : "valid doc-input form-group";
+    },
+
     render: function() {
         return (
-            <div className="doc-input form-group">
+            <div className={this.validationClass()}>
                 {this.renderInput()}
             </div>
         );

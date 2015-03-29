@@ -2,6 +2,17 @@
   cursor: pointer;
 }
 
+.left-div {
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.right-div {
+  height: 640px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
 .ajax-loader {
   background: url("/images/ajax-loader.gif");
   height: 40px;
@@ -11,9 +22,31 @@
   left: 45%;
   position: absolute;
 }
-
-.doc-form {
-  margin-bottom: 20px;
+.doc-form-div {
+  .doc-form-inner-div {
+    .doc-form-header {
+      padding: 0px;
+      margin: 0px;
+    }
+    .doc-form {
+      .doc-form-inputs {
+        height: 620px;
+        overflow: scroll;
+      }
+      .doc-input {
+        &.valid {
+          input {
+            border: 1pt solid rgb(191, 229, 191);
+          }
+        }
+        &.invalid {
+          input {
+            border: 1pt solid rgb(255, 207, 207);
+          }
+        }
+      }
+    }
+  }
 }
 
 .page-header {

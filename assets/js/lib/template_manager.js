@@ -19,15 +19,15 @@ var DISABLED_FIELDS = [
     "GradDate", "Weeks", "Morning", "Evening", "Afternoon"
 ];
 
-CustomFieldsManager = {
+TemplateManager = {
 
-    fetchCustomFields: function (lead, templateId, customFields, callback) {
+    fetchTemplate: function (lead, templateId, customFields, callback) {
         // Fetches field object from server
-        // TODO: pass in template_id...
-        return $.get('/docs/' + templateId + '/field_names', function(data) {
-            var fields = data;
+        var data = {"FName":{"name":"FName","type":"text"},"MInitial":{"name":"MInitial","type":"text"},"LName":{"name":"LName","type":"text"},"Date":{"name":"Date","type":"text"},"Address":{"name":"Address","type":"text"},"City":{"name":"City","type":"text"},"Zip":{"name":"Zip","type":"text"},"DateOfBirth":{"name":"DateOfBirth","type":"text"},"SocialSecurityNumber":{"name":"SocialSecurityNumber","type":"text"},"Phone":{"name":"Phone","type":"text"},"total":{"name":"total","type":"text"},"Email":{"name":"Email","type":"text"},"Program":{"name":"Program","type":"text"},"StartDate":{"name":"StartDate","type":"text"},"Morning":{"name":"Morning","type":"checkbox"},"Afternoon":{"name":"Afternoon","type":"checkbox"},"Evening":{"name":"Evening","type":"checkbox"},"GradDate":{"name":"GradDate","type":"text"},"Weeks":{"name":"Weeks","type":"text"}}
+        return $.get('/templates/' + templateId, function(data) {
+            var fields = {};
 
-            _.each(data, function (field, name) {
+            _.each(data.custom_fields, function (field, name) {
                 // prepopulates form with diamond lead data if template field
                 var fieldValue;
 
@@ -63,7 +63,7 @@ CustomFieldsManager = {
                 return field;
             });
 
-            return callback(fields);
+            return callback(fields, data);
         });
     }
 
@@ -224,4 +224,4 @@ CustomFieldsManager = {
     //}
 }
 
-module.exports = CustomFieldsManager;
+module.exports = TemplateManager;
