@@ -85,7 +85,7 @@ var DocForm = React.createClass({
             <div className="doc-form-inner-div">
                 <div className="col-sm-12 doc-form-header-div">
                     <h2 className="col-sm-6 doc-form-header">{this.props.template.title}</h2>
-                    <input disabled={!this.isValid()} className="btn-submit btn col-sm-6" 
+                    <input disabled={!this.isValid()} className="btn-success btn col-sm-6" 
                             type="submit" value="Generate Doc for Signing" onClick={this.handleSubmit}/>
                 </div>
                 <div className="loader-div col-sm-4 col-sm-offset-4" style={this.searchingStyle()}>

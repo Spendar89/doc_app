@@ -10,7 +10,7 @@ var TemplateInput = React.createClass({
                     <input className="form-control" value={this.props.template.id} onChange={this.props.onChange} />
                 </div>
                 <div className="form-group">
-                    <input type="submit" className="form-control btn btn-success"onClick={this.props.onSubmit} value="Update Template"/>
+                    <input type="submit" className="form-control btn btn-primary"onClick={this.props.onSubmit} value="Update Template"/>
                 </div>
             </div>
         )

@@ -138,7 +138,7 @@ var DocForm = React.createClass({displayName: "DocForm",
             React.createElement("div", {className: "doc-form-inner-div"}, 
                 React.createElement("div", {className: "col-sm-12 doc-form-header-div"}, 
                     React.createElement("h2", {className: "col-sm-6 doc-form-header"}, this.props.template.title), 
-                    React.createElement("input", {disabled: !this.isValid(), className: "btn-submit btn col-sm-6", 
+                    React.createElement("input", {disabled: !this.isValid(), className: "btn-success btn col-sm-6", 
                             type: "submit", value: "Generate Doc for Signing", onClick: this.handleSubmit})
                 ), 
                 React.createElement("div", {className: "loader-div col-sm-4 col-sm-offset-4", style: this.searchingStyle()}, 
@@ -821,7 +821,7 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
                     React.createElement("input", {className: "form-control", value: this.props.template.id, onChange: this.props.onChange})
                 ), 
                 React.createElement("div", {className: "form-group"}, 
-                    React.createElement("input", {type: "submit", className: "form-control btn btn-success", onClick: this.props.onSubmit, value: "Update Template"})
+                    React.createElement("input", {type: "submit", className: "form-control btn btn-primary", onClick: this.props.onSubmit, value: "Update Template"})
                 )
             )
         )
