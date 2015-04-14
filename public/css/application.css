@@ -33,7 +33,8 @@ body {
 .loader-div .loader-text {
   text-align: center;
 }
-.loader-div .ajax-loader {
+
+.ajax-loader {
   background: url("/images/ajax-loader.gif");
   height: 40px;
   width: 40px;
@@ -43,6 +44,7 @@ body {
 }
 
 .app-template-div {
+  width: 100%;
   position: absolute;
   overflow: hidden;
   padding: 0;

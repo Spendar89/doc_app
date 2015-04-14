@@ -34,18 +34,20 @@ body {
     text-align: center;
   }
 
-  .ajax-loader {
-    background: url("/images/ajax-loader.gif");
-    height: 40px;
-    width: 40px;
-    background-size: cover;
-    margin-left: auto;
-    margin-right: auto;
+}
 
-  }
+.ajax-loader {
+  background: url("/images/ajax-loader.gif");
+  height: 40px;
+  width: 40px;
+  background-size: cover;
+  margin-left: auto;
+  margin-right: auto;
+
 }
 
 .app-template-div {
+  width: 100%;
   position: absolute;
   overflow: hidden;
   padding: 0;
