@@ -44,9 +44,9 @@ module.exports = {
     },
 
     "Business Accounting Specialist - Evening": {
-        "Morning": true, 
+        "Morning": false, 
         "Afternoon": false, 
-        "Evening": false, 
+        "Evening": true, 
         "Weeks": 33, 
         "clockHours": 806, 
         "quarterHours":61.5, 
