@@ -51,6 +51,13 @@ class Diamond
     ).do
   end
 
+  def destroy_document(document_id)
+    @client.execute(
+      "DELETE FROM [825-Austin].dbo.leadDocuments
+      WHERE DocumentID='#{document_id}'"
+    ).do
+  end
+
   def get_program_terms(program_description)
     results = []
     @client.execute(

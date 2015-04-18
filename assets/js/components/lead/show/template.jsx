@@ -1,15 +1,19 @@
-var LeadDocs = require('./lead_docs.jsx');
-var TemplateInput = require('./template_input.jsx');
-var LeadInputs = require('./lead_inputs.jsx');
-var LeadData = require('./lead_data.jsx');
-var DocForm = require('./../../doc/new/doc_form.jsx');
-var TemplateManager = require('./../../../lib/template_manager.js');
+var LeadDocs = require('./lead_docs.jsx'),
+    TemplateInput = require('./template_input.jsx'),
+    LeadInputs = require('./lead_inputs.jsx'),
+    LeadData = require('./lead_data.jsx'),
+    DocForm = require('./../../doc/new/doc_form.jsx'),
+    EA_PACKAGE_DATA = require('./../../../lib/data/packages/ea_package.json'),
+    CUSTOM_METHODS = require('./../../../lib/custom_methods.js'),
+    Package = require('./../../../lib/package.js');
 
 var fetchLead = function (leadId, callback) {
     return $.get('/leads/' + leadId, function(data) {
         return callback(data)
     });
 };
+
+var EAPackage = new Package(EA_PACKAGE_DATA, CUSTOM_METHODS);
 
 var LeadShowTemplate = React.createClass({
 
@@ -19,23 +23,30 @@ var LeadShowTemplate = React.createClass({
             customFields: false,
             syncRemote: true,
             leadUpdates: {},
-            template: {id:"4fcfdb574166a271960025ff5dab3a3c941672a5", title: "Loading Template"},
-            templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
+            templates: EAPackage.data.templates,
             name: "",
             email: ""
         }
     },
 
     setTemplateFromLead: function (lead) {
-        TemplateManager.fetchTemplate(lead, this.state.templateId, this.state.customFields, function(fields, template) {
-            this.setState({customFields: fields, template: template});
-        }.bind(this));
+        EAPackage.fetchTemplate(
+            lead, 
+            this.state.template.id, 
+            this.state.customFields, 
+            function(fields, template) {
+                this.setState(
+                    {
+                        customFields: fields, 
+                        template: template
+                    }
+                );
+            }.bind(this)
+        );
     },
 
     fetchLeadDocuments: function (lead) {
-        console.log(lead)
         $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
-            console.log("DOCS", data)
             this.setState({docs: data})
         }.bind(this))
     },
@@ -50,8 +61,16 @@ var LeadShowTemplate = React.createClass({
         }
     },
 
+    removeCustomField: function(fieldName) {
+        var cf = _.extend(this.state.customFields, {});
+        var omitted = _.omit(cf, fieldName);
+        this.setState({
+            customFields: omitted
+        });
+
+    },
+
     callCustomMethod: function(customMethod) {
-        console.log("calling custom Method")
         customMethod(this);   
     },
 
@@ -90,6 +109,8 @@ var LeadShowTemplate = React.createClass({
     },
     
     componentWillMount: function () {
+        var template = this.state.templates[0]
+        this.setState({template: template});
         fetchLead(this.props.params.leadId, this.setStateFromLead);
     },
 
@@ -112,9 +133,15 @@ var LeadShowTemplate = React.createClass({
         };
     },
 
+    componentDidUpdate: function(prevProps, prevState) {
+        if (this.state.template && this.state.template.id != prevState.template.id) {
+            this.setTemplateFromLead(this.state.lead);
+        }
+    },
+
     handleTemplateInputChange: function (e) {
         var templateId = e.target.value;
-        this.setState({templateId: templateId});   
+        this.setState({template: {id: templateId}});   
     },
 
     handleLeadEmailInputChange: function (e) {
@@ -137,7 +164,8 @@ var LeadShowTemplate = React.createClass({
             <div className="app-template-inner">
                 <div className="col-sm-3 left-div">
                     <TemplateInput 
-                        template={this.state.template} 
+                        template={this.state.template}
+                        templates={this.state.templates} 
                         onChange={this.handleTemplateInputChange} 
                         onSubmit={this.handleTemplateInputSubmit}/>
                     <LeadInputs onEmailChange={this.handleLeadEmailInputChange} 
@@ -146,10 +174,10 @@ var LeadShowTemplate = React.createClass({
                     <LeadDocs lead={this.state.lead} docs={this.state.docs} />
                 </div>
                 <div className="col-sm-6 doc-form-div middle-div">
-                    <DocForm templateId={this.state.templateId} 
-                             template={this.state.template}
+                    <DocForm template={this.state.template}
                              callCustomMethod={this.callCustomMethod}
                              updateCustomField={this.updateCustomField} 
+                             removeCustomField={this.removeCustomField}
                              customFields={this.state.customFields} 
                              onComplete={this.handleFormComplete}
                              lead={this.props.lead}

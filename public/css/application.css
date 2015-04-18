@@ -79,6 +79,9 @@ body {
 .doc-form-div .doc-form-inner-div .doc-form .doc-input.invalid input {
   border: 1pt solid #ffcfcf;
 }
+.doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {
+  color: #2e6da4;
+}
 
 .page-header {
   text-align: center;

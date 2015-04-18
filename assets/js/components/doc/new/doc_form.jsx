@@ -26,21 +26,36 @@ var DocForm = React.createClass({
     },
 
     renderDocInputHeader: function (field) {
+
         if (field.header) {
-            return <h2 className="doc-input-header"> {field.header} </h2>
+            return <h2 className="doc-input-header"><small>{field.header}</small></h2>
         }
     },
 
+    //updateHeader: function(field) {
+        //var oldName = field.name;
+        //var newField = _.extend(field, {});
+        //var a = field.name.split("%");
+        //var name = a[1]
+
+        //if (name) {
+            //newField.name = name;
+            //newField.header = a[0];
+            //this.props.removeCustomField(oldName);
+            //this.props.updateCustomField(name, newField);
+        //}
+
+    //},
+
     transformCustomFields: function () {
         return _.transform(this.props.customFields, function(result, field, name) {
-            result[name] = field.value;
+            result[name] = field.value || " ";
         });
     },
 
     isValid: function() {
         return _.every(this.props.customFields, function(field, fieldName) {
-            console.log(fieldName + ": ", field.value)
-            return field.value != undefined;
+            return field.value !== undefined || field.type === "checkbox";
         });
     },
 
@@ -78,7 +93,13 @@ var DocForm = React.createClass({
         setTimeout(function() {
             this.setState({loaderText: "Building Form"})
         }.bind(this), 4000)
+
+        console.log("mounted!!")
     },
+
+    //componentDidUpdate: function() {
+        //_.each(this.props.customFields, this.updateHeader);
+    //},
 
     render: function() {
         return (

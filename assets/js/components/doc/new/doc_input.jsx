@@ -4,13 +4,13 @@ var DocInput = React.createClass({
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
         field.value = e.target.value;
+        this.callCustomMethod();
         this.props.updateField(this.props.fieldName, field);
     },
 
     callCustomMethod: function() {
         var customMethod = this.props.field.customMethod;
         if (customMethod)
-            console.log("Has Custom Method", this.props.fieldName)
             this.props.callCustomMethod(customMethod)
     },
 
@@ -107,7 +107,13 @@ var DocInput = React.createClass({
                 </div>
             )
         }
+    },
 
+    customMethodClass: function() {
+        var customMethod = this.props.field.customMethod;
+        return customMethod
+            ? "custom-method"
+            : "no-custom-method";
     },
 
     validationClass: function() {
@@ -118,7 +124,7 @@ var DocInput = React.createClass({
 
     render: function() {
         return (
-            <div className={this.validationClass()}>
+            <div className={this.validationClass() + " " + this.customMethodClass()}>
                 {this.renderInput()}
             </div>
         );

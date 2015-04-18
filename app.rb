@@ -21,7 +21,7 @@ post '/docs' do
   @name = params[:name]
   @leads_id = params[:leads_id]
   #title is set to template_id/leads_id combo for uniqueness
-  @title = "doc_#{params[:template_title]}_#{@leads_id}"
+  @title = "doc_#{params[:template_title]}_#{@leads_id}_#{Time.now.to_i}"
   doc_maker = DocMaker.new(@document)
   doc_maker.request_signature(@email, @name, @title)
   @doc_id = doc_maker.get_signature_request_id
@@ -35,30 +35,37 @@ post '/docs' do
 end
 
 get '/leads/:leads_id/docs/:doc_id' do
-  content_type :pdf
   @doc_id = params[:doc_id]
-  DocMaker.download_doc(@doc_id)
+  begin
+    content_type :pdf
+    return DocMaker.download_doc(@doc_id)
+  rescue Exception => e
+    content_type :json
+    diamond = Diamond.new
+    diamond.destroy_document(@doc_id)
+    return "That Document Has Been Deleted"
+  end
 end
 
 get '/leads/:leads_id/docs' do
   content_type :json
   diamond = Diamond.new
   leads_id = params[:leads_id]
-  diamond.get_lead_documents(leads_id).to_json
+  return diamond.get_lead_documents(leads_id).to_json
 end
 
 get '/terms' do
   content_type :json
   @diamond = Diamond.new
   program_description = params[:program_description]
-  @diamond.get_program_terms(program_description).to_json
+  return @diamond.get_program_terms(program_description).to_json
 end
 
 get '/templates/:template_id' do
   content_type :json
   @document = Document.new({}, params[:template_id])
   doc_maker = DocMaker.new(@document)
-  doc_maker.get_template.to_json
+  return doc_maker.get_template.to_json
 end
 
 get '/leads' do
@@ -70,19 +77,19 @@ get '/leads' do
     @lead_data = @v.get_leads_by_email(params[:email])
   end
   return [].to_json unless @lead_data
-  @lead_data.map { |lead| @v.convert_lead(lead) }.to_json
+  return @lead_data.map { |lead| @v.convert_lead(lead) }.to_json
 end
 
 get '/leads/:id' do
   content_type :json
   @d = Diamond.new
   @lead_data = @d.get_lead_detail params[:id]
-  @lead_data.to_json
+  return @lead_data.to_json
 end
 
 put '/leads/:id' do
   content_type :json
   @d = Diamond.new
   @lead_data = @d.update_lead params[:id], params[:lead]
-  @lead_data.to_json
+  return @lead_data.to_json
 end

@@ -79,21 +79,36 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     renderDocInputHeader: function (field) {
+
         if (field.header) {
-            return React.createElement("h2", {className: "doc-input-header"}, " ", field.header, " ")
+            return React.createElement("h2", {className: "doc-input-header"}, React.createElement("small", null, field.header))
         }
     },
 
+    //updateHeader: function(field) {
+        //var oldName = field.name;
+        //var newField = _.extend(field, {});
+        //var a = field.name.split("%");
+        //var name = a[1]
+
+        //if (name) {
+            //newField.name = name;
+            //newField.header = a[0];
+            //this.props.removeCustomField(oldName);
+            //this.props.updateCustomField(name, newField);
+        //}
+
+    //},
+
     transformCustomFields: function () {
         return _.transform(this.props.customFields, function(result, field, name) {
-            result[name] = field.value;
+            result[name] = field.value || " ";
         });
     },
 
     isValid: function() {
         return _.every(this.props.customFields, function(field, fieldName) {
-            console.log(fieldName + ": ", field.value)
-            return field.value != undefined;
+            return field.value !== undefined || field.type === "checkbox";
         });
     },
 
@@ -131,7 +146,13 @@ var DocForm = React.createClass({displayName: "DocForm",
         setTimeout(function() {
             this.setState({loaderText: "Building Form"})
         }.bind(this), 4000)
+
+        console.log("mounted!!")
     },
+
+    //componentDidUpdate: function() {
+        //_.each(this.props.customFields, this.updateHeader);
+    //},
 
     render: function() {
         return (
@@ -166,13 +187,13 @@ var DocInput = React.createClass({displayName: "DocInput",
     handleChange: function (e) {
         var field = _.extend(this.props.field, {})
         field.value = e.target.value;
+        this.callCustomMethod();
         this.props.updateField(this.props.fieldName, field);
     },
 
     callCustomMethod: function() {
         var customMethod = this.props.field.customMethod;
         if (customMethod)
-            console.log("Has Custom Method", this.props.fieldName)
             this.props.callCustomMethod(customMethod)
     },
 
@@ -269,7 +290,13 @@ var DocInput = React.createClass({displayName: "DocInput",
                 )
             )
         }
+    },
 
+    customMethodClass: function() {
+        var customMethod = this.props.field.customMethod;
+        return customMethod
+            ? "custom-method"
+            : "no-custom-method";
     },
 
     validationClass: function() {
@@ -280,7 +307,7 @@ var DocInput = React.createClass({displayName: "DocInput",
 
     render: function() {
         return (
-            React.createElement("div", {className: this.validationClass()}, 
+            React.createElement("div", {className: this.validationClass() + " " + this.customMethodClass()}, 
                 this.renderInput()
             )
         );
@@ -633,18 +660,22 @@ module.exports = LeadInputs;
 
 
 },{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
-var LeadDocs = require('./lead_docs.jsx');
-var TemplateInput = require('./template_input.jsx');
-var LeadInputs = require('./lead_inputs.jsx');
-var LeadData = require('./lead_data.jsx');
-var DocForm = require('./../../doc/new/doc_form.jsx');
-var TemplateManager = require('./../../../lib/template_manager.js');
+var LeadDocs = require('./lead_docs.jsx'),
+    TemplateInput = require('./template_input.jsx'),
+    LeadInputs = require('./lead_inputs.jsx'),
+    LeadData = require('./lead_data.jsx'),
+    DocForm = require('./../../doc/new/doc_form.jsx'),
+    EA_PACKAGE_DATA = require('./../../../lib/data/packages/ea_package.json'),
+    CUSTOM_METHODS = require('./../../../lib/custom_methods.js'),
+    Package = require('./../../../lib/package.js');
 
 var fetchLead = function (leadId, callback) {
     return $.get('/leads/' + leadId, function(data) {
         return callback(data)
     });
 };
+
+var EAPackage = new Package(EA_PACKAGE_DATA, CUSTOM_METHODS);
 
 var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
@@ -654,23 +685,30 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
             customFields: false,
             syncRemote: true,
             leadUpdates: {},
-            template: {id:"4fcfdb574166a271960025ff5dab3a3c941672a5", title: "Loading Template"},
-            templateId: "4fcfdb574166a271960025ff5dab3a3c941672a5",
+            templates: EAPackage.data.templates,
             name: "",
             email: ""
         }
     },
 
     setTemplateFromLead: function (lead) {
-        TemplateManager.fetchTemplate(lead, this.state.templateId, this.state.customFields, function(fields, template) {
-            this.setState({customFields: fields, template: template});
-        }.bind(this));
+        EAPackage.fetchTemplate(
+            lead, 
+            this.state.template.id, 
+            this.state.customFields, 
+            function(fields, template) {
+                this.setState(
+                    {
+                        customFields: fields, 
+                        template: template
+                    }
+                );
+            }.bind(this)
+        );
     },
 
     fetchLeadDocuments: function (lead) {
-        console.log(lead)
         $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
-            console.log("DOCS", data)
             this.setState({docs: data})
         }.bind(this))
     },
@@ -685,8 +723,16 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         }
     },
 
+    removeCustomField: function(fieldName) {
+        var cf = _.extend(this.state.customFields, {});
+        var omitted = _.omit(cf, fieldName);
+        this.setState({
+            customFields: omitted
+        });
+
+    },
+
     callCustomMethod: function(customMethod) {
-        console.log("calling custom Method")
         customMethod(this);   
     },
 
@@ -725,6 +771,8 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
     
     componentWillMount: function () {
+        var template = this.state.templates[0]
+        this.setState({template: template});
         fetchLead(this.props.params.leadId, this.setStateFromLead);
     },
 
@@ -747,9 +795,15 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         };
     },
 
+    componentDidUpdate: function(prevProps, prevState) {
+        if (this.state.template && this.state.template.id != prevState.template.id) {
+            this.setTemplateFromLead(this.state.lead);
+        }
+    },
+
     handleTemplateInputChange: function (e) {
         var templateId = e.target.value;
-        this.setState({templateId: templateId});   
+        this.setState({template: {id: templateId}});   
     },
 
     handleLeadEmailInputChange: function (e) {
@@ -773,6 +827,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                 React.createElement("div", {className: "col-sm-3 left-div"}, 
                     React.createElement(TemplateInput, {
                         template: this.state.template, 
+                        templates: this.state.templates, 
                         onChange: this.handleTemplateInputChange, 
                         onSubmit: this.handleTemplateInputSubmit}), 
                     React.createElement(LeadInputs, {onEmailChange: this.handleLeadEmailInputChange, 
@@ -781,10 +836,10 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                     React.createElement(LeadDocs, {lead: this.state.lead, docs: this.state.docs})
                 ), 
                 React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
-                    React.createElement(DocForm, {templateId: this.state.templateId, 
-                             template: this.state.template, 
+                    React.createElement(DocForm, {template: this.state.template, 
                              callCustomMethod: this.callCustomMethod, 
                              updateCustomField: this.updateCustomField, 
+                             removeCustomField: this.removeCustomField, 
                              customFields: this.state.customFields, 
                              onComplete: this.handleFormComplete, 
                              lead: this.props.lead, 
@@ -808,8 +863,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/template_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/template_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+},{"./../../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../../../lib/data/packages/ea_package.json":"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json","./../../../lib/package.js":"/Users/jakesendar/doc_app/assets/js/lib/package.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
 var TemplateInput = React.createClass({displayName: "TemplateInput",
+
+    renderTemplateOption: function(template, i) {
+        return React.createElement("option", {key: template.id, value: template.id}, template.title)
+    },
 
     render: function () {
         return (
@@ -818,10 +877,13 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
                     React.createElement("h4", {className: "control-label"}, "Switch Your Template: "), 
                     React.createElement("label", null, React.createElement("b", null, "Current Template: ", this.props.template.title)), 
                     React.createElement("p", null, React.createElement("i", null, "Enter a different HelloSign Template ID to Update the Form Fields")), 
-                    React.createElement("input", {className: "form-control", value: this.props.template.id, onChange: this.props.onChange})
-                ), 
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("input", {type: "submit", className: "form-control btn btn-primary", onClick: this.props.onSubmit, value: "Update Template"})
+
+                    React.createElement("select", {className: " form-control", 
+                            onChange: this.props.onChange, 
+                            selected: this.props.template.id}, 
+                        _.map(this.props.templates, this.renderTemplateOption)
+                    )
+                    
                 )
             )
         )
@@ -845,69 +907,65 @@ var CustomMethods = {
         var startField = _.extend(form.state.customFields["StartDate"], {});
 
         $.get('/terms', {
-            program_description: program
-        }, function(data) {
+                program_description: program
+            },
+            function(data) {
+                PROGRAM_DATA[program]["terms"] = {};
+                _.each(
+                    data,
+                    function(term) {
+                        var startDate = term["TermBeginDate"];
+                        PROGRAM_DATA[program]["terms"][startDate] = term;
+                        startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
+                        startField.disabled = false;
+                        form.updateCustomField("StartDate", startField);
+                        form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
+                    }
+                );
 
-            PROGRAM_DATA[program]["terms"] = {};
+                if (_.keys(PROGRAM_DATA[program]["terms"]).length === 0) {
+                    startField.options = [];
+                    startField.disabled = true;
+                    form.updateCustomField("StartDate", startField);
+                } else {
+                    _.each(
+                        _.keys(PROGRAM_DATA[program]),
+                        function(fieldName) {
+                            var field = _.extend(form.state.customFields[fieldName], {});
+                            if (field) {
+                                field.value = PROGRAM_DATA[program][fieldName];
+                                form.updateCustomField(fieldName, field);
+                            };
+                        }
+                    );
 
-            _.each(data, function(term) {
-                var startDate = term["TermBeginDate"];
-                PROGRAM_DATA[program]["terms"][startDate] = term;
-                startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
-                form.updateCustomField("StartDate", startField);
-                form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
-            })
+                    var startFieldVal = startField.options[1];
 
-            if (_.keys(PROGRAM_DATA[program]["terms"]).length === 0) {
-                console.log("No terms for this program....")
-                form.updateCustomField("StartDate", {
-                    options: [],
-                    disabled: true
-                })
-            } else {
-                var updateCustomFieldFromData = function(fieldName) {
-                    var field = _.extend(form.state.customFields[fieldName], {});
-                    if (field) {
-                        field.value = PROGRAM_DATA[program][fieldName];
-                        form.updateCustomField(fieldName, field);
+                    if (startFieldVal) {
+                        startField.value = startFieldVal;
+                        startField.disabled = false;
+                        form.updateCustomField("StartDate", startField);
                     };
-                }
-
-                _.each(_.keys(PROGRAM_DATA[program]), updateCustomFieldFromData);
-
-                var startDate = _.extend(form.state.customFields.StartDate, {});
-                var startDateVal = form.state.customFields.StartDate.options[1]
-                if (startDateVal) {
-                    startDate.value = startDateVal;
-                    form.updateCustomField("StartDate", startDate);
-                }
-
-                //return CustomMethods["StartDate"](form, true)
-            }
-
-        })
-
+                };
+            });
     },
 
     "StartDate": function(form, force) {
-        var program = form.state.customFields.Program.value;
-        var startDate = form.state.customFields.StartDate.value;
-        var terms = PROGRAM_DATA[program]["terms"];
+        var program = form.state.customFields.Program.value,
+            startDate = form.state.customFields.StartDate.value,
+            terms = PROGRAM_DATA[program]["terms"];
 
         if (!program || !startDate || !terms) return false;
 
         var term = terms[startDate];
 
-        if (!term) {
-            console.log("no term....")
-            return false;
-        } else {
-            console.log("found term...")
-        }
+        if (!term) return false;
+
         var gradField = _.extend(form.state.customFields["GradDate"], {});
+
         gradField.value = new Date(term["TermEndDate"]);
         form.updateLeadUpdate("TermID", term["TermID"]);
-        form.updateCustomField("GradDate", gradField)
+        form.updateCustomField("GradDate", gradField);
     },
 
     "Email": function(form) {
@@ -919,149 +977,1033 @@ var CustomMethods = {
 module.exports = CustomMethods;
 
 
-},{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js":[function(require,module,exports){
+},{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json":[function(require,module,exports){
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+    "name": "EA Package",
+
+    "customOptions": {
+        "Program": [
+            "Administrative Assistant - Morning",
+            "Administrative Assistant - Evening",
+            "Business Accounting Specialist - Morning",
+            "Business Accounting Specialist - Evening",
+            "Medical Assistant - Morning",
+            "Medical Assistant - Evening",
+            "Medical Billing and Coding Specialist - Morning",
+            "Medical Billing and Coding Specialist - Evening",
+            "Medical Office Specialist - Morning",
+            "Medical Office Specialist - Evening",
+            "Pharmacy Technician - Morning",
+            "Pharmacy Technician - Evening",
+            "Cosmetology Operator - Morning",
+            "Cosmetology Operator - Evening",
+            "HVAC - Morning",
+            "HVAC - Evening"
+        ],
+        "StartDate": []
+    },
+
+    "customTypes": {
+        "Date": "date",
+        "Email": "email",
+        "Phone": "tel",
+        "DOB": "date",
+        "SSN": "password"
+    },
+
+    "headers": {
+        "FName": "Enrollment Information",
+        "Program": "Program Information",
+        "RegFee": "Fees",
+        "Cash": "Method of Payment",
+        "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
+        "ReportYear": "Program Data",
+        "High School Diploma": "Secondary Education",
+        "Previous Training": "Additional Information"
+    },
+
+    "templates": [
+
+        {
+            "id": "761bcfc78808d24d2b35fec54323ab4e7ff02c57",
+            "title": "EA Template 1"
+        }, {
+            "id": "4fcfdb574166a271960025ff5dab3a3c941672a5",
+            "title": "EA Template 2"
+        }
+    ],
+
+    "programs": {
+        "Administrative Assistant - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2013
+        },
+
+        "Administrative Assistant - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2013
+        },
+
+        "Business Accounting Specialist - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2015
+        },
+
+        "Business Accounting Specialist - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2015
+        },
+
+        "Medical Assistant - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2015
+        },
+
+        "Medical Assistant - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2013
+        },
+
+        "Medical Billing and Coding Specialist - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2013
+        },
+
+        "Medical Billing and Coding Specialist - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        },
+
+        "Medical Office Specialist - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2013
+        },
+
+        "Medical Office Specialist - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2012
+        },
+
+        "Pharmacy Technician - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        },
+
+        "Pharmacy Technician - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        },
+
+        "Cosmetology Operator - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 59,
+            "NumberGrads": 80,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 60000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        },
+
+        "Cosmetology Operator - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 28,
+            "JobOpenings": 5,
+            "NumberGrads": 10,
+            "CompletionRate": 54,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 100,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        },
+
+        "HVAC - Morning": {
+            "Morning": true,
+            "Afternoon": false,
+            "Evening": false,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 2,
+            "JobOpenings": 50,
+            "NumberGrads": 8,
+            "CompletionRate": 44,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 80,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        },
+
+        "HVAC - Evening": {
+            "Morning": false,
+            "Afternoon": false,
+            "Evening": true,
+            "Weeks": 48,
+            "Terms": 8,
+            "ClockHours": 942,
+            "QuarterHours": 74.5,
+            "TotalMonths": 12,
+            "RegFee": 20,
+            "Tuition": 19925,
+            "Textbook": 0,
+            "OtherFees": 0,
+            "Total": 19945,
+            "NumberEnrolled": 2,
+            "JobOpenings": 50,
+            "NumberGrads": 8,
+            "CompletionRate": 44,
+            "AvgStartingSalary": 80000,
+            "NumberGradsEmployed": 20,
+            "EmploymentRate": 20,
+            "StartingSalaryRangeLow": 5000,
+            "StartingSalaryRangeHigh": 80000,
+            "NumberGradsPlaced": 1,
+            "PlacementRate": 80,
+            "ExamPassageRate": 90,
+            "ReportYear": 2014
+        }
+    }
+
+}
+
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js":[function(require,module,exports){
 module.exports = { 
     "Administrative Assistant - Morning": { 
         "Morning": true, 
         "Afternoon": false, 
         "Evening": false,                                             
-        "Weeks": 27, 
-        "terms": 9,
-        "clockHours": 650, 
-        "quarterHours": 46.5, 
-        "totalMonths": 7, 
-        "regFee": 50,
-        "tuition": 13350,                                    
-        "otherFees": false, 
-        "total": 13400
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2013
     },
 
     "Administrative Assistant - Evening": {
         "Morning": false, 
         "Afternoon": false, 
         "Evening": true,                                             
-        "Weeks": 27,
-        "terms": 9,
-        "clockHours": 650, 
-        "quarterHours": 46.5, 
-        "totalMonths": 7, 
-        "regFee": 50,
-        "tuition": 13350,                                    
-        "otherFees": false, 
-        "total": 13400
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2013
     },
 
     "Business Accounting Specialist - Morning": {
         "Morning": true, 
         "Afternoon": false, 
         "Evening": false, 
-        "Weeks": 33, 
-        "clockHours": 806, 
-        "quarterHours":61.5, 
-        "totalMonths": 8, 
-        "regFee": 50,
-        "tuition": 15950,
-        "otherFees": false, 
-        "total": 16000
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2015
     },
 
     "Business Accounting Specialist - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true, 
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2015
+    },
+
+    "Medical Assistant - Morning": {
         "Morning": true, 
         "Afternoon": false, 
-        "Evening": false, 
-        "Weeks": 33, 
-        "clockHours": 806, 
-        "quarterHours":61.5, 
-        "totalMonths": 8, 
-        "regFee": 50,
-        "tuition": 15950,
-        "otherFees": false, 
-        "total": 16000
-    }
+        "Evening": false,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2015
+    },
 
-    //"Business Account Specialist - Morning": {
-        //"Morning": true, 
-        //"Afternoon": false, 
-        //"Evening": false, 
-        //"Weeks": 33, 
-        //"clockHours": 806, 
-        //"quarterHours":61.5, 
-        //"totalMonths": 8, 
-        //"regFee": 50,
-        //"tuition": 15950,
-        //"otherFees": false, 
-        //"total": 16000,
-        //"dates": { 
-            //"1/12/15": "3/6/16",
-            //"2/2/15": "4/3/16",
-            //"2/23/15": "4/24/16",
-            //"3/23/15": "5/15/16",
-            //"4/13/15": "6/5/16"
-        //}
-    //}
+    "Medical Assistant - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2013
+    },
+
+    "Medical Billing and Coding Specialist - Morning": {
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2013
+    },
+
+    "Medical Billing and Coding Specialist - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    },
+
+    "Medical Office Specialist - Morning": {
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+       "ReportYear": 2013 
+    },
+
+    "Medical Office Specialist - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2012
+    },
+
+    "Pharmacy Technician - Morning": {
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    },
+
+    "Pharmacy Technician - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    },
+
+    "Cosmetology Operator - Morning": {
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 59,
+        "NumberGrads": 80,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 60000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    },
+
+    "Cosmetology Operator - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 28,
+        "JobOpenings": 5,
+        "NumberGrads": 10,
+        "CompletionRate": 54,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 100,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    },
+
+    "HVAC - Morning": {
+        "Morning": true, 
+        "Afternoon": false, 
+        "Evening": false,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 2,
+        "JobOpenings": 50,
+        "NumberGrads": 8,
+        "CompletionRate": 44,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 80,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    },
+
+    "HVAC - Evening": {
+        "Morning": false, 
+        "Afternoon": false, 
+        "Evening": true,                                             
+        "Weeks": 48, 
+        "Terms": 8,
+        "ClockHours": 942, 
+        "QuarterHours": 74.5, 
+        "TotalMonths": 12, 
+        "RegFee": 20,
+        "Tuition": 19925,                                    
+        "Textbook": 0,
+        "OtherFees": 0, 
+        "Total": 19945,
+        "NumberEnrolled": 2,
+        "JobOpenings": 50,
+        "NumberGrads": 8,
+        "CompletionRate": 44,
+        "AvgStartingSalary": 80000,
+        "NumberGradsEmployed": 20,
+        "EmploymentRate": 20,
+        "StartingSalaryRangeLow": 5000,
+        "StartingSalaryRangeHigh": 80000,
+        "NumberGradsPlaced": 1,
+        "PlacementRate": 80,
+        "ExamPassageRate": 90,
+        "ReportYear": 2014
+    }
 }
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/template_manager.js":[function(require,module,exports){
-var CUSTOM_METHODS = require('./custom_methods.js');
-//var CUSTOM_VALIDATORS = require('./custom_validators.js');
-var PROGRAM_DATA = require('./data/program_data.js');
-
-var CUSTOM_OPTIONS = {
-    "Program": _.keys(PROGRAM_DATA),
-    "StartDate": []
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/package.js":[function(require,module,exports){
+var Package = function(data, customMethods) {
+    this.data = data;
+    this.customMethods = customMethods;
 };
 
-var CUSTOM_TYPES = {
-    "Date": "date",
-    "Email": "email",
-    "Phone": "tel",
-    "DateOfBirth": "date",
-    "DOB": "date"
-};
-
-var DISABLED_FIELDS = [
-    "GradDate", "Weeks", "Morning", "Evening", "Afternoon"
-];
-
-TemplateManager = {
-
-    fetchTemplate: function (lead, templateId, customFields, callback) {
-        // Fetches field object from server
-        var data = {"FName":{"name":"FName","type":"text"},"MInitial":{"name":"MInitial","type":"text"},"LName":{"name":"LName","type":"text"},"Date":{"name":"Date","type":"text"},"Address":{"name":"Address","type":"text"},"City":{"name":"City","type":"text"},"Zip":{"name":"Zip","type":"text"},"DateOfBirth":{"name":"DateOfBirth","type":"text"},"SocialSecurityNumber":{"name":"SocialSecurityNumber","type":"text"},"Phone":{"name":"Phone","type":"text"},"total":{"name":"total","type":"text"},"Email":{"name":"Email","type":"text"},"Program":{"name":"Program","type":"text"},"StartDate":{"name":"StartDate","type":"text"},"Morning":{"name":"Morning","type":"checkbox"},"Afternoon":{"name":"Afternoon","type":"checkbox"},"Evening":{"name":"Evening","type":"checkbox"},"GradDate":{"name":"GradDate","type":"text"},"Weeks":{"name":"Weeks","type":"text"}}
+Package.prototype = {
+    fetchTemplate: function(lead, templateId, customFields, callback) {
+        var self = this;
         return $.get('/templates/' + templateId, function(data) {
             var fields = {};
 
-            _.each(data.custom_fields, function (field, name) {
-                // prepopulates form with diamond lead data if template field
+            // prepopulates form with diamond lead data if template field
+            _.each(data.custom_fields, function(field, name) {
                 var fieldValue;
+                var header = self.data.headers[field.name]
+
+                field.header = header;
 
                 if (customFields[name]) {
                     fieldValue = customFields[name].value || lead[name];
                 } else {
                     fieldValue = lead[name];
-                }
+                };
 
                 // name matches diamond lead column name
                 fields[name] = _.extend(field, {
                     value: fieldValue
                 });
 
-                // Adds options if CUSTOM_OPTIONS has matching key
-                if (CUSTOM_OPTIONS[name]) {
-                    fields[name].options = CUSTOM_OPTIONS[name];
-                };
-                
-                //Adds customMethod if CUSTOM_METHODS has matching key
-                if (CUSTOM_METHODS[name]) {
-                    fields[name].customMethod = CUSTOM_METHODS[name];
-                };
+                fields[name].options = self.data.customOptions[name];
+                fields[name].customMethod = self.customMethods[name];
+                fields[name].type = self.data.customTypes[name];
 
-                if (CUSTOM_TYPES[name]) {
-                    fields[name].type = CUSTOM_TYPES[name]
-                }
-
-                if (_.include(DISABLED_FIELDS, name)) {
+                if (_.include(self.data.disabledFields, name)) {
                     fields[name].disabled = true;
                 };
 
@@ -1072,167 +2014,12 @@ TemplateManager = {
         });
     }
 
-    //setLeadFields: function (lead) {
-        //return {
-            //"First Name": {
-                //header: "Bio",
-                //value: lead["FName"]
-            //},
-            //"Middle Initial": {
-                //value: lead["MInitial"]
-            //},
-            //"Last Name": {
-                //value: lead["LName"]
-            //},
-            //"Date of Birth": {
-                //value: lead["DateOfBirth"]
-            //},
-            //"Gender": {
-                //value: lead["Gender"]
-            //},
-            //"Ethnicity": {
-                //value: lead["Ethnicity"]
-            //},
-            //"Home Phone": {
-                //value: lead["Phone"]
-            //},
-            //"Mobile Phone": {
-                //value: lead["PhoneMobile"]
-            //},
-            //"Work Phone": {
-                //value: lead["PhoneOther"]
-            //},
-            //"Address 1": {
-                //value: lead["Address"]
-            //},
-            //"City": {
-                //value: lead["City"]
-            //},
-            //"Zip": {
-                //value: lead["Zip"]
-            //},
-            //"Address 2": {
-                //value: lead["Address2"]
-            //},
-            //"State": {
-                //value: lead["State"]
-            //},
-            //"Country": {
-                //value: lead["Country"]
-            //},
-            //"Email": {
-                //value: lead["Email"],
-                //customMethod: "setName"
-            //},
-            //"Marital Status": {
-                //value: lead["MaritalStatus"]    
-            //},
-            //"SSN": {
-                //value: lead["SSN"]
-            //},
-            //"Drivers License No": {
-                //value: lead["DriversLicense"]
-            //},
-            //"Drivers License State": {
-                //value: lead["DriversLicenseState"]
-            //},
-            //"Secondary Education": {
-                //header: "Previous Education",
-                //value: lead["SecondaryEducation"]
-            //},
-            //"POG": {
-                //value: lead["POG"]
-            //},
-            //"HS Grad Date": {
-                //value: lead["HSGradDate"]
-            //},
-            //"Highest Level of Education.": {
-                //value: lead["HighestLevelEducation"]
-            //},
-            //"Previous College": {
-               //value: lead["PreviousCollege"] 
-            //},
-            //"Campus": {
-                //header: "Enrollment Info",
-                //value: lead["Campus"]
-            //},
-            //"Admissions Rep": {
+};
 
-            //},
-            //"Admissions Rep Email": {
-
-            //},
-            //"Program": {
-                //header: "Select Program",
-                //value: lead["Program"],
-                //options: ["", "Accounting", "Finance", "English"],
-                //customMethod: "setStartDate"
-            //},
-            //"Start Date": {
-                //value: lead["StartDate"]
-
-            //},
-            //"Grad Date": {
-                //value: lead["GradDate"]
-            //},
-            //"Weeks": {
-                //type: "number",
-                //value: lead["Weeks"]
-            //},
-            //"Student Type": {
-                //value: lead["StudentType"]
-            //},
-            //"Session": {
-                //value: lead["Session"]
-            //},
-            //"Contract Signed Date": {
-                //value: lead["ContractSignedDate"]    
-            //},
-            //"Institution/Location": {
-                //header: "Post Secondary Education",
-                //value: lead["InstitutionLocation"]
-            //},
-            //"Type of Diploma/Degree": {
-
-            //},
-            //"Field of Study": {
-
-            //},
-            //"Start Data": {
-                
-            //},
-            //"End Date": {
-
-            //},
-            //"Graduated": {
-                //value: lead["Graduated"]
-            //},
-            //"Program Results in Diploma": {
-                //header: "Additional Info",
-                //type: "radio",
-                //value: lead["Diploma"]
-            //},
-            //"Requires National Certification": {
-                //type: "radio",
-                //value: lead["Certification"]
-            //},
-            //"Funding Type": {
-
-            //},
-            //"MOU Month": {
-
-            //},
-            //"MOU Year": {
-
-            //}
-        //}
-    //}
-}
-
-module.exports = TemplateManager;
+module.exports = Package;
 
 
-},{"./custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
+},{}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
 (function (global){
 /**
  * @license

@@ -1,4 +1,5 @@
 require './config/hello_sign'
+require './lib/diamond'
 
 class DocMaker
   attr_accessor :document, :sent_signature

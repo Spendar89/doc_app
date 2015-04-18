@@ -1,5 +1,9 @@
 var TemplateInput = React.createClass({
 
+    renderTemplateOption: function(template, i) {
+        return <option key={template.id} value={template.id}>{template.title}</option>
+    },
+
     render: function () {
         return (
             <div className="col-sm-12">
@@ -7,10 +11,13 @@ var TemplateInput = React.createClass({
                     <h4 className="control-label">Switch Your Template: </h4>
                     <label><b>Current Template: {this.props.template.title}</b></label>
                     <p><i>Enter a different HelloSign Template ID to Update the Form Fields</i></p>
-                    <input className="form-control" value={this.props.template.id} onChange={this.props.onChange} />
-                </div>
-                <div className="form-group">
-                    <input type="submit" className="form-control btn btn-primary"onClick={this.props.onSubmit} value="Update Template"/>
+
+                    <select className=" form-control" 
+                            onChange={this.props.onChange} 
+                            selected={this.props.template.id}>
+                        {_.map(this.props.templates, this.renderTemplateOption)}
+                    </select>
+                    
                 </div>
             </div>
         )
