@@ -1,9 +1,16 @@
 var DocOption = require('./doc_option.jsx');
 
 var DocInput = React.createClass({
+
     handleChange: function (e) {
-        var field = _.extend(this.props.field, {})
-        field.value = e.target.value;
+        var field = _.extend(this.props.field, {});
+        if (field.type === "checkbox") {
+            field.value = field.value === true
+                ? false
+                : true;
+        } else {
+            field.value = e.target.value;
+        };
         this.callCustomMethod();
         this.props.updateField(this.props.fieldName, field);
     },
@@ -15,27 +22,11 @@ var DocInput = React.createClass({
     },
 
     renderDocOption: function(option, i) {
-            return <DocOption key={i} value={option} handleChange={this.handleChange} callCustomMethod={this.callCustomMethod}/>
+        return <DocOption   key={i} 
+                            value={option} 
+                            handleChange={this.handleChange} 
+                            callCustomMethod={this.callCustomMethod} />
     },
-
-    //componentDidUpdate: function(prevProps, prevState) {
-        //var options = this.props.field.options;
-        //if (options && options != prevProps.field.options) {
-            //var value = options[0];
-            //console.log("handling update", value)
-                //this.handleChange({target: {value: value}});
-
-        //}
-    //},
-    
-    //componentDidMount: function() {
-        //if (this.props.field.options) {
-            //var value = this.props.field.options[0]
-            //console.log("handinglin change", value)
-            //this.handleChange({target: {value: value}});
-        //}
-
-    //},
 
     renderInput: function () {
         if (this.props.field.options) {
@@ -86,7 +77,7 @@ var DocInput = React.createClass({
                     <label>
                         <input  disabled={this.props.field.disabled}
                                 onChange={this.handleChange}
-                                checked={this.props.field.value}
+                                checked={this.props.field.value === true}
                                 value={this.props.field.value}
                                 type="checkbox" />
                         {this.props.fieldName}

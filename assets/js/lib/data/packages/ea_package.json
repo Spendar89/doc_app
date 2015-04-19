@@ -25,11 +25,33 @@
 
     "customTypes": {
         "Date": "date",
+        "Date of Tour": "date",
+        "Address": "address",
+        "State": "state",
         "Email": "email",
         "Phone": "tel",
+        "PhoneMobile": "tel",
+        "PhoneOther": "tel",
+        "Weeks": "number",
+        "Months": "number",
+        "ClockHours": "number",
         "DOB": "date",
         "SSN": "password"
     },
+
+    "disabledFields": [
+      "StartDate",
+      "GradDate",
+      "Morning",
+      "Afternoon",
+      "Evening",
+      "Weeks",
+      "ClockHours",
+      "RegFee",
+      "Tuition",
+      "OtherFees",
+      "Total"
+    ],
 
     "headers": {
         "FName": "Enrollment Information",
@@ -45,11 +67,15 @@
     "templates": [
 
         {
-            "id": "761bcfc78808d24d2b35fec54323ab4e7ff02c57",
-            "title": "EA Template 1"
+            "id": "15d7739c06cbc00db4faf52213563823faf21419",
+            "title": "Primary Agreement"
         }, {
-            "id": "4fcfdb574166a271960025ff5dab3a3c941672a5",
-            "title": "EA Template 2"
+            "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
+            "title": "Tour Acknowledgement"
+        },
+        {
+            "id": "a9bec35769d7b574c26eb21d2c296a8916b99f0c",
+            "title": "Clinical Laboratory Disclosure"
         }
     ],
 

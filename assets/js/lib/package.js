@@ -27,9 +27,19 @@ Package.prototype = {
                     value: fieldValue
                 });
 
-                fields[name].options = self.data.customOptions[name];
-                fields[name].customMethod = self.customMethods[name];
-                fields[name].type = self.data.customTypes[name];
+                if (self.data.customOptions[name]) {
+                    fields[name].options = self.data.customOptions[name];
+                };
+                
+                //Adds customMethod if self.customMethods has matching key
+                if (self.customMethods[name]) {
+                    fields[name].customMethod = self.customMethods[name];
+                };
+
+                if (self.data.customTypes[name]) {
+                    fields[name].type = self.data.customTypes[name]
+                }
+
 
                 if (_.include(self.data.disabledFields, name)) {
                     fields[name].disabled = true;

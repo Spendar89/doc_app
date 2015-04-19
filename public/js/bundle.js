@@ -107,6 +107,7 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     isValid: function() {
+        if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
             return field.value !== undefined || field.type === "checkbox";
         });
@@ -128,13 +129,13 @@ var DocForm = React.createClass({displayName: "DocForm",
     
     searchingStyle: function() {
         return {
-            display: (!this.props.customFields ? "block" : "none")
+            display: (this.props.templateLoading ? "block" : "none")
         };
     },
 
     formStyle: function() {
         return {
-            visibility: (this.props.customFields ? "visible" : "hidden")
+            visibility: (!this.props.templateLoading ? "visible" : "hidden")
         };
     },
 
@@ -153,14 +154,35 @@ var DocForm = React.createClass({displayName: "DocForm",
     //componentDidUpdate: function() {
         //_.each(this.props.customFields, this.updateHeader);
     //},
+    //
+    renderSubmit: function() {
+        if (this.props.docUrl) {
+            return (
+                React.createElement("a", {className: "btn-success btn col-sm-6", 
+                    href: this.props.docUrl, 
+                    target: "blank"}, 
+                    "Click to Sign Doc"
+                )
+
+            )
+        } else {
+            return  (
+                React.createElement("input", {disabled: !this.isValid(), 
+                        className: "btn-primary btn col-sm-6", 
+                        type: "submit", 
+                        value: "Generate Doc for Signing", 
+                        onClick: this.handleSubmit})
+            ) 
+        }
+        
+    },
 
     render: function() {
         return (
             React.createElement("div", {className: "doc-form-inner-div"}, 
                 React.createElement("div", {className: "col-sm-12 doc-form-header-div"}, 
                     React.createElement("h2", {className: "col-sm-6 doc-form-header"}, this.props.template.title), 
-                    React.createElement("input", {disabled: !this.isValid(), className: "btn-success btn col-sm-6", 
-                            type: "submit", value: "Generate Doc for Signing", onClick: this.handleSubmit})
+                    this.renderSubmit()
                 ), 
                 React.createElement("div", {className: "loader-div col-sm-4 col-sm-offset-4", style: this.searchingStyle()}, 
                     React.createElement("div", {className: "ajax-loader"}), 
@@ -184,9 +206,16 @@ module.exports = DocForm;
 var DocOption = require('./doc_option.jsx');
 
 var DocInput = React.createClass({displayName: "DocInput",
+
     handleChange: function (e) {
-        var field = _.extend(this.props.field, {})
-        field.value = e.target.value;
+        var field = _.extend(this.props.field, {});
+        if (field.type === "checkbox") {
+            field.value = field.value === true
+                ? false
+                : true;
+        } else {
+            field.value = e.target.value;
+        };
         this.callCustomMethod();
         this.props.updateField(this.props.fieldName, field);
     },
@@ -198,27 +227,11 @@ var DocInput = React.createClass({displayName: "DocInput",
     },
 
     renderDocOption: function(option, i) {
-            return React.createElement(DocOption, {key: i, value: option, handleChange: this.handleChange, callCustomMethod: this.callCustomMethod})
+        return React.createElement(DocOption, {key: i, 
+                            value: option, 
+                            handleChange: this.handleChange, 
+                            callCustomMethod: this.callCustomMethod})
     },
-
-    //componentDidUpdate: function(prevProps, prevState) {
-        //var options = this.props.field.options;
-        //if (options && options != prevProps.field.options) {
-            //var value = options[0];
-            //console.log("handling update", value)
-                //this.handleChange({target: {value: value}});
-
-        //}
-    //},
-    
-    //componentDidMount: function() {
-        //if (this.props.field.options) {
-            //var value = this.props.field.options[0]
-            //console.log("handinglin change", value)
-            //this.handleChange({target: {value: value}});
-        //}
-
-    //},
 
     renderInput: function () {
         if (this.props.field.options) {
@@ -269,7 +282,7 @@ var DocInput = React.createClass({displayName: "DocInput",
                     React.createElement("label", null, 
                         React.createElement("input", {disabled: this.props.field.disabled, 
                                 onChange: this.handleChange, 
-                                checked: this.props.field.value, 
+                                checked: this.props.field.value === true, 
                                 value: this.props.field.value, 
                                 type: "checkbox"}), 
                         this.props.fieldName
@@ -687,7 +700,9 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
             leadUpdates: {},
             templates: EAPackage.data.templates,
             name: "",
-            email: ""
+            email: "",
+            docUrl: false,
+            templateLoading: true
         }
     },
 
@@ -700,7 +715,9 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                 this.setState(
                     {
                         customFields: fields, 
-                        template: template
+                        template: template,
+                        templateLoading: false,
+                        docUrl: false
                     }
                 );
             }.bind(this)
@@ -743,6 +760,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     updateLead: function (cb) {
+        console.log("updating lead", this.state.lead)
         $.ajax({
             url: "/leads/" + this.state.lead["LeadsID"],
             method: "PUT",
@@ -786,13 +804,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     handleFormComplete: function (data) {
         var cb = function () {
-            window.location.href = "#/docs/" + data.signature_request_id + "?url=" + data.url;
-        };
-        if (this.state.syncRemote) {
-            this.updateLead(cb)
-        } else {
-            cb()
-        };
+            this.setState({docUrl: data.url});
+        }.bind(this);
+
+        this.state.syncRemote && _.any(this.state.leadUpdates) 
+            ? this.updateLead(cb)
+            : cb();
     },
 
     componentDidUpdate: function(prevProps, prevState) {
@@ -803,7 +820,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     handleTemplateInputChange: function (e) {
         var templateId = e.target.value;
-        this.setState({template: {id: templateId}});   
+        this.setState({template: {id: templateId}, templateLoading: true});   
     },
 
     handleLeadEmailInputChange: function (e) {
@@ -828,6 +845,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                     React.createElement(TemplateInput, {
                         template: this.state.template, 
                         templates: this.state.templates, 
+                        templateLoading: this.state.templateLoading, 
                         onChange: this.handleTemplateInputChange, 
                         onSubmit: this.handleTemplateInputSubmit}), 
                     React.createElement(LeadInputs, {onEmailChange: this.handleLeadEmailInputChange, 
@@ -840,6 +858,8 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                              callCustomMethod: this.callCustomMethod, 
                              updateCustomField: this.updateCustomField, 
                              removeCustomField: this.removeCustomField, 
+                             docUrl: this.state.docUrl, 
+                             templateLoading: this.state.templateLoading, 
                              customFields: this.state.customFields, 
                              onComplete: this.handleFormComplete, 
                              lead: this.props.lead, 
@@ -879,6 +899,7 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
                     React.createElement("p", null, React.createElement("i", null, "Enter a different HelloSign Template ID to Update the Form Fields")), 
 
                     React.createElement("select", {className: " form-control", 
+                            disabled: this.props.templateLoading, 
                             onChange: this.props.onChange, 
                             selected: this.props.template.id}, 
                         _.map(this.props.templates, this.renderTemplateOption)
@@ -978,7 +999,7 @@ module.exports = CustomMethods;
 
 
 },{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
     "name": "EA Package",
 
     "customOptions": {
@@ -1005,11 +1026,33 @@ module.exports=module.exports=module.exports=module.exports=module.exports=modul
 
     "customTypes": {
         "Date": "date",
+        "Date of Tour": "date",
+        "Address": "address",
+        "State": "state",
         "Email": "email",
         "Phone": "tel",
+        "PhoneMobile": "tel",
+        "PhoneOther": "tel",
+        "Weeks": "number",
+        "Months": "number",
+        "ClockHours": "number",
         "DOB": "date",
         "SSN": "password"
     },
+
+    "disabledFields": [
+      "StartDate",
+      "GradDate",
+      "Morning",
+      "Afternoon",
+      "Evening",
+      "Weeks",
+      "ClockHours",
+      "RegFee",
+      "Tuition",
+      "OtherFees",
+      "Total"
+    ],
 
     "headers": {
         "FName": "Enrollment Information",
@@ -1025,11 +1068,15 @@ module.exports=module.exports=module.exports=module.exports=module.exports=modul
     "templates": [
 
         {
-            "id": "761bcfc78808d24d2b35fec54323ab4e7ff02c57",
-            "title": "EA Template 1"
+            "id": "15d7739c06cbc00db4faf52213563823faf21419",
+            "title": "Primary Agreement"
         }, {
-            "id": "4fcfdb574166a271960025ff5dab3a3c941672a5",
-            "title": "EA Template 2"
+            "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
+            "title": "Tour Acknowledgement"
+        },
+        {
+            "id": "a9bec35769d7b574c26eb21d2c296a8916b99f0c",
+            "title": "Clinical Laboratory Disclosure"
         }
     ],
 
@@ -1999,9 +2046,19 @@ Package.prototype = {
                     value: fieldValue
                 });
 
-                fields[name].options = self.data.customOptions[name];
-                fields[name].customMethod = self.customMethods[name];
-                fields[name].type = self.data.customTypes[name];
+                if (self.data.customOptions[name]) {
+                    fields[name].options = self.data.customOptions[name];
+                };
+                
+                //Adds customMethod if self.customMethods has matching key
+                if (self.customMethods[name]) {
+                    fields[name].customMethod = self.customMethods[name];
+                };
+
+                if (self.data.customTypes[name]) {
+                    fields[name].type = self.data.customTypes[name]
+                }
+
 
                 if (_.include(self.data.disabledFields, name)) {
                     fields[name].disabled = true;

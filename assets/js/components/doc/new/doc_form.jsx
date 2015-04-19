@@ -54,6 +54,7 @@ var DocForm = React.createClass({
     },
 
     isValid: function() {
+        if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
             return field.value !== undefined || field.type === "checkbox";
         });
@@ -75,13 +76,13 @@ var DocForm = React.createClass({
     
     searchingStyle: function() {
         return {
-            display: (!this.props.customFields ? "block" : "none")
+            display: (this.props.templateLoading ? "block" : "none")
         };
     },
 
     formStyle: function() {
         return {
-            visibility: (this.props.customFields ? "visible" : "hidden")
+            visibility: (!this.props.templateLoading ? "visible" : "hidden")
         };
     },
 
@@ -100,14 +101,35 @@ var DocForm = React.createClass({
     //componentDidUpdate: function() {
         //_.each(this.props.customFields, this.updateHeader);
     //},
+    //
+    renderSubmit: function() {
+        if (this.props.docUrl) {
+            return (
+                <a  className="btn-success btn col-sm-6" 
+                    href={this.props.docUrl} 
+                    target="blank">
+                    Click to Sign Doc
+                </a>
+
+            )
+        } else {
+            return  (
+                <input  disabled={!this.isValid()} 
+                        className="btn-primary btn col-sm-6" 
+                        type="submit" 
+                        value="Generate Doc for Signing" 
+                        onClick={this.handleSubmit} />
+            ) 
+        }
+        
+    },
 
     render: function() {
         return (
             <div className="doc-form-inner-div">
                 <div className="col-sm-12 doc-form-header-div">
                     <h2 className="col-sm-6 doc-form-header">{this.props.template.title}</h2>
-                    <input disabled={!this.isValid()} className="btn-success btn col-sm-6" 
-                            type="submit" value="Generate Doc for Signing" onClick={this.handleSubmit}/>
+                    {this.renderSubmit()}
                 </div>
                 <div className="loader-div col-sm-4 col-sm-offset-4" style={this.searchingStyle()}>
                     <div className="ajax-loader"></div>

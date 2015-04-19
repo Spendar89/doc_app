@@ -89,7 +89,9 @@ end
 
 put '/leads/:id' do
   content_type :json
-  @d = Diamond.new
-  @lead_data = @d.update_lead params[:id], params[:lead]
-  return @lead_data.to_json
+  if params[:lead]
+    @d = Diamond.new
+    @lead_data = @d.update_lead params[:id], params[:lead]
+    return @lead_data.to_json
+  end
 end

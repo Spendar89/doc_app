@@ -13,6 +13,7 @@ var TemplateInput = React.createClass({
                     <p><i>Enter a different HelloSign Template ID to Update the Form Fields</i></p>
 
                     <select className=" form-control" 
+                            disabled={this.props.templateLoading}
                             onChange={this.props.onChange} 
                             selected={this.props.template.id}>
                         {_.map(this.props.templates, this.renderTemplateOption)}
