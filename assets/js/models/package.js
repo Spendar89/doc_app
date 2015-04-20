@@ -38,8 +38,7 @@ Package.prototype = {
 
                 if (self.data.customTypes[name]) {
                     fields[name].type = self.data.customTypes[name]
-                }
-
+                };
 
                 if (_.include(self.data.disabledFields, name)) {
                     fields[name].disabled = true;

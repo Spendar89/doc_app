@@ -683,9 +683,10 @@ var LeadDocs = require('./lead_docs.jsx'),
     LeadInputs = require('./lead_inputs.jsx'),
     LeadData = require('./lead_data.jsx'),
     DocForm = require('./../../doc/new/doc_form.jsx'),
+    LeadsController = require('./../../../controllers/leads_controller.js'),
     EA_PACKAGE_DATA = require('./../../../lib/data/packages/ea_package.json'),
     CUSTOM_METHODS = require('./../../../lib/custom_methods.js'),
-    Package = require('./../../../lib/package.js');
+    Package = require('./../../../models/package.js');
 
 var fetchLead = function (leadId, callback) {
     return $.get('/leads/' + leadId, function(data) {
@@ -713,7 +714,9 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     setTemplateFromLead: function (lead) {
-        this.setState({templateLoading: "Loading Template"})
+        if (!this.state.docError) {
+            this.setState({templateLoading: "Loading Template"})
+        };
         EAPackage.fetchTemplate(
             lead, 
             this.state.template.id, 
@@ -733,10 +736,10 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     fetchLeadDocuments: function (lead, callback) {
         this.setState({templateLoading: "Loading Lead Documents"});
-        $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
+        LeadsController.DocsController.index(lead, function(data) {
             this.setState({docs: data});
             if (callback) callback(lead);
-        }.bind(this));
+        }.bind(this))
     },
 
     updateCustomField: function (fieldName, field) {
@@ -785,11 +788,20 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     setStateFromLead: function (lead) {
-        this.setState(
-            { lead: lead, 
-                email: lead["Email"], 
-                templateLoading: "Loading Template",
-                name: lead["FName"] + " " + lead["LName"] });
+        if (lead["error"]) {
+            this.setState({
+                docError: lead["error"], 
+                templateLoading: false
+            });
+            this.setTemplateFromLead(this.state.lead);
+            return false;
+        };
+        this.setState({ 
+            lead: lead, 
+            email: lead["Email"], 
+            templateLoading: "Loading Template",
+            name: lead["FName"] + " " + lead["LName"] 
+        });
         this.fetchLeadDocuments(lead, this.setTemplateFromLead);
     },
 
@@ -936,7 +948,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../../../lib/data/packages/ea_package.json":"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json","./../../../lib/package.js":"/Users/jakesendar/doc_app/assets/js/lib/package.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+},{"./../../../controllers/leads_controller.js":"/Users/jakesendar/doc_app/assets/js/controllers/leads_controller.js","./../../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../../../lib/data/packages/ea_package.json":"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json","./../../../models/package.js":"/Users/jakesendar/doc_app/assets/js/models/package.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
 var TemplateInput = React.createClass({displayName: "TemplateInput",
 
     renderTemplateOption: function(template, i) {
@@ -966,6 +978,25 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
 });
 
 module.exports = TemplateInput;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/controllers/leads_controller.js":[function(require,module,exports){
+var LeadsController = {
+    show: function(leadId, callback) {
+        return $.get('/leads/' + leadId, function(data) {
+            return callback(data)
+        });
+    },
+
+    DocsController: {
+        index: function(lead, callback) {
+            $.get('/leads/' + lead["LeadsID"] + '/docs', callback);
+        }
+    }
+
+};
+
+module.exports = LeadsController;
 
 
 },{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
@@ -1052,7 +1083,7 @@ module.exports = CustomMethods;
 
 
 },{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "customOptions": {
@@ -2069,7 +2100,7 @@ module.exports = {
 }
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/package.js":[function(require,module,exports){
+},{}],"/Users/jakesendar/doc_app/assets/js/models/package.js":[function(require,module,exports){
 var Package = function(data, customMethods) {
     this.data = data;
     this.customMethods = customMethods;
@@ -2110,8 +2141,7 @@ Package.prototype = {
 
                 if (self.data.customTypes[name]) {
                     fields[name].type = self.data.customTypes[name]
-                }
-
+                };
 
                 if (_.include(self.data.disabledFields, name)) {
                     fields[name].disabled = true;

@@ -1,10 +1,17 @@
 require 'tiny_tds'
 class Diamond
-  attr_accessor :client
+  attr_accessor :client, :errors
 
   def initialize
-    @client = TinyTds::Client.new username: 'sci\jsendar', password: 'Pass020215$', host: '10.10.17.7'
-    #@client = {}
+    @errors = []
+    begin
+      @client = TinyTds::Client.new username: 'sci\jsendar', password: 'Pass020215$', host: '10.10.17.7'
+    rescue Exception => e
+      @errors.push({
+        message: "Unable to Connect to Diamond Database Server", 
+        type: "Server Error"
+      })
+    end
   end
 
   def test_execute
@@ -25,18 +32,6 @@ class Diamond
     @client.execute("UPDATE [825-Austin].dbo.lead SET #{l} WHERE LeadsID = '#{id}'").do
   end
 
-  #def get_program_courses(program_no)
-    #results = []
-    #@client.execute("SELECT * FROM [825-Austin].dbo.ProgramCourse where ProgramNo = '#{program_no}'").each {|r| results << r}
-    #results
-  #end
-
-  #def get_course_terms(course_no)
-    #results = []
-    #@client.execute("SELECT Term.TermID, Term.TermBeginDate, Term.TermEndDate FROM [825-Austin].dbo.CourseOffering INNER JOIN [825-Austin].dbo.Term ON [825-Austin].dbo.CourseOffering.TermID = Term.TermID where CourseNo = '#{course_no}'").each {|r| results << r}
-    #results
-  #end
- 
   def get_lead_documents(lead_id)
     results = []
     @client.execute("SELECT DocumentID, Title FROM [825-Austin].dbo.leadDocuments WHERE LeadID = #{lead_id}").each{|r| results << r}
@@ -54,7 +49,7 @@ class Diamond
   def destroy_document(document_id)
     @client.execute(
       "DELETE FROM [825-Austin].dbo.leadDocuments
-      WHERE DocumentID='#{document_id}'"
+      WHERE DocumentID='#{document_id}"
     ).do
   end
 

@@ -20,14 +20,15 @@ post '/docs' do
   @email = params[:email]
   @name = params[:name]
   @leads_id = params[:leads_id]
-  #title is set to template_id/leads_id combo for uniqueness
   @title = "doc_#{params[:template_title]}_#{@leads_id}_#{Time.now.to_i}"
   doc_maker = DocMaker.new(@document)
   begin
     doc_maker.request_signature(@email, @name, @title)
     @doc_id = doc_maker.get_signature_request_id
     if @doc_id
-      diamond.add_document_to_lead(@leads_id, @doc_id, @title)
+      if !diamond.errors.any?
+        diamond.add_document_to_lead(@leads_id, @doc_id, @title)
+      end
       return { signature_request_id: @doc_id, 
         url: doc_maker.get_signing_url }.to_json
     else
@@ -96,8 +97,14 @@ end
 get '/leads/:id' do
   content_type :json
   @d = Diamond.new
-  @lead_data = @d.get_lead_detail params[:id]
-  return @lead_data.to_json
+  if @d.errors.any?
+    return {
+      error: @d.errors[0]
+    }.to_json
+  else
+    @lead_data = @d.get_lead_detail params[:id]
+    return @lead_data.to_json
+  end
 end
 
 put '/leads/:id' do

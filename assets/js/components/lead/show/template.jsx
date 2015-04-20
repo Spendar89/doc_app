@@ -3,9 +3,10 @@ var LeadDocs = require('./lead_docs.jsx'),
     LeadInputs = require('./lead_inputs.jsx'),
     LeadData = require('./lead_data.jsx'),
     DocForm = require('./../../doc/new/doc_form.jsx'),
+    LeadsController = require('./../../../controllers/leads_controller.js'),
     EA_PACKAGE_DATA = require('./../../../lib/data/packages/ea_package.json'),
     CUSTOM_METHODS = require('./../../../lib/custom_methods.js'),
-    Package = require('./../../../lib/package.js');
+    Package = require('./../../../models/package.js');
 
 var fetchLead = function (leadId, callback) {
     return $.get('/leads/' + leadId, function(data) {
@@ -33,7 +34,9 @@ var LeadShowTemplate = React.createClass({
     },
 
     setTemplateFromLead: function (lead) {
-        this.setState({templateLoading: "Loading Template"})
+        if (!this.state.docError) {
+            this.setState({templateLoading: "Loading Template"})
+        };
         EAPackage.fetchTemplate(
             lead, 
             this.state.template.id, 
@@ -53,10 +56,10 @@ var LeadShowTemplate = React.createClass({
 
     fetchLeadDocuments: function (lead, callback) {
         this.setState({templateLoading: "Loading Lead Documents"});
-        $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
+        LeadsController.DocsController.index(lead, function(data) {
             this.setState({docs: data});
             if (callback) callback(lead);
-        }.bind(this));
+        }.bind(this))
     },
 
     updateCustomField: function (fieldName, field) {
@@ -105,11 +108,20 @@ var LeadShowTemplate = React.createClass({
     },
 
     setStateFromLead: function (lead) {
-        this.setState(
-            { lead: lead, 
-                email: lead["Email"], 
-                templateLoading: "Loading Template",
-                name: lead["FName"] + " " + lead["LName"] });
+        if (lead["error"]) {
+            this.setState({
+                docError: lead["error"], 
+                templateLoading: false
+            });
+            this.setTemplateFromLead(this.state.lead);
+            return false;
+        };
+        this.setState({ 
+            lead: lead, 
+            email: lead["Email"], 
+            templateLoading: "Loading Template",
+            name: lead["FName"] + " " + lead["LName"] 
+        });
         this.fetchLeadDocuments(lead, this.setTemplateFromLead);
     },
 
