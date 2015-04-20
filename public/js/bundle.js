@@ -59,7 +59,6 @@ var DocForm = React.createClass({displayName: "DocForm",
         return {
             loaderText: "Downloading Template"
         }
-
     },
 
     renderDocInputs: function () {
@@ -79,36 +78,22 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     renderDocInputHeader: function (field) {
-
         if (field.header) {
             return React.createElement("h2", {className: "doc-input-header"}, React.createElement("small", null, field.header))
         }
     },
 
-    //updateHeader: function(field) {
-        //var oldName = field.name;
-        //var newField = _.extend(field, {});
-        //var a = field.name.split("%");
-        //var name = a[1]
-
-        //if (name) {
-            //newField.name = name;
-            //newField.header = a[0];
-            //this.props.removeCustomField(oldName);
-            //this.props.updateCustomField(name, newField);
-        //}
-
-    //},
-
     transformCustomFields: function () {
         return _.transform(this.props.customFields, function(result, field, name) {
-            result[name] = field.value; });
+            // if field.value is undefined its because its a checkbox
+            // or else it would not have passed validation...
+            result[name] = field.value || "";
+        });
     },
 
     isValid: function() {
         if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
-            return true;
             return field.value !== undefined || field.type === "checkbox";
         });
     },
@@ -163,7 +148,6 @@ var DocForm = React.createClass({displayName: "DocForm",
                 )
             )
         )
-
     },
 
     renderSubmit: function() {
@@ -1068,7 +1052,7 @@ module.exports = CustomMethods;
 
 
 },{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "customOptions": {

@@ -6,7 +6,6 @@ var DocForm = React.createClass({
         return {
             loaderText: "Downloading Template"
         }
-
     },
 
     renderDocInputs: function () {
@@ -26,36 +25,22 @@ var DocForm = React.createClass({
     },
 
     renderDocInputHeader: function (field) {
-
         if (field.header) {
             return <h2 className="doc-input-header"><small>{field.header}</small></h2>
         }
     },
 
-    //updateHeader: function(field) {
-        //var oldName = field.name;
-        //var newField = _.extend(field, {});
-        //var a = field.name.split("%");
-        //var name = a[1]
-
-        //if (name) {
-            //newField.name = name;
-            //newField.header = a[0];
-            //this.props.removeCustomField(oldName);
-            //this.props.updateCustomField(name, newField);
-        //}
-
-    //},
-
     transformCustomFields: function () {
         return _.transform(this.props.customFields, function(result, field, name) {
-            result[name] = field.value; });
+            // if field.value is undefined its because its a checkbox
+            // or else it would not have passed validation...
+            result[name] = field.value || "";
+        });
     },
 
     isValid: function() {
         if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
-            return true;
             return field.value !== undefined || field.type === "checkbox";
         });
     },
@@ -110,7 +95,6 @@ var DocForm = React.createClass({
                 </div>
             </div>
         )
-
     },
 
     renderSubmit: function() {
