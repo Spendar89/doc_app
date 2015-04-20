@@ -49,19 +49,20 @@ var DocForm = React.createClass({
 
     transformCustomFields: function () {
         return _.transform(this.props.customFields, function(result, field, name) {
-            result[name] = field.value || " ";
-        });
+            result[name] = field.value; });
     },
 
     isValid: function() {
         if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
+            return true;
             return field.value !== undefined || field.type === "checkbox";
         });
     },
 
     handleSubmit: function (e) {
         e.preventDefault();
+        this.props.onLoading();
         $.post("/docs", {
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
@@ -80,28 +81,38 @@ var DocForm = React.createClass({
         };
     },
 
-    formStyle: function() {
+    errorStyle: function() {
         return {
-            visibility: (!this.props.templateLoading ? "visible" : "hidden")
+            display: (this.props.docError ? "block" : "none")
         };
     },
 
-    componentDidMount: function() {
-        setTimeout(function() {
-            this.setState({loaderText: "Requesting Custom Fields"})
-        }.bind(this), 2000)
-
-        setTimeout(function() {
-            this.setState({loaderText: "Building Form"})
-        }.bind(this), 4000)
-
-        console.log("mounted!!")
+    formStyle: function() {
+        return {
+            visibility: (!this.props.templateLoading && !this.props.docError ? "visible" : "hidden")
+        };
     },
 
-    //componentDidUpdate: function() {
-        //_.each(this.props.customFields, this.updateHeader);
-    //},
-    //
+    renderDocError: function() {
+        var docError = this.props.docError;
+        if (!docError) return false;
+        return (
+            <div className="error-div col-sm-10 col-sm-offset-2" style={this.errorStyle()}>
+                <div className="doc-error">
+                    <div className="doc-error-header">
+                        <h2>Uh Oh, Something Went Wrong...</h2>
+                    </div>
+                    <div className="error-details">
+                        <h4>Error Details:</h4>
+                        <p>Message: {docError.message}</p>
+                        <p>Type: {docError.type}</p>
+                    </div>
+                </div>
+            </div>
+        )
+
+    },
+
     renderSubmit: function() {
         if (this.props.docUrl) {
             return (
@@ -112,6 +123,15 @@ var DocForm = React.createClass({
                 </a>
 
             )
+        } else if (this.props.docError){
+            return (
+                <button  className="btn-danger btn col-sm-6" 
+                    onClick={this.props.onDocError} >
+                    Back to Form
+                </button>
+
+            )
+
         } else {
             return  (
                 <input  disabled={!this.isValid()} 
@@ -133,8 +153,9 @@ var DocForm = React.createClass({
                 </div>
                 <div className="loader-div col-sm-4 col-sm-offset-4" style={this.searchingStyle()}>
                     <div className="ajax-loader"></div>
-                    <div className="loader-text"><h3>{this.state.loaderText}</h3></div>
+                    <div className="loader-text"><h3>{this.props.templateLoading}</h3></div>
                 </div>
+                {this.renderDocError()}
                 <form className="doc-form col-sm-12" style={this.formStyle()}>
                     <div className="doc-form-inputs">
                         {this.renderDocInputs()}

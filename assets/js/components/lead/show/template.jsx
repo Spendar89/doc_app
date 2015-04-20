@@ -23,15 +23,17 @@ var LeadShowTemplate = React.createClass({
             customFields: false,
             syncRemote: true,
             leadUpdates: {},
+            packageName: EAPackage.data.name,
             templates: EAPackage.data.templates,
             name: "",
             email: "",
             docUrl: false,
-            templateLoading: true
+            templateLoading: "Downloading Package Data"
         }
     },
 
     setTemplateFromLead: function (lead) {
+        this.setState({templateLoading: "Loading Template"})
         EAPackage.fetchTemplate(
             lead, 
             this.state.template.id, 
@@ -49,10 +51,12 @@ var LeadShowTemplate = React.createClass({
         );
     },
 
-    fetchLeadDocuments: function (lead) {
+    fetchLeadDocuments: function (lead, callback) {
+        this.setState({templateLoading: "Loading Lead Documents"});
         $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
-            this.setState({docs: data})
-        }.bind(this))
+            this.setState({docs: data});
+            if (callback) callback(lead);
+        }.bind(this));
     },
 
     updateCustomField: function (fieldName, field) {
@@ -85,7 +89,7 @@ var LeadShowTemplate = React.createClass({
     },
 
     updateLead: function (cb) {
-        console.log("updating lead", this.state.lead)
+        this.setState({templateLoading: "Syncing Lead Data"});
         $.ajax({
             url: "/leads/" + this.state.lead["LeadsID"],
             method: "PUT",
@@ -104,9 +108,13 @@ var LeadShowTemplate = React.createClass({
         this.setState(
             { lead: lead, 
                 email: lead["Email"], 
+                templateLoading: "Loading Template",
                 name: lead["FName"] + " " + lead["LName"] });
-        this.setTemplateFromLead(lead);
-        this.fetchLeadDocuments(lead);
+        this.fetchLeadDocuments(lead, this.setTemplateFromLead);
+    },
+
+    handleDocError: function() {
+        this.setState({docError: false});
     },
 
     handleTemplateInputSubmit: function () {
@@ -115,7 +123,7 @@ var LeadShowTemplate = React.createClass({
     
     componentWillMount: function () {
         var template = this.state.templates[0]
-        this.setState({template: template});
+        this.setState({template: template, templateLoading: "Loading Package"});
         fetchLead(this.props.params.leadId, this.setStateFromLead);
     },
 
@@ -127,14 +135,34 @@ var LeadShowTemplate = React.createClass({
         }
     },
 
-    handleFormComplete: function (data) {
+    handleFormSuccess: function(data) {
         var cb = function () {
-            this.setState({docUrl: data.url});
+            this.setState({
+                docUrl: data.url, 
+                templateLoading: false 
+            });
         }.bind(this);
 
         this.state.syncRemote && _.any(this.state.leadUpdates) 
             ? this.updateLead(cb)
             : cb();
+
+    },
+
+    handleFormError(error) {
+        this.setState({
+            docError: error,
+            templateLoading: false
+        });
+    },
+
+    handleFormComplete: function (data) {
+        console.log(data)
+        if (data.error) {
+            this.handleFormError(data.error);
+        } else {
+            this.handleFormSuccess(data);
+        }
     },
 
     componentDidUpdate: function(prevProps, prevState) {
@@ -145,7 +173,9 @@ var LeadShowTemplate = React.createClass({
 
     handleTemplateInputChange: function (e) {
         var templateId = e.target.value;
-        this.setState({template: {id: templateId}, templateLoading: true});   
+        this.setState({
+            template: {id: templateId}
+        });   
     },
 
     handleLeadEmailInputChange: function (e) {
@@ -163,11 +193,26 @@ var LeadShowTemplate = React.createClass({
         this.setState({syncRemote: !syncRemote});
     },
 
+    handleFormSubmitLoading: function() {
+        this.setState({
+            templateLoading: "Generating Doc"
+        });
+    },
+
+    getMiddleDivClass: function() {
+        if (this.state.docError) {
+            return "doc-error";
+        } else {
+            return "";
+        };
+    },
+
     render: function() {
         return (
             <div className="app-template-inner">
                 <div className="col-sm-3 left-div">
                     <TemplateInput 
+                        packageName={this.state.packageName}
                         template={this.state.template}
                         templates={this.state.templates} 
                         templateLoading={this.state.templateLoading}
@@ -180,13 +225,16 @@ var LeadShowTemplate = React.createClass({
                 </div>
                 <div className="col-sm-6 doc-form-div middle-div">
                     <DocForm template={this.state.template}
+                             customFields={this.state.customFields} 
                              callCustomMethod={this.callCustomMethod}
                              updateCustomField={this.updateCustomField} 
                              removeCustomField={this.removeCustomField}
                              docUrl={this.state.docUrl}
                              templateLoading={this.state.templateLoading}
-                             customFields={this.state.customFields} 
+                             onLoading={this.handleFormSubmitLoading}
                              onComplete={this.handleFormComplete}
+                             docError={this.state.docError}
+                             onDocError={this.handleDocError}
                              lead={this.props.lead}
                              email={this.state.email}
                              name={this.state.name}

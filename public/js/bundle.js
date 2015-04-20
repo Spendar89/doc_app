@@ -25,7 +25,7 @@ var App = React.createClass({displayName: "App",
                                 React.createElement("img", {alt: "Brand", src: "/images/sci-logo.png"})
                             )
                         ), 
-                            React.createElement("h3", {className: "pull-right"}, "SCI Document Manager")
+                        React.createElement("h4", {className: "pull-right"}, "SCI Document Manager")
                     )
                 ), 
                 React.createElement("div", {className: "app-template-div container-fluid"}, 
@@ -102,19 +102,20 @@ var DocForm = React.createClass({displayName: "DocForm",
 
     transformCustomFields: function () {
         return _.transform(this.props.customFields, function(result, field, name) {
-            result[name] = field.value || " ";
-        });
+            result[name] = field.value; });
     },
 
     isValid: function() {
         if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
+            return true;
             return field.value !== undefined || field.type === "checkbox";
         });
     },
 
     handleSubmit: function (e) {
         e.preventDefault();
+        this.props.onLoading();
         $.post("/docs", {
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
@@ -133,28 +134,38 @@ var DocForm = React.createClass({displayName: "DocForm",
         };
     },
 
-    formStyle: function() {
+    errorStyle: function() {
         return {
-            visibility: (!this.props.templateLoading ? "visible" : "hidden")
+            display: (this.props.docError ? "block" : "none")
         };
     },
 
-    componentDidMount: function() {
-        setTimeout(function() {
-            this.setState({loaderText: "Requesting Custom Fields"})
-        }.bind(this), 2000)
-
-        setTimeout(function() {
-            this.setState({loaderText: "Building Form"})
-        }.bind(this), 4000)
-
-        console.log("mounted!!")
+    formStyle: function() {
+        return {
+            visibility: (!this.props.templateLoading && !this.props.docError ? "visible" : "hidden")
+        };
     },
 
-    //componentDidUpdate: function() {
-        //_.each(this.props.customFields, this.updateHeader);
-    //},
-    //
+    renderDocError: function() {
+        var docError = this.props.docError;
+        if (!docError) return false;
+        return (
+            React.createElement("div", {className: "error-div col-sm-10 col-sm-offset-2", style: this.errorStyle()}, 
+                React.createElement("div", {className: "doc-error"}, 
+                    React.createElement("div", {className: "doc-error-header"}, 
+                        React.createElement("h2", null, "Uh Oh, Something Went Wrong...")
+                    ), 
+                    React.createElement("div", {className: "error-details"}, 
+                        React.createElement("h4", null, "Error Details:"), 
+                        React.createElement("p", null, "Message: ", docError.message), 
+                        React.createElement("p", null, "Type: ", docError.type)
+                    )
+                )
+            )
+        )
+
+    },
+
     renderSubmit: function() {
         if (this.props.docUrl) {
             return (
@@ -165,6 +176,15 @@ var DocForm = React.createClass({displayName: "DocForm",
                 )
 
             )
+        } else if (this.props.docError){
+            return (
+                React.createElement("button", {className: "btn-danger btn col-sm-6", 
+                    onClick: this.props.onDocError}, 
+                    "Back to Form"
+                )
+
+            )
+
         } else {
             return  (
                 React.createElement("input", {disabled: !this.isValid(), 
@@ -186,8 +206,9 @@ var DocForm = React.createClass({displayName: "DocForm",
                 ), 
                 React.createElement("div", {className: "loader-div col-sm-4 col-sm-offset-4", style: this.searchingStyle()}, 
                     React.createElement("div", {className: "ajax-loader"}), 
-                    React.createElement("div", {className: "loader-text"}, React.createElement("h3", null, this.state.loaderText))
+                    React.createElement("div", {className: "loader-text"}, React.createElement("h3", null, this.props.templateLoading))
                 ), 
+                this.renderDocError(), 
                 React.createElement("form", {className: "doc-form col-sm-12", style: this.formStyle()}, 
                     React.createElement("div", {className: "doc-form-inputs"}, 
                         this.renderDocInputs()
@@ -698,15 +719,17 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
             customFields: false,
             syncRemote: true,
             leadUpdates: {},
+            packageName: EAPackage.data.name,
             templates: EAPackage.data.templates,
             name: "",
             email: "",
             docUrl: false,
-            templateLoading: true
+            templateLoading: "Downloading Package Data"
         }
     },
 
     setTemplateFromLead: function (lead) {
+        this.setState({templateLoading: "Loading Template"})
         EAPackage.fetchTemplate(
             lead, 
             this.state.template.id, 
@@ -724,10 +747,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         );
     },
 
-    fetchLeadDocuments: function (lead) {
+    fetchLeadDocuments: function (lead, callback) {
+        this.setState({templateLoading: "Loading Lead Documents"});
         $.get('/leads/' + lead["LeadsID"] + '/docs', function (data) {
-            this.setState({docs: data})
-        }.bind(this))
+            this.setState({docs: data});
+            if (callback) callback(lead);
+        }.bind(this));
     },
 
     updateCustomField: function (fieldName, field) {
@@ -760,7 +785,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     updateLead: function (cb) {
-        console.log("updating lead", this.state.lead)
+        this.setState({templateLoading: "Syncing Lead Data"});
         $.ajax({
             url: "/leads/" + this.state.lead["LeadsID"],
             method: "PUT",
@@ -779,9 +804,13 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         this.setState(
             { lead: lead, 
                 email: lead["Email"], 
+                templateLoading: "Loading Template",
                 name: lead["FName"] + " " + lead["LName"] });
-        this.setTemplateFromLead(lead);
-        this.fetchLeadDocuments(lead);
+        this.fetchLeadDocuments(lead, this.setTemplateFromLead);
+    },
+
+    handleDocError: function() {
+        this.setState({docError: false});
     },
 
     handleTemplateInputSubmit: function () {
@@ -790,7 +819,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     
     componentWillMount: function () {
         var template = this.state.templates[0]
-        this.setState({template: template});
+        this.setState({template: template, templateLoading: "Loading Package"});
         fetchLead(this.props.params.leadId, this.setStateFromLead);
     },
 
@@ -802,14 +831,34 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         }
     },
 
-    handleFormComplete: function (data) {
+    handleFormSuccess: function(data) {
         var cb = function () {
-            this.setState({docUrl: data.url});
+            this.setState({
+                docUrl: data.url, 
+                templateLoading: false 
+            });
         }.bind(this);
 
         this.state.syncRemote && _.any(this.state.leadUpdates) 
             ? this.updateLead(cb)
             : cb();
+
+    },
+
+    handleFormError(error) {
+        this.setState({
+            docError: error,
+            templateLoading: false
+        });
+    },
+
+    handleFormComplete: function (data) {
+        console.log(data)
+        if (data.error) {
+            this.handleFormError(data.error);
+        } else {
+            this.handleFormSuccess(data);
+        }
     },
 
     componentDidUpdate: function(prevProps, prevState) {
@@ -820,7 +869,9 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     handleTemplateInputChange: function (e) {
         var templateId = e.target.value;
-        this.setState({template: {id: templateId}, templateLoading: true});   
+        this.setState({
+            template: {id: templateId}
+        });   
     },
 
     handleLeadEmailInputChange: function (e) {
@@ -838,11 +889,26 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         this.setState({syncRemote: !syncRemote});
     },
 
+    handleFormSubmitLoading: function() {
+        this.setState({
+            templateLoading: "Generating Doc"
+        });
+    },
+
+    getMiddleDivClass: function() {
+        if (this.state.docError) {
+            return "doc-error";
+        } else {
+            return "";
+        };
+    },
+
     render: function() {
         return (
             React.createElement("div", {className: "app-template-inner"}, 
                 React.createElement("div", {className: "col-sm-3 left-div"}, 
                     React.createElement(TemplateInput, {
+                        packageName: this.state.packageName, 
                         template: this.state.template, 
                         templates: this.state.templates, 
                         templateLoading: this.state.templateLoading, 
@@ -855,13 +921,16 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                 ), 
                 React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
                     React.createElement(DocForm, {template: this.state.template, 
+                             customFields: this.state.customFields, 
                              callCustomMethod: this.callCustomMethod, 
                              updateCustomField: this.updateCustomField, 
                              removeCustomField: this.removeCustomField, 
                              docUrl: this.state.docUrl, 
                              templateLoading: this.state.templateLoading, 
-                             customFields: this.state.customFields, 
+                             onLoading: this.handleFormSubmitLoading, 
                              onComplete: this.handleFormComplete, 
+                             docError: this.state.docError, 
+                             onDocError: this.handleDocError, 
                              lead: this.props.lead, 
                              email: this.state.email, 
                              name: this.state.name, 
@@ -895,7 +964,7 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
             React.createElement("div", {className: "col-sm-12"}, 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("h4", {className: "control-label"}, "Switch Your Template: "), 
-                    React.createElement("label", null, React.createElement("b", null, "Current Template: ", this.props.template.title)), 
+                    React.createElement("label", null, React.createElement("b", null, "Current Package: ", this.props.packageName)), 
                     React.createElement("p", null, React.createElement("i", null, "Enter a different HelloSign Template ID to Update the Form Fields")), 
 
                     React.createElement("select", {className: " form-control", 
@@ -999,7 +1068,7 @@ module.exports = CustomMethods;
 
 
 },{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json":[function(require,module,exports){
-module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "customOptions": {

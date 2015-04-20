@@ -23,14 +23,27 @@ post '/docs' do
   #title is set to template_id/leads_id combo for uniqueness
   @title = "doc_#{params[:template_title]}_#{@leads_id}_#{Time.now.to_i}"
   doc_maker = DocMaker.new(@document)
-  doc_maker.request_signature(@email, @name, @title)
-  @doc_id = doc_maker.get_signature_request_id
-  if @doc_id
-    diamond.add_document_to_lead(@leads_id, @doc_id, @title)
-    { signature_request_id: @doc_id, 
-      url: doc_maker.get_signing_url }.to_json
-  else
-    # handle Error...
+  begin
+    doc_maker.request_signature(@email, @name, @title)
+    @doc_id = doc_maker.get_signature_request_id
+    if @doc_id
+      diamond.add_document_to_lead(@leads_id, @doc_id, @title)
+      return { signature_request_id: @doc_id, 
+        url: doc_maker.get_signing_url }.to_json
+    else
+      return {error: {message: "Could not generate Doc..."}}.to_json
+    end
+  rescue Exception => e
+    error = {}
+    api_error = JSON.parse(e.message.split("Message:")[-1])["error"]
+    if api_error
+      error[:message] = api_error["error_msg"]
+      error[:type] = api_error["error_name"]
+    else
+      error[:message] = "There was a problem generating your doc"
+      error[:type] = "Unknown Error"
+    end
+    return {error: error}.to_json
   end
 end
 
@@ -90,8 +103,10 @@ end
 put '/leads/:id' do
   content_type :json
   if params[:lead]
-    @d = Diamond.new
-    @lead_data = @d.update_lead params[:id], params[:lead]
-    return @lead_data.to_json
+    d = Diamond.new
+    lead = params[:lead]
+    lead[:StatusCode] = "Pending FA"
+    lead_data = d.update_lead params[:id], lead
+    return lead_data.to_json
   end
 end

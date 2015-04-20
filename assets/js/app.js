@@ -24,7 +24,7 @@ var App = React.createClass({
                                 <img alt="Brand" src="/images/sci-logo.png"/>
                             </a>
                         </div>
-                            <h3 className="pull-right">SCI Document Manager</h3>
+                        <h4 className="pull-right">SCI Document Manager</h4>
                     </div>
                 </nav>
                 <div className="app-template-div container-fluid">

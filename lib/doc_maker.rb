@@ -2,7 +2,7 @@ require './config/hello_sign'
 require './lib/diamond'
 
 class DocMaker
-  attr_accessor :document, :sent_signature
+  attr_accessor :document, :sent_signature, :client
 
   # initialize with custom_fields hash and template_id
   def initialize(document)
