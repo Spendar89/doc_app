@@ -94,7 +94,7 @@ Once a user selects a template, an API request is made to fetch the template’s
 
 Generally, templates are configured based on their package.  Therefore, a package's JSON file contains the following configuration data:
 
-- **customOptions**: HelloSign doesn’t offer *select* as a field type, so as a workaround,  `customOptions` lets you configure which fields to render as `<select>` tags, along with the corresponding `<option>` values.  With the following example configuration, all fields named "*Program*" will render as `<select> ` tags:
+- **customOptions:** HelloSign doesn’t offer *select* as a field type, so as a workaround,  `customOptions` lets you configure which fields to render as `<select>` tags, along with the corresponding `<option>` values.  With the following example configuration, all fields named "*Program*" will render as `<select> ` tags:
   
   ``` json
   "customOptions": {
@@ -108,7 +108,7 @@ Generally, templates are configured based on their package.  Therefore, a packag
 
 - **customTypes:** Serves the same purpose as customOptions, only for the other HTML5 input-types:
   
-- ``` json
+  ``` json
   "customTypes": {
     "Date": "date",
     "Email": "email",
@@ -117,7 +117,6 @@ Generally, templates are configured based on their package.  Therefore, a packag
     "SSN": "password"
   }
   ```
-  
 - **disabledFields:** Lets you specify which fields to disable.  This is useful for fields that are filled out programmatically:
   
   ``` json
