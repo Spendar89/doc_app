@@ -105,6 +105,8 @@ Generally, templates are configured based on their package.  Therefore, a packag
     ]
   }
   ```
+
+- **customTypes:** Serves the same purpose as customOptions, only for the other HTML5 input-types:
   
 - ``` json
   "customTypes": {
