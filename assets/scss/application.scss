@@ -76,6 +76,7 @@ table {
 }
 
 .error-div {
+  position: absolute;
   top: 80px;
   color: $red;
   .error-details {

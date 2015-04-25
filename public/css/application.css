@@ -68,6 +68,7 @@ table {
 }
 
 .error-div {
+  position: absolute;
   top: 80px;
   color: #d25a5a;
 }
