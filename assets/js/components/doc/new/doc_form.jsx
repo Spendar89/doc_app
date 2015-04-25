@@ -100,7 +100,7 @@ var DocForm = React.createClass({
     renderSubmit: function() {
         if (this.props.docUrl) {
             return (
-                <a  className="btn-success btn col-sm-6" 
+                <a  className="btn btn-success btn col-sm-6" 
                     href={this.props.docUrl} 
                     target="blank">
                     Click to Sign Doc
@@ -140,8 +140,8 @@ var DocForm = React.createClass({
                     <div className="loader-text"><h3>{this.props.templateLoading}</h3></div>
                 </div>
                 {this.renderDocError()}
-                <form className="doc-form col-sm-12" style={this.formStyle()}>
-                    <div className="doc-form-inputs">
+                <form className="doc-form col-sm-12">
+                    <div className="doc-form-inputs" style={this.formStyle()}>
                         {this.renderDocInputs()}
                     </div>
                 </form>

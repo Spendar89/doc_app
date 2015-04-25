@@ -1,29 +1,48 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);
 body {
   /*background: #FAFAFA;*/
   background: white;
+}
+
+* {
+  font-family: 'Roboto', sans-serif !important;
+}
+
+input.form-control, select {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 2pt solid #ececec;
+}
+input.form-controlinput, selectinput {
+  -webkit-appearance: none !important;
+}
+
+tr {
+  border-bottom: 2pt solid #ececec !important;
+}
+
+table {
+  border-top: 2pt solid #ececec !important;
 }
 
 .lead-results-row {
   cursor: pointer;
 }
 
-.left-div {
+.left-div, .right-div {
+  color: gray;
   height: 100%;
   overflow-x: hidden;
   overflow-y: scroll;
 }
-
-.right-div {
-  height: 100%;
-  overflow-y: scroll;
-  overflow-x: hidden;
+.left-div a, .right-div a {
+  color: gray;
 }
 
 .middle-div {
   padding: 0px;
   background: white;
   top: 5px;
-  border: 2pt solid #ececec;
   /*box-shadow: 0px 0px 4px 1px;*/
   height: 100%;
 }
@@ -32,7 +51,8 @@ body {
 }
 
 .loader-div {
-  top: 80px;
+  position: absolute;
+  top: 160px;
 }
 .loader-div .loader-text {
   text-align: center;
@@ -75,8 +95,15 @@ body {
   height: 100%;
 }
 .doc-form-div .doc-form-inner-div .doc-form-header-div {
-  background: #ececec;
+  border: 2pt solid #6B7379;
+  color: #6B7379;
   padding: 10px;
+}
+.doc-form-div .doc-form-inner-div .doc-form-header-div .btn {
+  border: none;
+}
+.doc-form-div .doc-form-inner-div .doc-form-header-div .btn.btn-primary {
+  background: #6092D0;
 }
 .doc-form-div .doc-form-inner-div .doc-form-header-div.doc-error {
   background: #ffdfdf;
@@ -86,17 +113,26 @@ body {
   margin: 0px;
 }
 .doc-form-div .doc-form-inner-div .doc-form {
+  border: 2pt solid #6B7379;
+  border-top: none;
   height: 100%;
+}
+.doc-form-div .doc-form-inner-div .doc-form label {
+  font-weight: normal;
+  color: #6B7379;
 }
 .doc-form-div .doc-form-inner-div .doc-form .doc-form-inputs {
   height: 95%;
   overflow: scroll;
 }
+.doc-form-div .doc-form-inner-div .doc-form .doc-input {
+  color: #6B7379;
+}
 .doc-form-div .doc-form-inner-div .doc-form .doc-input.valid input {
-  border: 1pt solid #bfe5bf;
+  border: 2pt solid #ececec;
 }
 .doc-form-div .doc-form-inner-div .doc-form .doc-input.invalid input {
-  border: 1pt solid #ffcfcf;
+  border: 2pt solid #ffcfcf;
 }
 .doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {
   color: #2e6da4;
@@ -107,10 +143,10 @@ body {
 }
 
 .navbar-default {
-  background: #333;
-  color: white;
-  /*color: rgb(121, 120, 120);*/
+  background: transparent;
   border: none;
+  border-bottom: 2pt solid #ececec;
+  color: grey;
   min-height: 30px !important;
   height: 30px !important;
   overflow: hidden;
