@@ -684,28 +684,21 @@ var LeadDocs = require('./lead_docs.jsx'),
     LeadData = require('./lead_data.jsx'),
     DocForm = require('./../../doc/new/doc_form.jsx'),
     LeadsController = require('./../../../controllers/leads_controller.js'),
-    EA_PACKAGE_DATA = require('./../../../lib/data/packages/ea_package.json'),
-    CUSTOM_METHODS = require('./../../../lib/custom_methods.js'),
-    Package = require('./../../../models/package.js');
-
-var fetchLead = function (leadId, callback) {
-    return $.get('/leads/' + leadId, function(data) {
-        return callback(data)
-    });
-};
-
-var EAPackage = new Package(EA_PACKAGE_DATA, CUSTOM_METHODS);
+    EA_PACKAGE_DATA = require('./../../../lib/packages/ea_package/package_data.json'),
+    EA_CUSTOM_METHODS = require('./../../../lib/packages/ea_package/custom_methods.js'),
+    PackageManager = require('./../../../lib/package_manager.js'),
+    packageManager = new PackageManager(EA_PACKAGE_DATA, EA_CUSTOM_METHODS);
 
 var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
-    getInitialState: function () {
+    getInitialState: function() {
         return {
             lead: {},
             customFields: false,
             syncRemote: true,
             leadUpdates: {},
-            packageName: EAPackage.data.name,
-            templates: EAPackage.data.templates,
+            packageName: packageManager.packageData.name,
+            templates: packageManager.packageData.templates,
             name: "",
             email: "",
             docUrl: false,
@@ -713,43 +706,71 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         }
     },
 
-    setTemplateFromLead: function (lead) {
+    setTemplateFromLead: function(lead) {
         if (!this.state.docError) {
-            this.setState({templateLoading: "Loading Template"})
+            this.setState({
+                templateLoading: "Loading Template"
+            })
         };
-        EAPackage.fetchTemplate(
-            lead, 
-            this.state.template.id, 
-            this.state.customFields, 
+        packageManager.fetchTemplate(
+            lead,
+            this.state.template.id,
+            this.state.customFields,
             function(fields, template) {
-                this.setState(
-                    {
-                        customFields: fields, 
-                        template: template,
-                        templateLoading: false,
-                        docUrl: false
-                    }
-                );
+                this.setState({
+                    customFields: fields,
+                    template: template,
+                    templateLoading: false,
+                    docUrl: false
+                });
             }.bind(this)
         );
     },
 
-    fetchLeadDocuments: function (lead, callback) {
-        this.setState({templateLoading: "Loading Lead Documents"});
+    fetchLeadDocuments: function(lead, callback) {
+        this.setState({
+            templateLoading: "Loading Lead Documents"
+        });
         LeadsController.DocsController.index(lead, function(data) {
-            this.setState({docs: data});
+            this.setState({
+                docs: data
+            });
             if (callback) callback(lead);
         }.bind(this))
     },
 
-    updateCustomField: function (fieldName, field) {
+    updateCustomField: function(fieldName, field) {
         var cf = _.extend(this.state.customFields, {});
         cf[fieldName] = field;
-        this.setState({customFields: cf});
+        this.setState({
+            customFields: cf
+        });
         if (field.customMethod) field.customMethod(this);
         if (_.has(this.state.lead, fieldName)) {
             this.updateLeadUpdate(fieldName, field.value)
         }
+    },
+    
+    updateLeadUpdate: function(key, value) {
+        var lu = _.extend(this.state.leadUpdates, {});
+        lu[key] = value;
+        this.setState({
+            leadUpdates: lu
+        });
+    },
+
+    updateLead: function(cb) {
+        this.setState({
+            templateLoading: "Syncing Lead Data"
+        });
+        LeadsController.update(
+            this.state.lead["LeadsID"], 
+            function(data){
+                if (cb) return cb(data);
+                var leadId = this.props.params.leadId;
+                LeadsController.show(leadId, this.setStateFromLead);
+            }.bind(this)
+        );
     },
 
     removeCustomField: function(fieldName) {
@@ -762,83 +783,49 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     callCustomMethod: function(customMethod) {
-        customMethod(this);   
+        customMethod(this);
     },
 
-    updateLeadUpdate: function (key, value) {
-        var lu = _.extend(this.state.leadUpdates, {});
-        lu[key] = value;
-        this.setState({leadUpdates: lu});
-    },
 
-    updateLead: function (cb) {
-        this.setState({templateLoading: "Syncing Lead Data"});
-        $.ajax({
-            url: "/leads/" + this.state.lead["LeadsID"],
-            method: "PUT",
-            data: {lead: this.state.leadUpdates}
-        })
-        .success(function(data) {
-            if (cb) {
-                cb(data)   
-            } else {
-                fetchLead(this.props.params.leadId, this.setStateFromLead);
-            };
-        }.bind(this));
-    },
-
-    setStateFromLead: function (lead) {
+    setStateFromLead: function(lead) {
         if (lead["error"]) {
             this.setState({
-                docError: lead["error"], 
+                docError: lead["error"],
                 templateLoading: false
             });
             this.setTemplateFromLead(this.state.lead);
             return false;
         };
-        this.setState({ 
-            lead: lead, 
-            email: lead["Email"], 
+        this.setState({
+            lead: lead,
+            email: lead["Email"],
             templateLoading: "Loading Template",
-            name: lead["FName"] + " " + lead["LName"] 
+            name: lead["FName"] + " " + lead["LName"]
         });
         this.fetchLeadDocuments(lead, this.setTemplateFromLead);
     },
 
     handleDocError: function() {
-        this.setState({docError: false});
+        this.setState({
+            docError: false
+        });
     },
 
-    handleTemplateInputSubmit: function () {
-       this.setTemplateFromLead(this.state.lead);
-    },
-    
-    componentWillMount: function () {
-        var template = this.state.templates[0]
-        this.setState({template: template, templateLoading: "Loading Package"});
-        fetchLead(this.props.params.leadId, this.setStateFromLead);
-    },
-
-    componentWillReceiveProps: function (nextProps) {
-        var oldLeadId = this.props.params.leadId;
-        var newLeadId = nextProps.params.leadId;
-        if (oldLeadId != newLeadId) {
-            fetchLead(newLeadId, this.setStateFromLead);
-        }
+    handleTemplateInputSubmit: function() {
+        this.setTemplateFromLead(this.state.lead);
     },
 
     handleFormSuccess: function(data) {
-        var cb = function () {
+        var cb = function() {
             this.setState({
-                docUrl: data.url, 
-                templateLoading: false 
+                docUrl: data.url,
+                templateLoading: false
             });
         }.bind(this);
 
         this.state.syncRemote && _.any(this.state.leadUpdates) 
-            ? this.updateLead(cb)
+            ? this.updateLead(cb) 
             : cb();
-
     },
 
     handleFormError(error) {
@@ -848,8 +835,7 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         });
     },
 
-    handleFormComplete: function (data) {
-        console.log(data)
+    handleFormComplete: function(data) {
         if (data.error) {
             this.handleFormError(data.error);
         } else {
@@ -857,32 +843,34 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         }
     },
 
-    componentDidUpdate: function(prevProps, prevState) {
-        if (this.state.template && this.state.template.id != prevState.template.id) {
-            this.setTemplateFromLead(this.state.lead);
-        }
-    },
-
-    handleTemplateInputChange: function (e) {
+    handleTemplateInputChange: function(e) {
         var templateId = e.target.value;
         this.setState({
-            template: {id: templateId}
-        });   
+            template: {
+                id: templateId
+            }
+        });
     },
 
-    handleLeadEmailInputChange: function (e) {
+    handleLeadEmailInputChange: function(e) {
         var val = e.target.value;
-        this.setState({email: val})
+        this.setState({
+            email: val
+        })
     },
 
-    handleLeadNameInputChange: function (e) {
+    handleLeadNameInputChange: function(e) {
         var val = e.target.value;
-        this.setState({name: val});   
+        this.setState({
+            name: val
+        });
     },
 
-    handleSync: function (e) {
+    handleSync: function(e) {
         var syncRemote = this.state.syncRemote;
-        this.setState({syncRemote: !syncRemote});
+        this.setState({
+            syncRemote: !syncRemote
+        });
     },
 
     handleFormSubmitLoading: function() {
@@ -891,12 +879,28 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         });
     },
 
-    getMiddleDivClass: function() {
-        if (this.state.docError) {
-            return "doc-error";
-        } else {
-            return "";
-        };
+    componentWillMount: function() {
+        var template = this.state.templates[0]
+        var leadId = this.props.params.leadId;
+        this.setState({
+            template: template,
+            templateLoading: "Loading Package"
+        });
+        LeadsController.show(leadId, this.setStateFromLead);
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+        var oldLeadId = this.props.params.leadId;
+        var newLeadId = nextProps.params.leadId;
+        if (oldLeadId != newLeadId) {
+            LeadsController.show(newLeadId, this.setStateFromLead);
+        }
+    },
+
+    componentDidUpdate: function(prevProps, prevState) {
+        if (this.state.template && this.state.template.id != prevState.template.id) {
+            this.setTemplateFromLead(this.state.lead);
+        }
     },
 
     render: function() {
@@ -943,12 +947,13 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
             )
         )
     }
+
 });
 
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../controllers/leads_controller.js":"/Users/jakesendar/doc_app/assets/js/controllers/leads_controller.js","./../../../lib/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js","./../../../lib/data/packages/ea_package.json":"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json","./../../../models/package.js":"/Users/jakesendar/doc_app/assets/js/models/package.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+},{"./../../../controllers/leads_controller.js":"/Users/jakesendar/doc_app/assets/js/controllers/leads_controller.js","./../../../lib/package_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/package_manager.js","./../../../lib/packages/ea_package/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_methods.js","./../../../lib/packages/ea_package/package_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
 var TemplateInput = React.createClass({displayName: "TemplateInput",
 
     renderTemplateOption: function(template, i) {
@@ -988,6 +993,17 @@ var LeadsController = {
         });
     },
 
+    update: function(leadId, lead, callback) {
+        $.ajax({
+                url: "/leads/" + leadId,
+                method: "PUT",
+                data: {
+                    lead: lead
+                }
+            })
+            .success(callback);
+    },
+
     DocsController: {
         index: function(lead, callback) {
             $.get('/leads/' + lead["LeadsID"] + '/docs', callback);
@@ -999,172 +1015,74 @@ var LeadsController = {
 module.exports = LeadsController;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/custom_methods.js":[function(require,module,exports){
-PROGRAM_DATA = require('./data/program_data.js');
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/package_manager.js":[function(require,module,exports){
+var PackageManager = function(packageData, customMethods) {
+    this.packageData = packageData;
+    this.customMethods = customMethods;
+};
 
-var CustomMethods = {
-    "Program": function(form) {
-        var program = form.state.customFields.Program.value;
+PackageManager.prototype = {
+    setCustomFields: function(data, lead, customFields) {
+        var config = this.packageData.config;
+        var customMethods = this.customMethods;
+        var fields = {};
 
-        if (!program) return false;
+        _.each(data.custom_fields, function(field, name) {
+            var fieldValue;
+            var header = config.headers[field.name]
 
-        // Updates StartDate with date options
-        var startField = _.extend(form.state.customFields["StartDate"], {});
+            field.header = header;
 
-        $.get('/terms', {
-                program_description: program
-            },
-            function(data) {
-                PROGRAM_DATA[program]["terms"] = {};
-                _.each(
-                    data,
-                    function(term) {
-                        var startDate = term["TermBeginDate"];
-                        PROGRAM_DATA[program]["terms"][startDate] = term;
-                        startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
-                        startField.disabled = false;
-                        form.updateCustomField("StartDate", startField);
-                        form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
-                    }
-                );
+            if (customFields[name]) {
+                fieldValue = customFields[name].value || lead[name];
+            } else {
+                fieldValue = lead[name];
+            };
 
-                if (_.keys(PROGRAM_DATA[program]["terms"]).length === 0) {
-                    startField.options = [];
-                    startField.disabled = true;
-                    form.updateCustomField("StartDate", startField);
-                } else {
-                    _.each(
-                        _.keys(PROGRAM_DATA[program]),
-                        function(fieldName) {
-                            var field = _.extend(form.state.customFields[fieldName], {});
-                            if (field) {
-                                field.value = PROGRAM_DATA[program][fieldName];
-                                form.updateCustomField(fieldName, field);
-                            };
-                        }
-                    );
-
-                    var startFieldVal = startField.options[1];
-
-                    if (startFieldVal) {
-                        startField.value = startFieldVal;
-                        startField.disabled = false;
-                        form.updateCustomField("StartDate", startField);
-                    };
-                };
+            // name matches diamond lead column name
+            fields[name] = _.extend(field, {
+                value: fieldValue
             });
+
+            if (config.customOptions[name]) {
+                fields[name].options = config.customOptions[name];
+            };
+
+            //Adds customMethod if self.customMethods has matching key
+            if (customMethods[name]) {
+                fields[name].customMethod = customMethods[name];
+            };
+
+            if (config.customTypes[name]) {
+                fields[name].type = config.customTypes[name]
+            };
+
+            if (_.include(config.disabledFields, name)) {
+                fields[name].disabled = true;
+            };
+
+            return field;
+        });
+
+        return fields;
     },
 
-    "StartDate": function(form, force) {
-        var program = form.state.customFields.Program.value,
-            startDate = form.state.customFields.StartDate.value,
-            terms = PROGRAM_DATA[program]["terms"];
-
-        if (!program || !startDate || !terms) return false;
-
-        var term = terms[startDate];
-
-        if (!term) return false;
-
-        var gradField = _.extend(form.state.customFields["GradDate"], {});
-
-        gradField.value = new Date(term["TermEndDate"]);
-        form.updateLeadUpdate("TermID", term["TermID"]);
-        form.updateCustomField("GradDate", gradField);
-    },
-
-    "Email": function(form) {
-        var emailField = form.state.customFields.Email;
-        emailField.type = "email";
+    fetchTemplate: function(lead, templateId, customFields, callback) {
+        var self = this;
+        return $.get('/templates/' + templateId, function(data) {
+            var fields = self.setCustomFields(data, lead, customFields);
+            return callback(fields, data);
+        });
     }
-}
 
-module.exports = CustomMethods;
+};
+
+module.exports = PackageManager;
 
 
-},{"./data/program_data.js":"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js"}],"/Users/jakesendar/doc_app/assets/js/lib/data/packages/ea_package.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
-    "name": "EA Package",
-
-    "customOptions": {
-        "Program": [
-            "Administrative Assistant - Morning",
-            "Administrative Assistant - Evening",
-            "Business Accounting Specialist - Morning",
-            "Business Accounting Specialist - Evening",
-            "Medical Assistant - Morning",
-            "Medical Assistant - Evening",
-            "Medical Billing and Coding Specialist - Morning",
-            "Medical Billing and Coding Specialist - Evening",
-            "Medical Office Specialist - Morning",
-            "Medical Office Specialist - Evening",
-            "Pharmacy Technician - Morning",
-            "Pharmacy Technician - Evening",
-            "Cosmetology Operator - Morning",
-            "Cosmetology Operator - Evening",
-            "HVAC - Morning",
-            "HVAC - Evening"
-        ],
-        "StartDate": []
-    },
-
-    "customTypes": {
-        "Date": "date",
-        "Date of Tour": "date",
-        "Address": "address",
-        "State": "state",
-        "Email": "email",
-        "Phone": "tel",
-        "PhoneMobile": "tel",
-        "PhoneOther": "tel",
-        "Weeks": "number",
-        "Months": "number",
-        "ClockHours": "number",
-        "DOB": "date",
-        "SSN": "password"
-    },
-
-    "disabledFields": [
-      "StartDate",
-      "GradDate",
-      "Morning",
-      "Afternoon",
-      "Evening",
-      "Weeks",
-      "ClockHours",
-      "RegFee",
-      "Tuition",
-      "OtherFees",
-      "Total"
-    ],
-
-    "headers": {
-        "FName": "Enrollment Information",
-        "Program": "Program Information",
-        "RegFee": "Fees",
-        "Cash": "Method of Payment",
-        "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
-        "ReportYear": "Program Data",
-        "High School Diploma": "Secondary Education",
-        "Previous Training": "Additional Information"
-    },
-
-    "templates": [
-
-        {
-            "id": "15d7739c06cbc00db4faf52213563823faf21419",
-            "title": "Primary Agreement"
-        }, {
-            "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
-            "title": "Tour Acknowledgement"
-        },
-        {
-            "id": "a9bec35769d7b574c26eb21d2c296a8916b99f0c",
-            "title": "Clinical Laboratory Disclosure"
-        }
-    ],
-
-    "programs": {
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+    "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
             "Afternoon": false,
@@ -1629,535 +1547,174 @@ module.exports=module.exports=module.exports=module.exports=module.exports=modul
             "ReportYear": 2014
         }
     }
-
 }
 
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/data/program_data.js":[function(require,module,exports){
-module.exports = { 
-    "Administrative Assistant - Morning": { 
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2013
-    },
+},{}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_methods.js":[function(require,module,exports){
+PROGRAM_DATA = require('./custom_data.json').packages;
 
-    "Administrative Assistant - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2013
-    },
+var CustomMethods = {
+    "Program": function(form) {
+        var program = form.state.customFields.Program.value;
 
-    "Business Accounting Specialist - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false, 
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2015
-    },
+        if (!program) return false;
 
-    "Business Accounting Specialist - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true, 
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2015
-    },
+        // Updates StartDate with date options
+        var startField = _.extend(form.state.customFields["StartDate"], {});
 
-    "Medical Assistant - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2015
-    },
+        $.get('/terms', {
+                program_description: program
+            },
+            function(data) {
+                PROGRAM_DATA[program]["terms"] = {};
+                _.each(
+                    data,
+                    function(term) {
+                        var startDate = term["TermBeginDate"];
+                        PROGRAM_DATA[program]["terms"][startDate] = term;
+                        startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
+                        startField.disabled = false;
+                        form.updateCustomField("StartDate", startField);
+                        form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
+                    }
+                );
 
-    "Medical Assistant - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2013
-    },
-
-    "Medical Billing and Coding Specialist - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2013
-    },
-
-    "Medical Billing and Coding Specialist - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    },
-
-    "Medical Office Specialist - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-       "ReportYear": 2013 
-    },
-
-    "Medical Office Specialist - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2012
-    },
-
-    "Pharmacy Technician - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    },
-
-    "Pharmacy Technician - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    },
-
-    "Cosmetology Operator - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 59,
-        "NumberGrads": 80,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 60000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    },
-
-    "Cosmetology Operator - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 28,
-        "JobOpenings": 5,
-        "NumberGrads": 10,
-        "CompletionRate": 54,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 100,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    },
-
-    "HVAC - Morning": {
-        "Morning": true, 
-        "Afternoon": false, 
-        "Evening": false,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 2,
-        "JobOpenings": 50,
-        "NumberGrads": 8,
-        "CompletionRate": 44,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 80,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    },
-
-    "HVAC - Evening": {
-        "Morning": false, 
-        "Afternoon": false, 
-        "Evening": true,                                             
-        "Weeks": 48, 
-        "Terms": 8,
-        "ClockHours": 942, 
-        "QuarterHours": 74.5, 
-        "TotalMonths": 12, 
-        "RegFee": 20,
-        "Tuition": 19925,                                    
-        "Textbook": 0,
-        "OtherFees": 0, 
-        "Total": 19945,
-        "NumberEnrolled": 2,
-        "JobOpenings": 50,
-        "NumberGrads": 8,
-        "CompletionRate": 44,
-        "AvgStartingSalary": 80000,
-        "NumberGradsEmployed": 20,
-        "EmploymentRate": 20,
-        "StartingSalaryRangeLow": 5000,
-        "StartingSalaryRangeHigh": 80000,
-        "NumberGradsPlaced": 1,
-        "PlacementRate": 80,
-        "ExamPassageRate": 90,
-        "ReportYear": 2014
-    }
-}
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/models/package.js":[function(require,module,exports){
-var Package = function(data, customMethods) {
-    this.data = data;
-    this.customMethods = customMethods;
-};
-
-Package.prototype = {
-    fetchTemplate: function(lead, templateId, customFields, callback) {
-        var self = this;
-        return $.get('/templates/' + templateId, function(data) {
-            var fields = {};
-
-            // prepopulates form with diamond lead data if template field
-            _.each(data.custom_fields, function(field, name) {
-                var fieldValue;
-                var header = self.data.headers[field.name]
-
-                field.header = header;
-
-                if (customFields[name]) {
-                    fieldValue = customFields[name].value || lead[name];
+                if (_.keys(PROGRAM_DATA[program]["terms"]).length === 0) {
+                    startField.options = [];
+                    startField.disabled = true;
+                    form.updateCustomField("StartDate", startField);
                 } else {
-                    fieldValue = lead[name];
-                };
+                    _.each(
+                        _.keys(PROGRAM_DATA[program]),
+                        function(fieldName) {
+                            var field = _.extend(form.state.customFields[fieldName], {});
+                            if (field) {
+                                field.value = PROGRAM_DATA[program][fieldName];
+                                form.updateCustomField(fieldName, field);
+                            };
+                        }
+                    );
 
-                // name matches diamond lead column name
-                fields[name] = _.extend(field, {
-                    value: fieldValue
-                });
+                    var startFieldVal = startField.options[1];
 
-                if (self.data.customOptions[name]) {
-                    fields[name].options = self.data.customOptions[name];
+                    if (startFieldVal) {
+                        startField.value = startFieldVal;
+                        startField.disabled = false;
+                        form.updateCustomField("StartDate", startField);
+                    };
                 };
-                
-                //Adds customMethod if self.customMethods has matching key
-                if (self.customMethods[name]) {
-                    fields[name].customMethod = self.customMethods[name];
-                };
-
-                if (self.data.customTypes[name]) {
-                    fields[name].type = self.data.customTypes[name]
-                };
-
-                if (_.include(self.data.disabledFields, name)) {
-                    fields[name].disabled = true;
-                };
-
-                return field;
             });
+    },
 
-            return callback(fields, data);
-        });
+    "StartDate": function(form, force) {
+        var program = form.state.customFields.Program.value,
+            startDate = form.state.customFields.StartDate.value,
+            terms = PROGRAM_DATA[program]["terms"];
+
+        if (!program || !startDate || !terms) return false;
+
+        var term = terms[startDate];
+
+        if (!term) return false;
+
+        var gradField = _.extend(form.state.customFields["GradDate"], {});
+
+        gradField.value = new Date(term["TermEndDate"]);
+        form.updateLeadUpdate("TermID", term["TermID"]);
+        form.updateCustomField("GradDate", gradField);
+    },
+
+    "Email": function(form) {
+        var emailField = form.state.customFields.Email;
+        emailField.type = "email";
     }
+}
 
-};
+module.exports = CustomMethods;
 
-module.exports = Package;
 
+},{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+    "name": "EA Package",
+
+    "templates": [
+
+        {
+            "id": "15d7739c06cbc00db4faf52213563823faf21419",
+            "title": "Primary Agreement"
+        }, {
+            "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
+            "title": "Tour Acknowledgement"
+        }, {
+            "id": "a9bec35769d7b574c26eb21d2c296a8916b99f0c",
+            "title": "Clinical Laboratory Disclosure"
+        }
+    ],
+
+    "config": {
+        "customOptions": {
+            "Program": [
+                "Administrative Assistant - Morning",
+                "Administrative Assistant - Evening",
+                "Business Accounting Specialist - Morning",
+                "Business Accounting Specialist - Evening",
+                "Medical Assistant - Morning",
+                "Medical Assistant - Evening",
+                "Medical Billing and Coding Specialist - Morning",
+                "Medical Billing and Coding Specialist - Evening",
+                "Medical Office Specialist - Morning",
+                "Medical Office Specialist - Evening",
+                "Pharmacy Technician - Morning",
+                "Pharmacy Technician - Evening",
+                "Cosmetology Operator - Morning",
+                "Cosmetology Operator - Evening",
+                "HVAC - Morning",
+                "HVAC - Evening"
+            ],
+            "StartDate": []
+        },
+
+        "customTypes": {
+            "Date": "date",
+            "Date of Tour": "date",
+            "Address": "address",
+            "State": "state",
+            "Email": "email",
+            "Phone": "tel",
+            "PhoneMobile": "tel",
+            "PhoneOther": "tel",
+            "Weeks": "number",
+            "Months": "number",
+            "ClockHours": "number",
+            "DOB": "date",
+            "SSN": "password"
+        },
+
+        "disabledFields": [
+            "StartDate",
+            "GradDate",
+            "Morning",
+            "Afternoon",
+            "Evening",
+            "Weeks",
+            "ClockHours",
+            "RegFee",
+            "Tuition",
+            "OtherFees",
+            "Total"
+        ],
+
+        "headers": {
+            "FName": "Enrollment Information",
+            "Program": "Program Information",
+            "RegFee": "Fees",
+            "Cash": "Method of Payment",
+            "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
+            "ReportYear": "Program Data",
+            "High School Diploma": "Secondary Education",
+            "Previous Training": "Additional Information"
+        }
+    }
+}
 
 },{}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
 (function (global){
