@@ -3,74 +3,27 @@ var LeadDocs = require('./lead_docs.jsx'),
     LeadInputs = require('./lead_inputs.jsx'),
     LeadData = require('./lead_data.jsx'),
     DocForm = require('./../../doc/new/doc_form.jsx'),
-    LeadsController = require('./../../../controllers/leads_controller.js'),
-    EA_PACKAGE_DATA = require('./../../../lib/packages/ea_package/package_data.json'),
-    EA_CUSTOM_METHODS = require('./../../../lib/packages/ea_package/custom_methods.js'),
-    PackageManager = require('./../../../lib/package_manager.js'),
-    packageManager = new PackageManager(EA_PACKAGE_DATA, EA_CUSTOM_METHODS);
+    LeadManager = require('./../../../mixins/lead_manager.js'),
+    TemplateManager = require('./../../../mixins/template_manager.js');
 
 var LeadShowTemplate = React.createClass({
+    mixins: [LeadManager, TemplateManager],
 
     getInitialState: function() {
+        var templates = this.packageData.templates;
+
         return {
             lead: {},
-            customFields: false,
-            syncRemote: true,
             leadUpdates: {},
-            packageName: packageManager.packageData.name,
-            templates: packageManager.packageData.templates,
-            name: "",
-            email: "",
-            docUrl: false,
-            templateLoading: "Downloading Package Data"
+            allCustomFields: {},
+            templates: templates, 
+            template: templates[0],
+            templateLoading: "Downloading Package Data",
+            syncRemote: true,
+            docUrl: false
         }
     },
 
-    setTemplateFromLead: function(lead) {
-        if (!this.state.docError) {
-            this.setState({
-                templateLoading: "Loading Template"
-            })
-        };
-        packageManager.fetchTemplate(
-            lead,
-            this.state.template.id,
-            this.state.customFields,
-            function(fields, template) {
-                this.setState({
-                    customFields: fields,
-                    template: template,
-                    templateLoading: false,
-                    docUrl: false
-                });
-            }.bind(this)
-        );
-    },
-
-    fetchLeadDocuments: function(lead, callback) {
-        this.setState({
-            templateLoading: "Loading Lead Documents"
-        });
-        LeadsController.DocsController.index(lead, function(data) {
-            this.setState({
-                docs: data
-            });
-            if (callback) callback(lead);
-        }.bind(this))
-    },
-
-    updateCustomField: function(fieldName, field) {
-        var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = field;
-        this.setState({
-            customFields: cf
-        });
-        if (field.customMethod) field.customMethod(this);
-        if (_.has(this.state.lead, fieldName)) {
-            this.updateLeadUpdate(fieldName, field.value)
-        }
-    },
-    
     updateLeadUpdate: function(key, value) {
         var lu = _.extend(this.state.leadUpdates, {});
         lu[key] = value;
@@ -79,60 +32,14 @@ var LeadShowTemplate = React.createClass({
         });
     },
 
-    updateLead: function(cb) {
-        this.setState({
-            templateLoading: "Syncing Lead Data"
-        });
-        LeadsController.update(
-            this.state.lead["LeadsID"], 
-            function(data){
-                if (cb) return cb(data);
-                var leadId = this.props.params.leadId;
-                LeadsController.show(leadId, this.setStateFromLead);
-            }.bind(this)
-        );
-    },
-
-    removeCustomField: function(fieldName) {
-        var cf = _.extend(this.state.customFields, {});
-        var omitted = _.omit(cf, fieldName);
-        this.setState({
-            customFields: omitted
-        });
-
-    },
-
     callCustomMethod: function(customMethod) {
         customMethod(this);
-    },
-
-
-    setStateFromLead: function(lead) {
-        if (lead["error"]) {
-            this.setState({
-                docError: lead["error"],
-                templateLoading: false
-            });
-            this.setTemplateFromLead(this.state.lead);
-            return false;
-        };
-        this.setState({
-            lead: lead,
-            email: lead["Email"],
-            templateLoading: "Loading Template",
-            name: lead["FName"] + " " + lead["LName"]
-        });
-        this.fetchLeadDocuments(lead, this.setTemplateFromLead);
     },
 
     handleDocError: function() {
         this.setState({
             docError: false
         });
-    },
-
-    handleTemplateInputSubmit: function() {
-        this.setTemplateFromLead(this.state.lead);
     },
 
     handleFormSuccess: function(data) {
@@ -164,11 +71,12 @@ var LeadShowTemplate = React.createClass({
     },
 
     handleTemplateInputChange: function(e) {
-        var templateId = e.target.value;
+        var i = e.target.value;
+        var template = this.state.templates[i];
+        template.index = i;
+        console.log("cf", template.customFields);
         this.setState({
-            template: {
-                id: templateId
-            }
+            template: template 
         });
     },
 
@@ -200,26 +108,30 @@ var LeadShowTemplate = React.createClass({
     },
 
     componentWillMount: function() {
-        var template = this.state.templates[0]
-        var leadId = this.props.params.leadId;
-        this.setState({
-            template: template,
-            templateLoading: "Loading Package"
-        });
-        LeadsController.show(leadId, this.setStateFromLead);
+        this.fetchLeadAndSetState();
     },
 
     componentWillReceiveProps: function(nextProps) {
         var oldLeadId = this.props.params.leadId;
         var newLeadId = nextProps.params.leadId;
         if (oldLeadId != newLeadId) {
-            LeadsController.show(newLeadId, this.setStateFromLead);
-        }
+            this.fetchLeadAndSetState(newLeadId);
+        };
     },
 
     componentDidUpdate: function(prevProps, prevState) {
         if (this.state.template && this.state.template.id != prevState.template.id) {
+            var allCustomFields = _.extend(
+                this.state.allCustomFields, 
+                prevState.template.customFields
+            );
+            this.setState({allCustomFields: allCustomFields});
             this.setTemplateFromLead(this.state.lead);
+        }
+        if (this.state.templateLoading && this.state.docError) {
+            this.setState({
+                templateLoading: false
+            });
         }
     },
 
@@ -228,44 +140,44 @@ var LeadShowTemplate = React.createClass({
             <div className="app-template-inner">
                 <div className="col-sm-3 left-div">
                     <TemplateInput 
-                        packageName={this.state.packageName}
+                        packageName={this.packageData.name}
                         template={this.state.template}
                         templates={this.state.templates} 
                         templateLoading={this.state.templateLoading}
                         onChange={this.handleTemplateInputChange} 
                         onSubmit={this.handleTemplateInputSubmit}/>
                     <LeadInputs onEmailChange={this.handleLeadEmailInputChange} 
-                                onNameChange={this.handleLeadNameInputChange} 
-                                name={this.state.name} email={this.state.email} />
+                        onNameChange={this.handleLeadNameInputChange} 
+                        name={this.state.name} email={this.state.email} />
                     <LeadDocs lead={this.state.lead} docs={this.state.docs} />
                 </div>
                 <div className="col-sm-6 doc-form-div middle-div">
                     <DocForm template={this.state.template}
-                             customFields={this.state.customFields} 
-                             callCustomMethod={this.callCustomMethod}
-                             updateCustomField={this.updateCustomField} 
-                             removeCustomField={this.removeCustomField}
-                             docUrl={this.state.docUrl}
-                             templateLoading={this.state.templateLoading}
-                             onLoading={this.handleFormSubmitLoading}
-                             onComplete={this.handleFormComplete}
-                             docError={this.state.docError}
-                             onDocError={this.handleDocError}
-                             lead={this.props.lead}
-                             email={this.state.email}
-                             name={this.state.name}
-                             lead={this.state.lead} />
+                        customFields={this.state.template.customFields} 
+                        callCustomMethod={this.callCustomMethod}
+                        updateCustomField={this.updateCustomField} 
+                        removeCustomField={this.removeCustomField}
+                        docUrl={this.state.docUrl}
+                        templateLoading={this.state.templateLoading}
+                        onLoading={this.handleFormSubmitLoading}
+                        onComplete={this.handleFormComplete}
+                        docError={this.state.docError}
+                        onDocError={this.handleDocError}
+                        lead={this.props.lead}
+                        email={this.state.email}
+                        name={this.state.name}
+                        lead={this.state.lead} />
                 </div>
                 <div className="col-sm-3 right-div">
                     <LeadData lead={this.state.lead} 
-                              leadUpdates={this.state.leadUpdates} 
-                              customFields={this.state.customFields}
-                              syncRemote={this.state.syncRemote}
-                              handleSync={this.handleSync}
-                              handleSubmit={this.updateLead} />
+                        leadUpdates={this.state.leadUpdates} 
+                        customFields={this.state.template.customFields}
+                        syncRemote={this.state.syncRemote}
+                        handleSync={this.handleSync}
+                        handleSubmit={this.updateLead} />
                 </div>
             </div>
-        )
+        );
     }
 
 });

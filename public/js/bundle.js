@@ -574,20 +574,24 @@ var LeadData = React.createClass({displayName: "LeadData",
 
     render: function () {
         return (
-            React.createElement("div", {className: "col-sm-12"}, 
+            React.createElement("div", {className: "block-div col-sm-12"}, 
                 React.createElement("div", {className: "form-group"}, 
-                    React.createElement("h4", {className: "control-label"}, "Lead Data"), 
-                    React.createElement("p", null, React.createElement("i", null, "This displays the current data for the selected lead. Red Rows  will be updated when synced.")), 
-                        React.createElement("div", {className: "checkbox"}, 
-                            React.createElement("label", null, 
-                                React.createElement("input", {type: "checkbox", value: this.props.syncRemote, checked: this.props.syncRemote, onChange: this.props.handleSync}), 
-                                "Sync Lead Data With Server"
-                            )
-                        ), 
-                    React.createElement("div", {className: "lead-table-div"}, 
-                        React.createElement("table", {className: "table table-condensed"}, 
-                            React.createElement("tbody", null, 
-                                this.renderInputs()
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Lead Data")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("p", null, React.createElement("i", null, "This displays the current data for the selected lead. Red Rows  will be updated when synced.")), 
+                            React.createElement("div", {className: "checkbox"}, 
+                                React.createElement("label", null, 
+                                    React.createElement("input", {type: "checkbox", value: this.props.syncRemote, checked: this.props.syncRemote, onChange: this.props.handleSync}), 
+                                    "Sync Lead Data With Server"
+                                )
+                            ), 
+                        React.createElement("div", {className: "lead-table-div"}, 
+                            React.createElement("table", {className: "table table-condensed"}, 
+                                React.createElement("tbody", null, 
+                                    this.renderInputs()
+                                )
                             )
                         )
                     )
@@ -629,15 +633,19 @@ var LeadDocs = React.createClass({displayName: "LeadDocs",
 
     render: function () {
         return (
-            React.createElement("div", {className: "col-sm-12"}, 
+            React.createElement("div", {className: "block-div col-sm-12"}, 
                 React.createElement("div", {className: "form-group"}, 
-                    React.createElement("h4", {className: "control-label"}, "Saved Documents:"), 
-                    React.createElement("p", null, React.createElement("i", null, "These are the saved documents for the current lead." + ' ' +  
-                            "Click to view and/or download a pdf:")), 
-                    React.createElement("div", {className: "lead-table-div"}, 
-                        React.createElement("table", {className: "table table-condensed"}, 
-                            React.createElement("tbody", null, 
-                                this.renderDocs()
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Saved Documents:")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("p", null, React.createElement("i", null, "These are the saved documents for the current lead." + ' ' +  
+                                "Click to view and/or download a pdf:")), 
+                        React.createElement("div", {className: "lead-table-div"}, 
+                            React.createElement("table", {className: "table table-condensed"}, 
+                                React.createElement("tbody", null, 
+                                    this.renderDocs()
+                                )
                             )
                         )
                     )
@@ -655,18 +663,22 @@ var LeadInputs = React.createClass({displayName: "LeadInputs",
 
     render: function () {
         return (
-            React.createElement("div", {className: "col-sm-12"}, 
+            React.createElement("div", {className: "block-div col-sm-12"}, 
                 React.createElement("div", {className: "form-group"}, 
-                    React.createElement("h4", {className: "control-label"}, "Enter the Recipient Info: "), 
-                    React.createElement("p", null, React.createElement("i", null, "You can specify the email address that will receive the signature request and the name of the recipient"))
-                ), 
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("label", null, "Name:"), 
-                    React.createElement("input", {className: "form-control", value: this.props.name, onChange: this.props.onNameChange})
-                ), 
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("label", null, "Email:"), 
-                    React.createElement("input", {className: "form-control", value: this.props.email, onChange: this.props.onEmailChange})
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Enter the Recipient Info: ")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("p", null, React.createElement("i", null, "You can specify the email address that will receive the signature request and the name of the recipient")), 
+                        React.createElement("div", {className: "form-group"}, 
+                            React.createElement("label", null, "Name:"), 
+                            React.createElement("input", {className: "form-control", value: this.props.name, onChange: this.props.onNameChange})
+                        ), 
+                        React.createElement("div", {className: "form-group"}, 
+                            React.createElement("label", null, "Email:"), 
+                            React.createElement("input", {className: "form-control", value: this.props.email, onChange: this.props.onEmailChange})
+                        )
+                    )
                 )
             )
         )
@@ -683,74 +695,27 @@ var LeadDocs = require('./lead_docs.jsx'),
     LeadInputs = require('./lead_inputs.jsx'),
     LeadData = require('./lead_data.jsx'),
     DocForm = require('./../../doc/new/doc_form.jsx'),
-    LeadsController = require('./../../../controllers/leads_controller.js'),
-    EA_PACKAGE_DATA = require('./../../../lib/packages/ea_package/package_data.json'),
-    EA_CUSTOM_METHODS = require('./../../../lib/packages/ea_package/custom_methods.js'),
-    PackageManager = require('./../../../lib/package_manager.js'),
-    packageManager = new PackageManager(EA_PACKAGE_DATA, EA_CUSTOM_METHODS);
+    LeadManager = require('./../../../mixins/lead_manager.js'),
+    TemplateManager = require('./../../../mixins/template_manager.js');
 
 var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
+    mixins: [LeadManager, TemplateManager],
 
     getInitialState: function() {
+        var templates = this.packageData.templates;
+
         return {
             lead: {},
-            customFields: false,
-            syncRemote: true,
             leadUpdates: {},
-            packageName: packageManager.packageData.name,
-            templates: packageManager.packageData.templates,
-            name: "",
-            email: "",
-            docUrl: false,
-            templateLoading: "Downloading Package Data"
+            allCustomFields: {},
+            templates: templates, 
+            template: templates[0],
+            templateLoading: "Downloading Package Data",
+            syncRemote: true,
+            docUrl: false
         }
     },
 
-    setTemplateFromLead: function(lead) {
-        if (!this.state.docError) {
-            this.setState({
-                templateLoading: "Loading Template"
-            })
-        };
-        packageManager.fetchTemplate(
-            lead,
-            this.state.template.id,
-            this.state.customFields,
-            function(fields, template) {
-                this.setState({
-                    customFields: fields,
-                    template: template,
-                    templateLoading: false,
-                    docUrl: false
-                });
-            }.bind(this)
-        );
-    },
-
-    fetchLeadDocuments: function(lead, callback) {
-        this.setState({
-            templateLoading: "Loading Lead Documents"
-        });
-        LeadsController.DocsController.index(lead, function(data) {
-            this.setState({
-                docs: data
-            });
-            if (callback) callback(lead);
-        }.bind(this))
-    },
-
-    updateCustomField: function(fieldName, field) {
-        var cf = _.extend(this.state.customFields, {});
-        cf[fieldName] = field;
-        this.setState({
-            customFields: cf
-        });
-        if (field.customMethod) field.customMethod(this);
-        if (_.has(this.state.lead, fieldName)) {
-            this.updateLeadUpdate(fieldName, field.value)
-        }
-    },
-    
     updateLeadUpdate: function(key, value) {
         var lu = _.extend(this.state.leadUpdates, {});
         lu[key] = value;
@@ -759,60 +724,14 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
         });
     },
 
-    updateLead: function(cb) {
-        this.setState({
-            templateLoading: "Syncing Lead Data"
-        });
-        LeadsController.update(
-            this.state.lead["LeadsID"], 
-            function(data){
-                if (cb) return cb(data);
-                var leadId = this.props.params.leadId;
-                LeadsController.show(leadId, this.setStateFromLead);
-            }.bind(this)
-        );
-    },
-
-    removeCustomField: function(fieldName) {
-        var cf = _.extend(this.state.customFields, {});
-        var omitted = _.omit(cf, fieldName);
-        this.setState({
-            customFields: omitted
-        });
-
-    },
-
     callCustomMethod: function(customMethod) {
         customMethod(this);
-    },
-
-
-    setStateFromLead: function(lead) {
-        if (lead["error"]) {
-            this.setState({
-                docError: lead["error"],
-                templateLoading: false
-            });
-            this.setTemplateFromLead(this.state.lead);
-            return false;
-        };
-        this.setState({
-            lead: lead,
-            email: lead["Email"],
-            templateLoading: "Loading Template",
-            name: lead["FName"] + " " + lead["LName"]
-        });
-        this.fetchLeadDocuments(lead, this.setTemplateFromLead);
     },
 
     handleDocError: function() {
         this.setState({
             docError: false
         });
-    },
-
-    handleTemplateInputSubmit: function() {
-        this.setTemplateFromLead(this.state.lead);
     },
 
     handleFormSuccess: function(data) {
@@ -844,11 +763,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     handleTemplateInputChange: function(e) {
-        var templateId = e.target.value;
+        var i = e.target.value;
+        var template = this.state.templates[i];
+        template.index = i;
+        console.log("cf", template.customFields);
         this.setState({
-            template: {
-                id: templateId
-            }
+            template: template 
         });
     },
 
@@ -880,26 +800,30 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     componentWillMount: function() {
-        var template = this.state.templates[0]
-        var leadId = this.props.params.leadId;
-        this.setState({
-            template: template,
-            templateLoading: "Loading Package"
-        });
-        LeadsController.show(leadId, this.setStateFromLead);
+        this.fetchLeadAndSetState();
     },
 
     componentWillReceiveProps: function(nextProps) {
         var oldLeadId = this.props.params.leadId;
         var newLeadId = nextProps.params.leadId;
         if (oldLeadId != newLeadId) {
-            LeadsController.show(newLeadId, this.setStateFromLead);
-        }
+            this.fetchLeadAndSetState(newLeadId);
+        };
     },
 
     componentDidUpdate: function(prevProps, prevState) {
         if (this.state.template && this.state.template.id != prevState.template.id) {
+            var allCustomFields = _.extend(
+                this.state.allCustomFields, 
+                prevState.template.customFields
+            );
+            this.setState({allCustomFields: allCustomFields});
             this.setTemplateFromLead(this.state.lead);
+        }
+        if (this.state.templateLoading && this.state.docError) {
+            this.setState({
+                templateLoading: false
+            });
         }
     },
 
@@ -908,44 +832,44 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
             React.createElement("div", {className: "app-template-inner"}, 
                 React.createElement("div", {className: "col-sm-3 left-div"}, 
                     React.createElement(TemplateInput, {
-                        packageName: this.state.packageName, 
+                        packageName: this.packageData.name, 
                         template: this.state.template, 
                         templates: this.state.templates, 
                         templateLoading: this.state.templateLoading, 
                         onChange: this.handleTemplateInputChange, 
                         onSubmit: this.handleTemplateInputSubmit}), 
                     React.createElement(LeadInputs, {onEmailChange: this.handleLeadEmailInputChange, 
-                                onNameChange: this.handleLeadNameInputChange, 
-                                name: this.state.name, email: this.state.email}), 
+                        onNameChange: this.handleLeadNameInputChange, 
+                        name: this.state.name, email: this.state.email}), 
                     React.createElement(LeadDocs, {lead: this.state.lead, docs: this.state.docs})
                 ), 
                 React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
                     React.createElement(DocForm, {template: this.state.template, 
-                             customFields: this.state.customFields, 
-                             callCustomMethod: this.callCustomMethod, 
-                             updateCustomField: this.updateCustomField, 
-                             removeCustomField: this.removeCustomField, 
-                             docUrl: this.state.docUrl, 
-                             templateLoading: this.state.templateLoading, 
-                             onLoading: this.handleFormSubmitLoading, 
-                             onComplete: this.handleFormComplete, 
-                             docError: this.state.docError, 
-                             onDocError: this.handleDocError, 
-                             lead: this.props.lead, 
-                             email: this.state.email, 
-                             name: this.state.name, 
-                             lead: this.state.lead})
+                        customFields: this.state.template.customFields, 
+                        callCustomMethod: this.callCustomMethod, 
+                        updateCustomField: this.updateCustomField, 
+                        removeCustomField: this.removeCustomField, 
+                        docUrl: this.state.docUrl, 
+                        templateLoading: this.state.templateLoading, 
+                        onLoading: this.handleFormSubmitLoading, 
+                        onComplete: this.handleFormComplete, 
+                        docError: this.state.docError, 
+                        onDocError: this.handleDocError, 
+                        lead: this.props.lead, 
+                        email: this.state.email, 
+                        name: this.state.name, 
+                        lead: this.state.lead})
                 ), 
                 React.createElement("div", {className: "col-sm-3 right-div"}, 
                     React.createElement(LeadData, {lead: this.state.lead, 
-                              leadUpdates: this.state.leadUpdates, 
-                              customFields: this.state.customFields, 
-                              syncRemote: this.state.syncRemote, 
-                              handleSync: this.handleSync, 
-                              handleSubmit: this.updateLead})
+                        leadUpdates: this.state.leadUpdates, 
+                        customFields: this.state.template.customFields, 
+                        syncRemote: this.state.syncRemote, 
+                        handleSync: this.handleSync, 
+                        handleSubmit: this.updateLead})
                 )
             )
-        )
+        );
     }
 
 });
@@ -953,26 +877,30 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 module.exports = LeadShowTemplate;
 
 
-},{"./../../../controllers/leads_controller.js":"/Users/jakesendar/doc_app/assets/js/controllers/leads_controller.js","./../../../lib/package_manager.js":"/Users/jakesendar/doc_app/assets/js/lib/package_manager.js","./../../../lib/packages/ea_package/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_methods.js","./../../../lib/packages/ea_package/package_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+},{"./../../../mixins/lead_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/lead_manager.js","./../../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
 var TemplateInput = React.createClass({displayName: "TemplateInput",
 
     renderTemplateOption: function(template, i) {
-        return React.createElement("option", {key: template.id, value: template.id}, template.title)
+        return React.createElement("option", {key: template.id, value: i}, template.title)
     },
 
     render: function () {
         return (
-            React.createElement("div", {className: "col-sm-12"}, 
+            React.createElement("div", {className: "block-div col-sm-12"}, 
                 React.createElement("div", {className: "form-group"}, 
-                    React.createElement("h4", {className: "control-label"}, "Switch Your Template: "), 
-                    React.createElement("label", null, React.createElement("b", null, "Current Package: ", this.props.packageName)), 
-                    React.createElement("p", null, React.createElement("i", null, "Enter a different HelloSign Template ID to Update the Form Fields")), 
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Switch Your Template: ")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("label", null, React.createElement("b", null, "Current Package: ", this.props.packageName)), 
+                        React.createElement("p", null, React.createElement("i", null, "Enter a different HelloSign Template ID to Update the Form Fields")), 
 
-                    React.createElement("select", {className: " form-control", 
-                            disabled: this.props.templateLoading, 
-                            onChange: this.props.onChange, 
-                            selected: this.props.template.id}, 
-                        _.map(this.props.templates, this.renderTemplateOption)
+                        React.createElement("select", {className: " form-control", 
+                                disabled: this.props.templateLoading, 
+                                onChange: this.props.onChange, 
+                                selected: this.props.template.id}, 
+                            _.map(this.props.templates, this.renderTemplateOption)
+                        )
                     )
                     
                 )
@@ -985,103 +913,8 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
 module.exports = TemplateInput;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/controllers/leads_controller.js":[function(require,module,exports){
-var LeadsController = {
-    show: function(leadId, callback) {
-        return $.get('/leads/' + leadId, function(data) {
-            return callback(data)
-        });
-    },
-
-    update: function(leadId, lead, callback) {
-        $.ajax({
-                url: "/leads/" + leadId,
-                method: "PUT",
-                data: {
-                    lead: lead
-                }
-            })
-            .success(callback);
-    },
-
-    DocsController: {
-        index: function(lead, callback) {
-            $.get('/leads/' + lead["LeadsID"] + '/docs', callback);
-        }
-    }
-
-};
-
-module.exports = LeadsController;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/package_manager.js":[function(require,module,exports){
-var PackageManager = function(packageData, customMethods) {
-    this.packageData = packageData;
-    this.customMethods = customMethods;
-};
-
-PackageManager.prototype = {
-    setCustomFields: function(data, lead, customFields) {
-        var config = this.packageData.config;
-        var customMethods = this.customMethods;
-        var fields = {};
-
-        _.each(data.custom_fields, function(field, name) {
-            var fieldValue;
-            var header = config.headers[field.name]
-
-            field.header = header;
-
-            if (customFields[name]) {
-                fieldValue = customFields[name].value || lead[name];
-            } else {
-                fieldValue = lead[name];
-            };
-
-            // name matches diamond lead column name
-            fields[name] = _.extend(field, {
-                value: fieldValue
-            });
-
-            if (config.customOptions[name]) {
-                fields[name].options = config.customOptions[name];
-            };
-
-            //Adds customMethod if self.customMethods has matching key
-            if (customMethods[name]) {
-                fields[name].customMethod = customMethods[name];
-            };
-
-            if (config.customTypes[name]) {
-                fields[name].type = config.customTypes[name]
-            };
-
-            if (_.include(config.disabledFields, name)) {
-                fields[name].disabled = true;
-            };
-
-            return field;
-        });
-
-        return fields;
-    },
-
-    fetchTemplate: function(lead, templateId, customFields, callback) {
-        var self = this;
-        return $.get('/templates/' + templateId, function(data) {
-            var fields = self.setCustomFields(data, lead, customFields);
-            return callback(fields, data);
-        });
-    }
-
-};
-
-module.exports = PackageManager;
-
-
 },{}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1554,12 +1387,13 @@ PROGRAM_DATA = require('./custom_data.json').packages;
 
 var CustomMethods = {
     "Program": function(form) {
-        var program = form.state.customFields.Program.value;
+        var customFields = form.state.template.customFields;
+        var program = customFields.Program.value;
 
         if (!program) return false;
 
         // Updates StartDate with date options
-        var startField = _.extend(form.state.customFields["StartDate"], {});
+        var startField = _.extend(customFields["StartDate"], {});
 
         $.get('/terms', {
                 program_description: program
@@ -1586,7 +1420,7 @@ var CustomMethods = {
                     _.each(
                         _.keys(PROGRAM_DATA[program]),
                         function(fieldName) {
-                            var field = _.extend(form.state.customFields[fieldName], {});
+                            var field = _.extend(customFields[fieldName], {});
                             if (field) {
                                 field.value = PROGRAM_DATA[program][fieldName];
                                 form.updateCustomField(fieldName, field);
@@ -1606,8 +1440,9 @@ var CustomMethods = {
     },
 
     "StartDate": function(form, force) {
-        var program = form.state.customFields.Program.value,
-            startDate = form.state.customFields.StartDate.value,
+        var customFields = form.state.template.customFields;
+        var program = customFields.Program.value,
+            startDate = customFields.StartDate.value,
             terms = PROGRAM_DATA[program]["terms"];
 
         if (!program || !startDate || !terms) return false;
@@ -1616,7 +1451,7 @@ var CustomMethods = {
 
         if (!term) return false;
 
-        var gradField = _.extend(form.state.customFields["GradDate"], {});
+        var gradField = _.extend(customFields["GradDate"], {});
 
         gradField.value = new Date(term["TermEndDate"]);
         form.updateLeadUpdate("TermID", term["TermID"]);
@@ -1624,7 +1459,8 @@ var CustomMethods = {
     },
 
     "Email": function(form) {
-        var emailField = form.state.customFields.Email;
+        var customFields = form.state.template.customFields;
+        var emailField = customFields.Email;
         emailField.type = "email";
     }
 }
@@ -1633,7 +1469,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
@@ -1716,7 +1552,206 @@ module.exports=module.exports=module.exports=module.exports=module.exports=modul
     }
 }
 
-},{}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
+},{}],"/Users/jakesendar/doc_app/assets/js/mixins/lead_manager.js":[function(require,module,exports){
+var LeadManager = {
+    setLoading: function(text) {
+        this.setState({
+            templateLoading: text
+        });
+    },
+
+    setTemplateFromLead: function() {
+        if (!this.state.docError) {
+            this.setLoading("Loading Template ")
+        };
+        this.fetchTemplate(
+            function(template) {
+                var templates = _.extend(this.state.templates);
+                templates[template.index] = template;
+                this.setState({
+                    template: template,
+                    templates: templates,
+                    templateLoading: false,
+                    docUrl: false
+                });
+            }.bind(this)
+        );
+    },
+
+    setDocsFromLead: function(callback) {
+        this.setLoading("Loading Lead Documents");
+        this.fetchLeadDocs(function(data) {
+            this.setState({
+                docs: data
+            });
+            if (callback) callback();
+        }.bind(this))
+    },
+
+    setStateFromLead: function(lead) {
+        if (lead["error"]) {
+            this.setState({
+                docError: lead["error"],
+            });
+            this.setTemplateFromLead(this.state.lead);
+            return false;
+        };
+        this.setState({
+            lead: lead,
+            email: lead["Email"],
+            templateLoading: "Loading Template",
+            name: lead["FName"] + " " + lead["LName"]
+        });
+        this.setDocsFromLead(this.setTemplateFromLead);
+    },
+
+    updateLeadAndSetState: function(callback) {
+        this.setLoading("Syncing Lead Data");
+        this.updateLead(
+            function(data){
+                if (callback) return callback(data);
+                this.fetchLeadAndSetState();
+            }.bind(this)
+        );
+    },
+
+    fetchLeadAndSetState: function() {
+        this.setLoading("Loading Package");
+        this.fetchLead(this.setStateFromLead);
+    },
+
+    updateLead: function(callback) {
+        var leadId = this.state.lead["LeadsID"],
+            lead = this.state.lead;
+
+        $.ajax({
+            url: "/leads/" + leadId,
+            method: "PUT",
+            data: {
+                lead: lead 
+            }
+        })
+        .success(callback);
+    },
+
+    fetchLead: function(callback) {
+        var leadId = this.props.params.leadId,
+            path ='/leads/' + leadId;
+
+        return $.get(path, callback);
+    },
+
+    fetchLeadDocs: function(callback) {
+        var leadId = this.state.lead["LeadsID"],
+            path = '/leads/' + leadId + '/docs';
+
+        return $.get(path, callback);
+    }
+};
+
+module.exports = LeadManager;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js":[function(require,module,exports){
+var EA_PACKAGE_DATA = require('./../lib/packages/ea_package/package_data.json'),
+    EA_CUSTOM_METHODS = require('./../lib/packages/ea_package/custom_methods.js');
+
+TemplateManager = {
+
+    packageData: EA_PACKAGE_DATA,
+    customMethods: EA_CUSTOM_METHODS,
+
+    updateCustomField: function(fieldName, field) {
+        var template = _.extend(this.state.template, {}),
+            cf = template.customFields;
+        
+        cf[fieldName] = field;
+        template.customFields = cf;
+        this.setState({
+            template: template
+        });
+        if (field.customMethod) field.customMethod(this);
+        if (_.has(this.state.lead, fieldName)) {
+            this.updateLeadUpdate(fieldName, field.value)
+        }
+    },
+
+    removeCustomField: function(fieldName) {
+        var template = _.extend(this.state.template, {}),
+            cf = template.customFields,
+            omitted = _.omit(cf, fieldName);
+
+        template.customFields = omitted;
+        this.setState({
+            template: template
+        });
+    },
+
+    setCustomFields: function(data) {
+        var lead = this.state.lead,
+            customFields = this.state.allCustomFields,
+            config = this.packageData.config,
+            customMethods = this.customMethods,
+            fields = {};
+
+        _.each(data.custom_fields, function(field, name) {
+            var fieldValue;
+            var header = config.headers[field.name]
+
+            field.header = header;
+
+            if (customFields[name]) {
+                fieldValue = customFields[name].value || lead[name];
+            } else {
+                fieldValue = lead[name];
+            };
+
+            fields[name] = _.extend(field, {
+                value: fieldValue
+            });
+
+            if (config.customOptions[name]) {
+                fields[name].options = config.customOptions[name];
+            };
+            if (customMethods[name]) {
+                fields[name].customMethod = customMethods[name];
+            };
+            if (config.customTypes[name]) {
+                fields[name].type = config.customTypes[name]
+            };
+            if (_.include(config.disabledFields, name)) {
+                fields[name].disabled = true;
+            };
+
+            return field;
+        });
+
+        return fields;
+    },
+
+    fetchTemplate: function(callback) {
+        var self = this;
+        var template = _.extend(this.state.template, {});
+        
+        // Use cached customFIelds:
+        if (template.customFields) {
+            template.customFields = self.setCustomFields(template);
+            return callback(template);
+        };
+
+        return $.get('/templates/' + template.id, function(data) {
+            data.customFields = self.setCustomFields(data);
+            var data = _.extend(data, template);
+            return callback(data);
+        });
+    }
+
+};
+
+module.exports = TemplateManager;
+
+
+},{"./../lib/packages/ea_package/custom_methods.js":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_methods.js","./../lib/packages/ea_package/package_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json"}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
 (function (global){
 /**
  * @license

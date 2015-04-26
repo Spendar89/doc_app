@@ -2,12 +2,13 @@ PROGRAM_DATA = require('./custom_data.json').packages;
 
 var CustomMethods = {
     "Program": function(form) {
-        var program = form.state.customFields.Program.value;
+        var customFields = form.state.template.customFields;
+        var program = customFields.Program.value;
 
         if (!program) return false;
 
         // Updates StartDate with date options
-        var startField = _.extend(form.state.customFields["StartDate"], {});
+        var startField = _.extend(customFields["StartDate"], {});
 
         $.get('/terms', {
                 program_description: program
@@ -34,7 +35,7 @@ var CustomMethods = {
                     _.each(
                         _.keys(PROGRAM_DATA[program]),
                         function(fieldName) {
-                            var field = _.extend(form.state.customFields[fieldName], {});
+                            var field = _.extend(customFields[fieldName], {});
                             if (field) {
                                 field.value = PROGRAM_DATA[program][fieldName];
                                 form.updateCustomField(fieldName, field);
@@ -54,8 +55,9 @@ var CustomMethods = {
     },
 
     "StartDate": function(form, force) {
-        var program = form.state.customFields.Program.value,
-            startDate = form.state.customFields.StartDate.value,
+        var customFields = form.state.template.customFields;
+        var program = customFields.Program.value,
+            startDate = customFields.StartDate.value,
             terms = PROGRAM_DATA[program]["terms"];
 
         if (!program || !startDate || !terms) return false;
@@ -64,7 +66,7 @@ var CustomMethods = {
 
         if (!term) return false;
 
-        var gradField = _.extend(form.state.customFields["GradDate"], {});
+        var gradField = _.extend(customFields["GradDate"], {});
 
         gradField.value = new Date(term["TermEndDate"]);
         form.updateLeadUpdate("TermID", term["TermID"]);
@@ -72,7 +74,8 @@ var CustomMethods = {
     },
 
     "Email": function(form) {
-        var emailField = form.state.customFields.Email;
+        var customFields = form.state.template.customFields;
+        var emailField = customFields.Email;
         emailField.type = "email";
     }
 }

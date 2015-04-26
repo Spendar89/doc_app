@@ -25,17 +25,21 @@ var LeadDocs = React.createClass({
 
     render: function () {
         return (
-            <div className="col-sm-12">
+            <div className="block-div col-sm-12">
                 <div className="form-group">
-                    <h4 className="control-label">Saved Documents:</h4>
-                    <p><i>These are the saved documents for the current lead.  
-                            Click to view and/or download a pdf:</i></p>
-                    <div className="lead-table-div">
-                        <table className="table table-condensed">
-                            <tbody>
-                                {this.renderDocs()}
-                            </tbody>
-                        </table>
+                    <div className="block-header">
+                        <h4 className="control-label">Saved Documents:</h4>
+                    </div>
+                    <div className="block-body">
+                        <p><i>These are the saved documents for the current lead.  
+                                Click to view and/or download a pdf:</i></p>
+                        <div className="lead-table-div">
+                            <table className="table table-condensed">
+                                <tbody>
+                                    {this.renderDocs()}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

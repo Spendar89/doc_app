@@ -32,22 +32,26 @@ var LeadData = React.createClass({
 
     render: function () {
         return (
-            <div className="col-sm-12">
+            <div className="block-div col-sm-12">
                 <div className="form-group">
-                    <h4 className="control-label">Lead Data</h4>
-                    <p><i>This displays the current data for the selected lead. Red Rows  will be updated when synced.</i></p>
-                        <div className="checkbox">
-                            <label>
-                                <input type="checkbox" value={this.props.syncRemote} checked={this.props.syncRemote} onChange={this.props.handleSync} />
-                                Sync Lead Data With Server
-                            </label>
+                    <div className="block-header">
+                        <h4 className="control-label">Lead Data</h4>
+                    </div>
+                    <div className="block-body">
+                        <p><i>This displays the current data for the selected lead. Red Rows  will be updated when synced.</i></p>
+                            <div className="checkbox">
+                                <label>
+                                    <input type="checkbox" value={this.props.syncRemote} checked={this.props.syncRemote} onChange={this.props.handleSync} />
+                                    Sync Lead Data With Server
+                                </label>
+                            </div>
+                        <div className="lead-table-div">
+                            <table className="table table-condensed">
+                                <tbody>
+                                    {this.renderInputs()}
+                                </tbody>
+                            </table>
                         </div>
-                    <div className="lead-table-div">
-                        <table className="table table-condensed">
-                            <tbody>
-                                {this.renderInputs()}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
