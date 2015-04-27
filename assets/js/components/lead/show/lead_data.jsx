@@ -2,10 +2,10 @@
 var LeadData = React.createClass({
 
     renderInput: function (key, value) {
-        var leadUpdates = this.props.leadUpdates;
+        var leadPending = this.props.leadPending;
 
         var getRowClasses = function () {
-            if (leadUpdates[key] && leadUpdates[key] != value) {
+            if (leadPending[key] && leadPending[key] != value) {
                 return "danger";
             } else {
                 return "fsuccess";

@@ -16,9 +16,7 @@ TemplateManager = {
             template: template
         });
         if (field.customMethod) field.customMethod(this);
-        if (_.has(this.state.lead, fieldName)) {
-            this.updateLeadUpdate(fieldName, field.value)
-        }
+        this.updateLeadPending(fieldName, field.value)
     },
 
     removeCustomField: function(fieldName) {
@@ -76,19 +74,41 @@ TemplateManager = {
 
     fetchTemplate: function(callback) {
         var self = this;
-        var template = _.extend(this.state.template, {});
+        var template = _.extend(this.state.template, {}),
+            campus = this.state.campus;
         
         // Use cached customFIelds:
         if (template.customFields) {
             template.customFields = self.setCustomFields(template);
-            return callback(template);
+            return callback(null, template);
         };
 
-        return $.get('/templates/' + template.id, function(data) {
+        return $.get('/templates/' + template.id, {campus: campus}, function(data) {
             data.customFields = self.setCustomFields(data);
             var data = _.extend(data, template);
-            return callback(data);
+            return callback(null, data);
         });
+    },
+
+    componentWillMount: function() {
+        this.fetchTemplateAndSetState();
+    },
+
+    fetchTemplateAndSetState: function() {
+        this.setLoading("Loading Template")
+        async.waterfall([
+            this.fetchTemplate,
+            function(template) {
+                var templates = _.extend(this.state.templates);
+                templates[template.index] = template;
+                this.setState({
+                    template: template,
+                    templates: templates,
+                    templateLoading: false,
+                    docUrl: false
+                });
+            }.bind(this)
+        ])
     }
 
 };

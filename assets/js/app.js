@@ -1,5 +1,6 @@
 React = require('react')
 _ = require('lodash')
+async = require('async')
 
 var LeadIndexTemplate = require('./components/lead//index/template.jsx');
 var LeadShowTemplate = require('./components/lead/show/template.jsx');
@@ -45,5 +46,5 @@ var routes = (
 );
 
 Router.run(routes, function (Handler, state) {
-    React.render(<Handler params={state.params}/>, document.body);
+    React.render(<Handler params={state.params} query={state.query}/>, document.body);
 });

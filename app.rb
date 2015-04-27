@@ -15,7 +15,7 @@ end
 
 post '/docs' do
   content_type :json
-  diamond = Diamond.new
+  diamond = Diamond.new(params[:campus])
   @document = Document.new(params[:custom_fields], params[:template_id])
   @email = params[:email]
   @name = params[:name]
@@ -44,7 +44,7 @@ post '/docs' do
       error[:message] = "There was a problem generating your doc"
       error[:type] = "Unknown Error"
     end
-    return {error: error}.to_json
+    return error 404, error.to_json
   end
 end
 
@@ -55,7 +55,7 @@ get '/leads/:leads_id/docs/:doc_id' do
     return DocMaker.download_doc(@doc_id)
   rescue Exception => e
     content_type :json
-    diamond = Diamond.new
+    diamond = Diamond.new(params[:campus])
     diamond.destroy_document(@doc_id)
     return "That Document Has Been Deleted"
   end
@@ -63,14 +63,14 @@ end
 
 get '/leads/:leads_id/docs' do
   content_type :json
-  diamond = Diamond.new
+  diamond = Diamond.new(params[:campus])
   leads_id = params[:leads_id]
   return diamond.get_lead_documents(leads_id).to_json
 end
 
 get '/terms' do
   content_type :json
-  @diamond = Diamond.new
+  @diamond = Diamond.new(params[:campus])
   program_description = params[:program_description]
   return @diamond.get_program_terms(program_description).to_json
 end
@@ -96,11 +96,9 @@ end
 
 get '/leads/:id' do
   content_type :json
-  @d = Diamond.new
+  @d = Diamond.new(params[:campus])
   if @d.errors.any?
-    return {
-      error: @d.errors[0]
-    }.to_json
+    return error 404, @d.errors[0].to_json
   else
     @lead_data = @d.get_lead_detail params[:id]
     return @lead_data.to_json
@@ -110,7 +108,7 @@ end
 put '/leads/:id' do
   content_type :json
   if params[:lead]
-    d = Diamond.new
+    d = Diamond.new(params[:campus])
     lead = params[:lead]
     lead[:StatusCode] = "Pending FA"
     lead_data = d.update_lead params[:id], lead

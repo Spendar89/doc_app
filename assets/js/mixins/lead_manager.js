@@ -1,96 +1,143 @@
-var LeadManager = {
-    setLoading: function(text) {
+var request = require('superagent');
+
+var setStateFromDocs = function(docs, callback) {
         this.setState({
-            templateLoading: text
+            docs: docs
         });
-    },
+        callback(null, docs);
+};
 
-    setTemplateFromLead: function() {
-        if (!this.state.docError) {
-            this.setLoading("Loading Template ")
-        };
-        this.fetchTemplate(
-            function(template) {
-                var templates = _.extend(this.state.templates);
-                templates[template.index] = template;
-                this.setState({
-                    template: template,
-                    templates: templates,
-                    templateLoading: false,
-                    docUrl: false
-                });
-            }.bind(this)
-        );
-    },
+var fetchLeadDocs = function(lead, callback) {
+    this.setLoading("Fetching Lead Docs");
+    var leadId = lead["LeadsID"],
+        path = '/leads/' + leadId + '/docs',
+        campus = this.state.campus;
 
-    setDocsFromLead: function(callback) {
-        this.setLoading("Loading Lead Documents");
-        this.fetchLeadDocs(function(data) {
-            this.setState({
-                docs: data
-            });
-            if (callback) callback();
-        }.bind(this))
-    },
+    request
+        .get(path) 
+        .query({campus: campus})
+        .end(function(err, res) {
+           callback(err, res && res.body); 
+        });
+};
 
-    setStateFromLead: function(lead) {
-        if (lead["error"]) {
-            this.setState({
-                docError: lead["error"],
-            });
-            this.setTemplateFromLead(this.state.lead);
-            return false;
-        };
+var fetchLeadAndSetState = function() {
+    async.waterfall([
+        fetchLead.bind(this),
+        setStateFromLead.bind(this),
+        fetchLeadDocs.bind(this),
+        setStateFromDocs.bind(this)
+    ], function(err, data) {
+        if (err) {
+            this.setState({docError: err.response.body});
+        } 
+        else {
+            if (this.state.template.customFields) {
+                this.setLoading(false);
+            } 
+            else {
+                this.setLoading("Loading Template")
+            }
+            
+        }
+    }.bind(this))
+};
+
+var setStateFromLead = function(lead, callback) {
+    if (lead["error"]) {
+        console.log("errrorrr")
+        this.setState({
+            docError: lead["error"],
+        });
+    } else {
         this.setState({
             lead: lead,
-            email: lead["Email"],
-            templateLoading: "Loading Template",
-            name: lead["FName"] + " " + lead["LName"]
-        });
-        this.setDocsFromLead(this.setTemplateFromLead);
-    },
-
-    updateLeadAndSetState: function(callback) {
-        this.setLoading("Syncing Lead Data");
-        this.updateLead(
-            function(data){
-                if (callback) return callback(data);
-                this.fetchLeadAndSetState();
-            }.bind(this)
-        );
-    },
-
-    fetchLeadAndSetState: function() {
-        this.setLoading("Loading Package");
-        this.fetchLead(this.setStateFromLead);
-    },
-
-    updateLead: function(callback) {
-        var leadId = this.state.lead["LeadsID"],
-            lead = this.state.lead;
-
-        $.ajax({
-            url: "/leads/" + leadId,
-            method: "PUT",
-            data: {
-                lead: lead 
+            leadPending: {},
+            recipient: {
+                email: lead["Email"], 
+                name: lead["FName"] + " " + lead["LName"]
             }
-        })
-        .success(callback);
+        });
+    }
+    callback(null, lead);
+};
+
+var fetchLead = function(callback) {
+    this.setLoading("Fetching Lead");
+    var leadId = this.props.params.leadId,
+        path = '/leads/' + leadId,
+        campus = this.state.campus;
+
+    request
+        .get(path)
+        .query({campus:campus})
+        .end(function(err, res) {
+           callback(err, res && res.body); 
+        });
+};
+
+var syncLead = function(callback) {
+    var leadId = this.state.lead["LeadsID"],
+        lead = this.state.lead,
+        path = "/leads/" + leadId,
+        campus = this.state.campus;
+
+    request
+        .put(path)
+        .send({ campus: campus, lead: lead })
+        .end(function(err, res) {
+           callback(err, res && res.body); 
+        });
+};
+
+var syncLeadAndSetState = function(callback) {
+    this.setLoading("Syncing Lead Data");
+    async.series([
+        syncLead.bind(this),
+        fetchLeadAndSetState.bind(this)
+    ]);
+};
+
+
+var LeadManager = {
+    getInitialState: function() {
+        return {
+            lead: {},
+            leadPending: {},
+            syncRemote: true
+        }
     },
 
-    fetchLead: function(callback) {
-        var leadId = this.props.params.leadId,
-            path ='/leads/' + leadId;
-
-        return $.get(path, callback);
+    componentWillMount: function() {
+        fetchLeadAndSetState.call(this)
     },
 
-    fetchLeadDocs: function(callback) {
-        var leadId = this.state.lead["LeadsID"],
-            path = '/leads/' + leadId + '/docs';
+    componentWillReceiveProps: function(nextProps) {
+        var oldLeadId = this.props.params.leadId;
+        var newLeadId = nextProps.params.leadId;
+        if (oldLeadId != newLeadId) {
+            async.series([
+                _.partial(fetchLeadAndSetState.bind(this), newLeadId),
+                setDocsFromLead.bind(this)
+            ]);
+            //fetchLeadAndSetState.call(this, newLeadId);
+        };
+    },
 
-        return $.get(path, callback);
+    componentDidUpdate: function(prevProps, prevState) {
+        var shouldSync = (!prevState.docUrl && this.state.docUrl &&
+                this.state.syncRemote && _.any(this.state.leadPending));
+        if (shouldSync) syncLeadAndSetState.call(this);
+    },
+
+    updateLeadPending: function(key, value) {
+        if (_.has(this.state.lead, key)) {
+            var leadPending = _.extend(this.state.leadPending, {});
+            leadPending[key] = value;
+            this.setState({
+                leadPending: leadPending
+            });
+        }
     }
 };
 

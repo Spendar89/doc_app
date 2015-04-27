@@ -2,53 +2,82 @@ require 'tiny_tds'
 class Diamond
   attr_accessor :client, :errors
 
-  def initialize
+  def initialize(campus = "Austin")
+    @db_name = campus_db_map[campus]
     @errors = []
+    @client = new_client
+  end
+
+  def campus_db_map
+    {
+      "Austin" => "825-Austin", 
+      "Brownsville" => "925-Brownsville"
+    }
+  end
+
+  def new_client
     begin
-      @client = TinyTds::Client.new username: 'sci\jsendar', password: 'Pass020215$', host: '10.10.17.7'
+      TinyTds::Client.new(
+        username: 'sci\jsendar', 
+        password: 'Pass020215$', 
+        host: '10.10.17.7',
+        login_timeout: 10
+      )
     rescue Exception => e
       @errors.push({
         message: "Unable to Connect to Diamond Database Server", 
-        type: "Server Error"
+        type: "Timeout Error"
       })
     end
   end
 
-  def test_execute
-    results = []
-    @client.execute("SELECT TOP 20 * FROM [825-Austin].dbo.lead").each {|r| results << r}
-    results
-  end
-
   def get_lead_detail(leads_360_id)
     results = []
-    @client.execute("SELECT * FROM [825-Austin].dbo.lead where Leads360ID = '#{leads_360_id}'").each {|r| results << r}
+    @client.execute(
+      "SELECT * 
+      FROM [#{@db_name}].dbo.lead 
+      WHERE Leads360ID = '#{leads_360_id}'"
+    )
+    .each { |r| 
+      results << r 
+    }
     results.first
-    #{"FName" => "Jake", "LName" => "Sendar", "Phone" => "2022554618", "Address" => "8708 Brickyard Rd", "Email" => "jakesendar@gmail.com"}
   end
 
   def update_lead(id, lead)
     l = lead.map { |k, v| "#{k} = '#{v}'"  }.join(', ')
-    @client.execute("UPDATE [825-Austin].dbo.lead SET #{l} WHERE LeadsID = '#{id}'").do
+    @client.execute(
+      "UPDATE [#{@db_name}].dbo.lead 
+      SET #{l} 
+      WHERE LeadsID = '#{id}'")
+    .do
   end
 
   def get_lead_documents(lead_id)
     results = []
-    @client.execute("SELECT DocumentID, Title FROM [825-Austin].dbo.leadDocuments WHERE LeadID = #{lead_id}").each{|r| results << r}
+    @client.execute(
+      "SELECT DocumentID, Title 
+      FROM [#{@db_name}].dbo.leadDocuments 
+      WHERE LeadID = #{lead_id}"
+    )
+    .each { |r| 
+      results << r
+    }
     results
   end
 
   def add_document_to_lead(lead_id, document_id, title)
     @client.execute(
-      "INSERT INTO [825-Austin].dbo.leadDocuments 
+      "INSERT INTO [#{@db_name}].dbo.leadDocuments 
       (LeadID, DocumentID, Title) 
       VALUES ('#{lead_id}', '#{document_id}', '#{title}')"
-    ).do
+    )
+    .do
   end
 
   def destroy_document(document_id)
     @client.execute(
-      "DELETE FROM [825-Austin].dbo.leadDocuments
+      "DELETE FROM [#{@db_name}].dbo.leadDocuments
       WHERE DocumentID='#{document_id}"
     ).do
   end
@@ -57,16 +86,19 @@ class Diamond
     results = []
     @client.execute(
       "SELECT DISTINCT Program.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-                    FROM [825-Austin].dbo.Program 
-                    INNER JOIN [825-Austin].dbo.ProgramCourse
-                    ON [825-Austin].dbo.Program.ProgramNo = [825-Austin].dbo.ProgramCourse.ProgramNo 
-                    INNER JOIN [825-Austin].dbo.CourseOffering 
-                    ON [825-Austin].dbo.ProgramCourse.CourseNo = [825-Austin].dbo.CourseOffering.CourseNo 
-                    INNER JOIN [825-Austin].dbo.Term 
-                    ON [825-Austin].dbo.CourseOffering.TermID = Term.TermID 
+                    FROM [#{@db_name}].dbo.Program 
+                    INNER JOIN [#{@db_name}].dbo.ProgramCourse
+                    ON [#{@db_name}].dbo.Program.ProgramNo = [#{@db_name}].dbo.ProgramCourse.ProgramNo 
+                    INNER JOIN [#{@db_name}].dbo.CourseOffering 
+                    ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
+                    INNER JOIN [#{@db_name}].dbo.Term 
+                    ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
                     WHERE TermEndDate >= '#{Date.today.to_s}' 
                     AND ProgramDescription = '#{program_description}'"
-    ).each { |r| results << r }
+    )
+    .each { |r| 
+      results << r 
+    }
     results
   end
 end

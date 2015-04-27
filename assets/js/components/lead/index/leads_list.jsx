@@ -1,7 +1,7 @@
 var LeadsList = React.createClass({
 
     handleClick: function(lead) {
-        window.location.href = "#/leads/" + lead.id;
+        window.location.href = "#/leads/" + lead.id + "?campus=" + lead["college/campus_of_interest"];
     },
 
     renderLeads: function () {

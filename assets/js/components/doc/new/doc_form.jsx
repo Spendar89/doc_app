@@ -54,7 +54,8 @@ var DocForm = React.createClass({
             template_title: this.props.template.title,
             leads_id: this.props.lead.LeadsID,
             email: this.props.email,
-            name: this.props.name
+            name: this.props.name,
+            campus: this.props.campus
         }, function (data) {
             this.props.onComplete(data)
         }.bind(this));
