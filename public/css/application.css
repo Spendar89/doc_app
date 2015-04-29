@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);
+/*@import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);*/
 body {
   background: #C7C7C7;
 }
@@ -16,12 +16,14 @@ input.form-controlinput, selectinput {
   -webkit-appearance: none !important;
 }
 
-tr {
-  border-bottom: 2pt solid #ececec !important;
+table, tr {
+  border-top: 2pt solid #ececec !important;
 }
 
-table {
-  border-top: 2pt solid #ececec !important;
+td {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
 }
 
 .lead-results-row {
@@ -72,8 +74,17 @@ table {
   padding-top: 8px;
 }
 .block-div .block-body {
-  overflow: hidden;
   padding: 15px 15px 0px 15px;
+}
+.block-div.with-table .block-body {
+  overflow-x: hidden;
+  padding: 0;
+}
+.block-div.with-table .block-body .block-body-top {
+  padding: 15px 15px 0px 15px;
+}
+.block-div.with-table .block-body td {
+  padding-left: 15px !important;
 }
 
 .loader-div {
@@ -187,12 +198,4 @@ table {
 }
 .navbar-brand img {
   height: 100%;
-}
-
-.lead-table-div {
-  /*height: 400px;*/
-  /*overflow: scroll;*/
-  /*overflow-x: hidden;*/
-  /*margin-bottom: 15px;*/
-  border-radius: 4px;
 }

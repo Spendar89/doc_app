@@ -1,19 +1,31 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/jakesendar/doc_app/assets/js/app.js":[function(require,module,exports){
-React = require('react')
-_ = require('lodash')
-async = require('async')
+React = require('react');
+_ = require('lodash');
+async = require('async');
 
-var LeadIndexTemplate = require('./components/lead//index/template.jsx');
-var LeadShowTemplate = require('./components/lead/show/template.jsx');
-var DocShowTemplate = require('./components/doc/show/template.jsx');
+var Baobab = require('baobab'),
+    RootMixin = require('baobab-react/mixins').root;
 
-var Router = require('react-router'); // or var Router = ReactRouter; in browsers
-var DefaultRoute = Router.DefaultRoute;
-var Link = Router.Link;
-var Route = Router.Route;
-var RouteHandler = Router.RouteHandler;
+//var LeadIndexLayout = require('./extensions/lead/components/index/layout.jsx');
+var TemplateLayout = require('./components/template/layout.jsx');
+var EA_PACKAGE_DATA = require('./lib/packages/ea_package/package_data.json');
+
+//var Router = require('react-router'); // or var Router = ReactRouter; in browsers
+//var DefaultRoute = Router.DefaultRoute;
+//var Link = Router.Link;
+//var Route = Router.Route;
+//var RouteHandler = Router.RouteHandler;
+
+var tree = new Baobab({
+    package: EA_PACKAGE_DATA,
+    allCustomFields: {},
+    recipient: {},
+    extensions: {}
+})
 
 var App = React.createClass({displayName: "App",
+    mixins: [RootMixin],
+
     render: function () {
         return (
             React.createElement("div", null, 
@@ -30,28 +42,32 @@ var App = React.createClass({displayName: "App",
                     )
                 ), 
                 React.createElement("div", {className: "app-template-div container-fluid"}, 
-                    React.createElement(RouteHandler, React.__spread({},  this.props))
+                    React.createElement(TemplateLayout, {params: {leadId: "1409446"}, query: {campus: "Austin"}})
+                    /* <RouteHandler {...this.props}/> */ 
                 )
             )
         );
     }
 });
 
-var routes = (
-    React.createElement(Route, {name: "app", path: "/", handler: App}, 
-        React.createElement(DefaultRoute, {handler: LeadIndexTemplate}), 
-        React.createElement(Route, {name: "leads", handler: LeadIndexTemplate}), 
-        React.createElement(Route, {name: "lead", path: "/leads/:leadId", handler: LeadShowTemplate}), 
-        React.createElement(Route, {name: "doc", path: "/docs/:signatureRequestId", handler: DocShowTemplate})
-    )
-);
+/*
+    var routes = (
+        <Route name="app" path="/" handler={App}>
+            <DefaultRoute handler={LeadIndexLayout} />
+            <Route name="leads" handler={LeadIndexLayout}/>
+            <Route name="lead" path="/leads/:leadId" handler={TemplateLayout}/>
+        </Route>
+    );
+*/
 
-Router.run(routes, function (Handler, state) {
-    React.render(React.createElement(Handler, {params: state.params, query: state.query}), document.body);
-});
+React.render(React.createElement(App, {tree: tree}), document.body);
+
+//Router.run(routes, function (Handler, state) {
+    //React.render(<Handler params={state.params} query={state.query}/>, document.body);
+//});
 
 
-},{"./components/doc/show/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/show/template.jsx","./components/lead//index/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx","./components/lead/show/template.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react-router":"/Users/jakesendar/doc_app/node_modules/react-router/lib/index.js"}],"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx":[function(require,module,exports){
+},{"./components/template/layout.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/layout.jsx","./lib/packages/ea_package/package_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","baobab":"/Users/jakesendar/doc_app/node_modules/baobab/index.js","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx":[function(require,module,exports){
 var DocInput = require('./doc_input.jsx');
 
 var DocForm = React.createClass({displayName: "DocForm",
@@ -66,7 +82,7 @@ var DocForm = React.createClass({displayName: "DocForm",
         return _.map(
             this.props.customFields, function (field, fieldName) {
                 return (
-                    React.createElement("div", null, 
+                    React.createElement("div", {key: fieldName}, 
                         this.renderDocInputHeader(field), 
                         React.createElement(DocInput, {field: field, 
                                   updateField: this.props.updateCustomField, 
@@ -100,13 +116,14 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     handleSubmit: function (e) {
+        var lead = this.props.lead || {};
         e.preventDefault();
         this.props.onLoading();
         $.post("/docs", {
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
             template_title: this.props.template.title,
-            leads_id: this.props.lead.LeadsID,
+            leads_id: lead.LeadsID,
             email: this.props.email,
             name: this.props.name,
             campus: this.props.campus
@@ -209,7 +226,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 module.exports = DocForm;
 
 
-},{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_input.jsx":[function(require,module,exports){
+},{"./doc_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/template/doc_input.jsx":[function(require,module,exports){
 var DocOption = require('./doc_option.jsx');
 
 var DocInput = React.createClass({displayName: "DocInput",
@@ -339,7 +356,7 @@ var DocInput = React.createClass({displayName: "DocInput",
 module.exports = DocInput;
 
 
-},{"./doc_option.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_option.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_option.jsx":[function(require,module,exports){
+},{"./doc_option.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_option.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/template/doc_option.jsx":[function(require,module,exports){
 var DocOption = React.createClass({displayName: "DocOption",
     //componentDidMount: function() {
         //if(this.props.value) {
@@ -355,366 +372,34 @@ var DocOption = React.createClass({displayName: "DocOption",
 module.exports = DocOption;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/components/doc/show/template.jsx":[function(require,module,exports){
-var DocShowTemplate = React.createClass({displayName: "DocShowTemplate",
+},{}],"/Users/jakesendar/doc_app/assets/js/components/template/layout.jsx":[function(require,module,exports){
+var TemplateBlock = require('./template_block.jsx'),
+    RecipientBlock = require('./recipient_block.jsx'),
+    DocForm = require('./doc_form.jsx'),
+    TemplateManager = require('./../../mixins/template_manager.js');
 
-    render: function() {
-        var id = this.props.params.signatureRequestId;
-        var signatureUrl = "https://www.hellosign.com/editor/sign?guid=" + id;
-        return (
-            React.createElement("div", {className: "container"}, 
-                React.createElement("div", {className: "col-sm-10 col-sm-offset-1"}, 
-                    React.createElement("div", {className: "jumbotron"}, 
-                        React.createElement("h1", null, "Your Document is Ready"), 
-                        React.createElement("p", null, React.createElement("b", null, "Signature Request Id:"), " ", this.props.params.signatureRequestId), 
-                        React.createElement("p", null, React.createElement("a", {className: "btn btn-lg btn-primary", href: signatureUrl}, "Click to Sign "))
-                    )
-                )
-            )
-        )
-    }
+var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
+    LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
+    LeadManager = require('./../../extensions/lead/mixins/lead_manager.js'),
+    BranchMixin = require('baobab-react/mixins').branch;
 
-});
+var TemplateLayout = React.createClass({displayName: "TemplateLayout",
+    mixins: [LeadManager, TemplateManager, BranchMixin],
 
-module.exports = DocShowTemplate;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx":[function(require,module,exports){
-var LeadsList = React.createClass({displayName: "LeadsList",
-
-    handleClick: function(lead) {
-        window.location.href = "#/leads/" + lead.id + "?campus=" + lead["college/campus_of_interest"];
+    cursors: {
+        allCustomFields: ['allCustomFields'],
+        recipient: ['recipient'],
+        templates: ['package', 'templates'], 
+        extensions: ['extensions']
     },
-
-    renderLeads: function () {
-       return this.props.leads.map(function (lead, i) {
-           return (
-                    React.createElement("tr", {key: i, className: "lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
-                           React.createElement("td", {className: "lead-results-field"}, 
-                               React.createElement("span", {className: "lead-results-field-value"}, lead.first_name, " ", lead.last_name)
-                           ), 
-                           React.createElement("td", {className: "lead-results-field"}, 
-                               React.createElement("span", {className: "lead-results-field-value"}, lead.email_1)
-                           ), 
-                           React.createElement("td", {className: "lead-results-field"}, 
-                               React.createElement("span", {className: "lead-results-field-value"}, lead.id)
-                           )
-                   )
-           )
-        }, this)
-    },
-
-    render: function () {
-        var searchingStyle={
-            visibility: (this.props.searching ? "visible" : "hidden")
-        };
-        var tableStyle={
-            visibility: (this.props.leads.length > 0 ? "visible" : "hidden")
-        };
-
-        return (
-            React.createElement("div", {className: "leads-list col-sm-12"}, 
-                React.createElement("div", {className: "ajax-loader", style: searchingStyle}), 
-                React.createElement("table", {style: tableStyle, className: "lead-div table table-hover table-bordered"}, 
-                    React.createElement("tbody", null, 
-                   React.createElement("tr", null, 
-                       React.createElement("th", null, "Name"), 
-                       React.createElement("th", null, "Email"), 
-                       React.createElement("th", null, "Id")
-                   ), 
-                   this.renderLeads()
-                   )
-                )
-            )
-        )
-    }
-
-})
-
-module.exports = LeadsList;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx":[function(require,module,exports){
-var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
-    getInitialState: function () {
-        return {
-            input: "",
-            isEmail: false,
-            isValid: false
-        }
-    },
-
-    handleChange: function (e) {
-        e.preventDefault();
-        var input = e.target.value;
-        var isEmail = this.handleEmailValidation(input) ? true : false;
-        var isPhone = this.handlePhoneValidation(input) ? true : false;
-        var isValid = (isEmail || isPhone)  ? true : false;
-        this.setState({input: input, isValid: isValid, isEmail: isEmail});
-    },
-
-    handleEmailValidation: function (input) {
-        var emailReg = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-        return input.match(emailReg);
-    },
-
-    handlePhoneValidation: function (input) {
-        var phoneReg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
-        return input.match(phoneReg);
-    },
-
-    handleClick: function (e) {
-        e.preventDefault();
-        this.props.handleSubmit(this.state.input, this.state.isEmail);
-    },
-
-    render: function() {
-        return (
-            React.createElement("div", {className: "leads-search-block form-group row col-sm-12"}, 
-                React.createElement("div", {className: "col-sm-8"}, 
-                    React.createElement("input", {onChange: this.handleChange, 
-                            className: "lead-block-input form-control", 
-                            type: "tel"})
-                ), 
-                React.createElement("div", {className: "col-sm-4"}, 
-                    React.createElement("input", {type: "submit", 
-                            disabled: !this.state.isValid, 
-                            onClick: this.handleClick, 
-                            className: "btn btn-submit col-sm-12"})
-                )
-            )
-        );
-
-    }
-
-});
-
-module.exports = LeadsSearchBlock;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/index/template.jsx":[function(require,module,exports){
-var LeadsList = require('./leads_list.jsx');
-var LeadsSearchBlock = require('./leads_search_block.jsx');
-
-var fetchLeads = function (phone, isEmail, callback) {
-    var url;
-    if (isEmail) {
-        url = '/leads?email='
-    } else {
-        url = '/leads?phone='
-    }
-    return $.get(url + phone, function (data) {
-        return callback(data)
-    });
-};
-
-var LeadIndexTemplate = React.createClass({displayName: "LeadIndexTemplate",
-
-    getInitialState: function () {
-        return {
-            searching: false,
-            leads: []
-        }
-    },
-
-    handleSearchSubmit: function (phone, isEmail) {
-        this.setState({searching: true, leads: []});
-        fetchLeads(phone, isEmail, function (data) {
-            this.setState({leads: data, searching: false})
-        }.bind(this)); 
-    },
-
-    render: function() {
-        return (
-            React.createElement("div", {className: "lead-index-template container"}, 
-                React.createElement("h1", {className: "page-header col-sm-12"}, "Search Leads By Phone Or Email:"), 
-                React.createElement(LeadsSearchBlock, {handleSubmit: this.handleSearchSubmit}), 
-                React.createElement(LeadsList, {leads: this.state.leads, searching: this.state.searching})
-            )
-        )
-
-    }
-
-});
-
-module.exports = LeadIndexTemplate;
-
-
-
-},{"./leads_list.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_list.jsx","./leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/index/leads_search_block.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx":[function(require,module,exports){
-
-var LeadData = React.createClass({displayName: "LeadData",
-
-    renderInput: function (key, value) {
-        var leadPending = this.props.leadPending;
-
-        var getRowClasses = function () {
-            if (leadPending[key] && leadPending[key] != value) {
-                return "danger";
-            } else {
-                return "fsuccess";
-            }
-        };
-
-        return (
-            React.createElement("tr", {className: getRowClasses()}, 
-                React.createElement("td", null, React.createElement("label", null, key)), 
-                React.createElement("td", null, value)
-            )
-        )
-    },
-
-    renderInputs: function () {
-        return _.map(
-            this.props.lead, function (value, key) {
-                if (!key.match(/UserDefined/)) {
-                    return this.renderInput(key, value)
-                }
-            }.bind(this)
-        );
-    },
-
-    render: function () {
-        return (
-            React.createElement("div", {className: "block-div col-sm-12"}, 
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("div", {className: "block-header"}, 
-                        React.createElement("h4", {className: "control-label"}, "Lead Data")
-                    ), 
-                    React.createElement("div", {className: "block-body"}, 
-                        React.createElement("p", null, React.createElement("i", null, "This displays the current data for the selected lead. Red Rows  will be updated when synced.")), 
-                            React.createElement("div", {className: "checkbox"}, 
-                                React.createElement("label", null, 
-                                    React.createElement("input", {type: "checkbox", value: this.props.syncRemote, checked: this.props.syncRemote, onChange: this.props.handleSync}), 
-                                    "Sync Lead Data With Server"
-                                )
-                            ), 
-                        React.createElement("div", {className: "lead-table-div"}, 
-                            React.createElement("table", {className: "table table-condensed"}, 
-                                React.createElement("tbody", null, 
-                                    this.renderInputs()
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-
-    }
-});
-
-module.exports = LeadData;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx":[function(require,module,exports){
-var LeadDocs = React.createClass({displayName: "LeadDocs",
-
-    renderDoc: function(doc, i) {
-        var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
-        return (
-            React.createElement("tr", null, 
-                React.createElement("td", null, 
-                    i + 1
-                ), 
-                React.createElement("td", null, 
-                    React.createElement("a", {target: "_blank", href: url}, 
-                        doc["Title"] || doc["DocumentID"]
-                    )
-                )
-            )
-        );
-
-    },
-
-    renderDocs: function() {
-        return _.map(this.props.docs, function(doc, i) {
-            return this.renderDoc(doc, i)
-        }.bind(this));
-    },
-
-    render: function () {
-        return (
-            React.createElement("div", {className: "block-div col-sm-12"}, 
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("div", {className: "block-header"}, 
-                        React.createElement("h4", {className: "control-label"}, "Saved Documents:")
-                    ), 
-                    React.createElement("div", {className: "block-body"}, 
-                        React.createElement("p", null, React.createElement("i", null, "These are the saved documents for the current lead." + ' ' +  
-                                "Click to view and/or download a pdf:")), 
-                        React.createElement("div", {className: "lead-table-div"}, 
-                            React.createElement("table", {className: "table table-condensed"}, 
-                                React.createElement("tbody", null, 
-                                    this.renderDocs()
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        );
-    }
-});
-
-module.exports = LeadDocs;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx":[function(require,module,exports){
-var LeadInputs = React.createClass({displayName: "LeadInputs",
-
-    render: function () {
-        return (
-            React.createElement("div", {className: "block-div col-sm-12"}, 
-                React.createElement("div", {className: "form-group"}, 
-                    React.createElement("div", {className: "block-header"}, 
-                        React.createElement("h4", {className: "control-label"}, "Enter the Recipient Info: ")
-                    ), 
-                    React.createElement("div", {className: "block-body"}, 
-                        React.createElement("p", null, React.createElement("i", null, "You can specify the email address that will receive the signature request and the name of the recipient")), 
-                        React.createElement("div", {className: "form-group"}, 
-                            React.createElement("label", null, "Name:"), 
-                            React.createElement("input", {className: "form-control", value: this.props.recipient.name, onChange: this.props.onNameChange})
-                        ), 
-                        React.createElement("div", {className: "form-group"}, 
-                            React.createElement("label", null, "Email:"), 
-                            React.createElement("input", {className: "form-control", value: this.props.recipient.email, onChange: this.props.onEmailChange})
-                        )
-                    )
-                )
-            )
-        )
-
-    }
-});
-
-module.exports = LeadInputs;
-
-
-},{}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template.jsx":[function(require,module,exports){
-var LeadDocs = require('./lead_docs.jsx'),
-    TemplateInput = require('./template_input.jsx'),
-    LeadInputs = require('./lead_inputs.jsx'),
-    LeadData = require('./lead_data.jsx'),
-    DocForm = require('./../../doc/new/doc_form.jsx'),
-    LeadManager = require('./../../../mixins/lead_manager.js'),
-    TemplateManager = require('./../../../mixins/template_manager.js');
-
-var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
-    mixins: [LeadManager, TemplateManager],
 
     getInitialState: function() {
-        var templates = this.packageData.templates,
-            campus = this.props.query.campus;
-
         return {
-            campus: campus,
-            allCustomFields: {},
-            recipient: {},
-            templates: templates, 
-            template: templates[0],
+            campus: "Austin",
             templateLoading: "Downloading Package Data",
-            docUrl: false
+            templateIndex: 0,
+            docUrl: false,
+            docError: false
         }
     },
 
@@ -761,11 +446,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
     handleTemplateInputChange: function(e) {
         var i = e.target.value;
-        var template = this.state.templates[i];
-        template.index = i;
-        console.log("cf", template.customFields);
+        //var template = this.state.templates[i];
+        //this.cursors.templates.set(i, template);
+        //template.index = i;
+        //this.cursors.template.set(this.cursors.templates.get(i));
         this.setState({
-            template: template 
+            templateIndex: i
         });
     },
 
@@ -802,10 +488,12 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
 
     componentDidUpdate: function(prevProps, prevState) {
-        if (this.state.template && this.state.template.id != prevState.template.id) {
+        var template = this.state.templates[this.state.templateIndex];
+        var prevTemplate = prevState.templates[prevState.templateIndex];
+        if (template && template.id != prevTemplate.id) {
             var allCustomFields = _.extend(
                 this.state.allCustomFields, 
-                prevState.template.customFields
+                prevTemplate.customFields
             );
             this.setState({allCustomFields: allCustomFields});
             this.fetchTemplateAndSetState();
@@ -818,23 +506,24 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
     },
 
     render: function() {
+                var template = this.state.templates[this.state.templateIndex]
         return (
             React.createElement("div", {className: "app-template-inner"}, 
                 React.createElement("div", {className: "col-sm-3 left-div"}, 
-                    React.createElement(TemplateInput, {packageName: this.packageData.name, 
-                                    template: this.state.template, 
+                    React.createElement(TemplateBlock, {packageName: this.packageData.name, 
+                                    template: template, 
                                     templates: this.state.templates, 
                                     templateLoading: this.state.templateLoading, 
                                     onChange: this.handleTemplateInputChange, 
                                     onSubmit: this.handleTemplateInputSubmit}), 
-                    React.createElement(LeadInputs, {onEmailChange: this.handleLeadEmailInputChange, 
-                                onNameChange: this.handleLeadNameInputChange, 
-                                recipient: this.state.recipient}), 
-                    React.createElement(LeadDocs, {lead: this.state.lead, docs: this.state.docs})
+                    React.createElement(RecipientBlock, {onEmailChange: this.handleLeadEmailInputChange, 
+                                    onNameChange: this.handleLeadNameInputChange, 
+                                    recipient: this.state.recipient}), 
+                    React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, docs: this.state.docs})
                 ), 
                 React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
-                    React.createElement(DocForm, {template: this.state.template, 
-                                customFields: this.state.template.customFields, 
+                    React.createElement(DocForm, {template: template, 
+                                customFields: this.state.templates[this.state.templateIndex].customFields, 
                                 callCustomMethod: this.callCustomMethod, 
                                 updateCustomField: this.updateCustomField, 
                                 removeCustomField: this.removeCustomField, 
@@ -847,14 +536,14 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
                                 onDocError: this.handleDocError, 
                                 email: this.state.recipient.email, 
                                 name: this.state.recipient.name, 
-                                lead: this.state.lead})
+                                lead: this.state.extensions.lead})
                 ), 
                 React.createElement("div", {className: "col-sm-3 right-div"}, 
-                    React.createElement(LeadData, {lead: this.state.lead, 
-                                leadPending: this.state.leadPending, 
-                                customFields: this.state.template.customFields, 
-                                syncRemote: this.state.syncRemote, 
-                                handleSync: this.handleSync})
+                    React.createElement(LeadDataBlock, {lead: this.state.extensions.lead, 
+                                    leadPending: this.state.extensions.leadPending, 
+                                    customFields: this.state.templates[this.state.templateIndex].customFields, 
+                                    syncRemote: this.state.syncRemote, 
+                                    handleSync: this.handleSync})
                 )
             )
         );
@@ -862,10 +551,41 @@ var LeadShowTemplate = React.createClass({displayName: "LeadShowTemplate",
 
 });
 
-module.exports = LeadShowTemplate;
+module.exports = TemplateLayout;
 
 
-},{"./../../../mixins/lead_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/lead_manager.js","./../../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./../../doc/new/doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/doc/new/doc_form.jsx","./lead_data.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_data.jsx","./lead_docs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_docs.jsx","./lead_inputs.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/lead_inputs.jsx","./template_input.jsx":"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx"}],"/Users/jakesendar/doc_app/assets/js/components/lead/show/template_input.jsx":[function(require,module,exports){
+},{"./../../extensions/lead/components/lead_data_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_data_block.jsx","./../../extensions/lead/components/lead_docs_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_docs_block.jsx","./../../extensions/lead/mixins/lead_manager.js":"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js","./../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx","./recipient_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx","./template_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/template_block.jsx","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx":[function(require,module,exports){
+var LeadInputs = React.createClass({displayName: "LeadInputs",
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "block-div col-sm-12"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Enter the Recipient Info: ")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("p", null, React.createElement("i", null, "You can specify the email address that will receive the signature request and the name of the recipient")), 
+                        React.createElement("div", {className: "form-group"}, 
+                            React.createElement("label", null, "Name:"), 
+                            React.createElement("input", {className: "form-control", value: this.props.recipient.name, onChange: this.props.onNameChange})
+                        ), 
+                        React.createElement("div", {className: "form-group"}, 
+                            React.createElement("label", null, "Email:"), 
+                            React.createElement("input", {className: "form-control", value: this.props.recipient.email, onChange: this.props.onEmailChange})
+                        )
+                    )
+                )
+            )
+        )
+
+    }
+});
+
+module.exports = LeadInputs;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/components/template/template_block.jsx":[function(require,module,exports){
 var TemplateInput = React.createClass({displayName: "TemplateInput",
 
     renderTemplateOption: function(template, i) {
@@ -901,8 +621,278 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
 module.exports = TemplateInput;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_data_block.jsx":[function(require,module,exports){
+
+var LeadDataBlock = React.createClass({displayName: "LeadDataBlock",
+
+    renderLeadDataRow: function (key, value) {
+        var leadPending = this.props.leadPending;
+
+        var getRowClasses = function () {
+            if (leadPending[key] && leadPending[key] != value) {
+                return "warning";
+            } else {
+                return "";
+            }
+        };
+
+        return (
+            React.createElement("tr", {className: getRowClasses(), key: key}, 
+                React.createElement("td", null, React.createElement("label", null, key)), 
+                React.createElement("td", null, value)
+            )
+        )
+    },
+
+    renderLeadDataRows: function () {
+        return _.map(
+            this.props.lead, function (value, key) {
+                if (!key.match(/UserDefined/)) {
+                    return this.renderLeadDataRow(key, value)
+                }
+            }.bind(this)
+        );
+    },
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "block-div col-sm-12 with-table"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Lead Data")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("div", {className: "block-body-top"}, 
+                            React.createElement("p", null, 
+                                React.createElement("i", null, "This displays current data for the selected lead. Highlighted rows will be updated when synced.")
+                            ), 
+                            React.createElement("div", {className: "checkbox"}, 
+                                React.createElement("label", null, 
+                                    React.createElement("input", {type: "checkbox", value: this.props.syncRemote, 
+                                            checked: this.props.syncRemote, onChange: this.props.handleSync}), 
+                                    "Sync Lead Data With Server"
+                                )
+                            )
+                        ), 
+                        React.createElement("div", {className: "lead-table-div"}, 
+                            React.createElement("table", {className: "table"}, 
+                                React.createElement("tbody", null, 
+                                    this.renderLeadDataRows()
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+    }
+});
+
+module.exports = LeadDataBlock;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_docs_block.jsx":[function(require,module,exports){
+var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
+
+    renderLeadDocsRow: function(doc, i) {
+        var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
+        return (
+            React.createElement("tr", {key: i}, 
+                React.createElement("td", null, 
+                    i + 1
+                ), 
+                React.createElement("td", null, 
+                    React.createElement("a", {target: "_blank", href: url}, 
+                        doc["Title"] || doc["DocumentID"]
+                    )
+                )
+            )
+        );
+
+    },
+
+    renderLeadDocs: function() {
+        return _.map(this.props.docs, function(doc, i) {
+            return this.renderLeadDocsRow(doc, i)
+        }.bind(this));
+    },
+
+    render: function () {
+        return (
+            React.createElement("div", {className: "block-div col-sm-12 with-table"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("div", {className: "block-header"}, 
+                        React.createElement("h4", {className: "control-label"}, "Saved Documents:")
+                    ), 
+                    React.createElement("div", {className: "block-body"}, 
+                        React.createElement("div", {className: "block-body-top"}, 
+                            React.createElement("p", null, React.createElement("i", null, "These are the saved documents for the current lead." + ' ' +  
+                                    "Click to view and/or download a pdf:"))
+                        ), 
+                        React.createElement("div", {className: "lead-table-div"}, 
+                            React.createElement("table", {className: "table table-hover"}, 
+                                React.createElement("tbody", null, 
+                                    this.renderLeadDocs()
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
+    }
+});
+
+module.exports = LeadDocsBlock;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js":[function(require,module,exports){
+var request = require('superagent');
+
+var setStateFromDocs = function(docs, callback) {
+    this.setState({
+        docs: docs
+    });
+    callback(null, docs);
+};
+
+var fetchLeadDocs = function(lead, callback) {
+    var leadId = lead["LeadsID"],
+        path = '/leads/' + leadId + '/docs',
+        campus = this.state.campus;
+
+    this.setLoading("Fetching Lead Docs");
+
+    request
+        .get(path)
+        .query({
+            campus: campus
+        })
+        .end(function(err, res) {
+            callback(err, res && res.body);
+        });
+};
+
+var fetchLeadAndSetState = function() {
+    async.waterfall([
+            fetchLead.bind(this),
+            setStateFromLead.bind(this),
+            fetchLeadDocs.bind(this),
+            setStateFromDocs.bind(this)
+        ],
+        function(err, data) {
+            if (err) {
+                this.setState({
+                    docError: err.response.body
+                });
+            };
+            this.currentTemplate().customFields
+                ? this.setLoading(false)
+                : this.setLoading("Loading Template");
+        }.bind(this));
+};
+
+var setStateFromLead = function(lead, callback) {
+    this.context.tree.update({
+        extensions: {
+            lead: {
+                $set: lead
+            },
+            leadPending: {
+                $set: {}
+            }
+        },
+        recipient: {
+            $set: {
+                email: lead["Email"],
+                name: lead["FName"] + " " + lead["LName"]
+            } 
+        }
+    });
+
+    if (callback)
+        callback(null, lead);
+};
+
+var fetchLead = function(callback) {
+    var leadId = this.props.params.leadId,
+        path = '/leads/' + leadId,
+        campus = this.state.campus;
+
+    this.setLoading("Fetching Lead");
+
+    request
+        .get(path)
+        .query({
+            campus: campus
+        })
+        .end(function(err, res) {
+            callback(err, res && res.body);
+        });
+};
+
+var syncLead = function(callback) {
+    var leadId = this.state.lead["LeadsID"],
+        lead = this.state.lead,
+        path = "/leads/" + leadId,
+        campus = this.state.campus;
+
+    this.setLoading("Syncing Lead Data");
+
+    request
+        .put(path)
+        .send({
+            campus: campus,
+            lead: lead
+        })
+        .end(function(err, res) {
+            callback(err, res && res.body);
+        });
+};
+
+var syncLeadAndSetState = function() {
+    async.series([
+        syncLead.bind(this),
+        fetchLeadAndSetState.bind(this)
+    ], function(err, data) {
+        if (err) {
+            this.setState({
+                docError: err.response.body
+            })
+        }
+    }.bind(this));
+};
+
+var LeadManager = {
+    getInitialState: function() {
+        return {
+            syncRemote: true
+        };
+    },
+
+    componentWillMount: function() {
+        fetchLeadAndSetState.call(this);
+    },
+
+    componentDidUpdate: function(prevProps, prevState) {
+        var shouldSync = (!prevState.docUrl && this.state.docUrl &&
+            this.state.syncRemote && _.any(this.state.extensions.leadPending));
+        if (shouldSync) syncLeadAndSetState.call(this);
+    },
+
+    updateLeadPending: function(key, value) {
+        if (_.has(this.state.extensions.lead, key)) {
+            this.cursors.extensions.set(["leadPending", key], value);
+        };
+    }
+};
+
+module.exports = LeadManager;
+
+
+},{"superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1457,7 +1447,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
@@ -1540,154 +1530,7 @@ module.exports=module.exports=module.exports=module.exports=module.exports=modul
     }
 }
 
-},{}],"/Users/jakesendar/doc_app/assets/js/mixins/lead_manager.js":[function(require,module,exports){
-var request = require('superagent');
-
-var setStateFromDocs = function(docs, callback) {
-        this.setState({
-            docs: docs
-        });
-        callback(null, docs);
-};
-
-var fetchLeadDocs = function(lead, callback) {
-    this.setLoading("Fetching Lead Docs");
-    var leadId = lead["LeadsID"],
-        path = '/leads/' + leadId + '/docs',
-        campus = this.state.campus;
-
-    request
-        .get(path) 
-        .query({campus: campus})
-        .end(function(err, res) {
-           callback(err, res && res.body); 
-        });
-};
-
-var fetchLeadAndSetState = function() {
-    async.waterfall([
-        fetchLead.bind(this),
-        setStateFromLead.bind(this),
-        fetchLeadDocs.bind(this),
-        setStateFromDocs.bind(this)
-    ], function(err, data) {
-        if (err) {
-            this.setState({docError: err.response.body});
-        } 
-        else {
-            if (this.state.template.customFields) {
-                this.setLoading(false);
-            } 
-            else {
-                this.setLoading("Loading Template")
-            }
-            
-        }
-    }.bind(this))
-};
-
-var setStateFromLead = function(lead, callback) {
-    if (lead["error"]) {
-        console.log("errrorrr")
-        this.setState({
-            docError: lead["error"],
-        });
-    } else {
-        this.setState({
-            lead: lead,
-            leadPending: {},
-            recipient: {
-                email: lead["Email"], 
-                name: lead["FName"] + " " + lead["LName"]
-            }
-        });
-    }
-    callback(null, lead);
-};
-
-var fetchLead = function(callback) {
-    this.setLoading("Fetching Lead");
-    var leadId = this.props.params.leadId,
-        path = '/leads/' + leadId,
-        campus = this.state.campus;
-
-    request
-        .get(path)
-        .query({campus:campus})
-        .end(function(err, res) {
-           callback(err, res && res.body); 
-        });
-};
-
-var syncLead = function(callback) {
-    var leadId = this.state.lead["LeadsID"],
-        lead = this.state.lead,
-        path = "/leads/" + leadId,
-        campus = this.state.campus;
-
-    request
-        .put(path)
-        .send({ campus: campus, lead: lead })
-        .end(function(err, res) {
-           callback(err, res && res.body); 
-        });
-};
-
-var syncLeadAndSetState = function(callback) {
-    this.setLoading("Syncing Lead Data");
-    async.series([
-        syncLead.bind(this),
-        fetchLeadAndSetState.bind(this)
-    ]);
-};
-
-
-var LeadManager = {
-    getInitialState: function() {
-        return {
-            lead: {},
-            leadPending: {},
-            syncRemote: true
-        }
-    },
-
-    componentWillMount: function() {
-        fetchLeadAndSetState.call(this)
-    },
-
-    componentWillReceiveProps: function(nextProps) {
-        var oldLeadId = this.props.params.leadId;
-        var newLeadId = nextProps.params.leadId;
-        if (oldLeadId != newLeadId) {
-            async.series([
-                _.partial(fetchLeadAndSetState.bind(this), newLeadId),
-                setDocsFromLead.bind(this)
-            ]);
-            //fetchLeadAndSetState.call(this, newLeadId);
-        };
-    },
-
-    componentDidUpdate: function(prevProps, prevState) {
-        var shouldSync = (!prevState.docUrl && this.state.docUrl &&
-                this.state.syncRemote && _.any(this.state.leadPending));
-        if (shouldSync) syncLeadAndSetState.call(this);
-    },
-
-    updateLeadPending: function(key, value) {
-        if (_.has(this.state.lead, key)) {
-            var leadPending = _.extend(this.state.leadPending, {});
-            leadPending[key] = value;
-            this.setState({
-                leadPending: leadPending
-            });
-        }
-    }
-};
-
-module.exports = LeadManager;
-
-
-},{"superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js":[function(require,module,exports){
+},{}],"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js":[function(require,module,exports){
 var EA_PACKAGE_DATA = require('./../lib/packages/ea_package/package_data.json'),
     EA_CUSTOM_METHODS = require('./../lib/packages/ea_package/custom_methods.js');
 
@@ -1697,85 +1540,108 @@ TemplateManager = {
     customMethods: EA_CUSTOM_METHODS,
 
     updateCustomField: function(fieldName, field) {
-        var template = _.extend(this.state.template, {}),
-            cf = template.customFields;
-        
-        cf[fieldName] = field;
-        template.customFields = cf;
-        this.setState({
-            template: template
-        });
+
+        this.cursors.templates.set([
+            this.state.templateIndex,
+            "customFields",
+            fieldName
+        ], field);
+
+        //this.cursors.templates.set(this.state.templateIndex, template)
+
         if (field.customMethod) field.customMethod(this);
-        this.updateLeadPending(fieldName, field.value)
+
+        // TODO: Decouple lead logic from template logic.
+        this.updateLeadPending(fieldName, field.value);
     },
 
     removeCustomField: function(fieldName) {
-        var template = _.extend(this.state.template, {}),
+        var template = this.cursors.templates.get(this.state.templateIndex),
             cf = template.customFields,
             omitted = _.omit(cf, fieldName);
 
         template.customFields = omitted;
-        this.setState({
-            template: template
-        });
+        this.cursors.templates.set(this.state.templateIndex, template);
+        //this.setState({
+        //template: template
+        //});
     },
 
-    setCustomFields: function(data) {
-        var lead = this.state.lead,
+    setCustomFields: function(template, callback) {
+        var lead = this.state.extensions.lead || {},
+            template = _.extend(template),
             customFields = this.state.allCustomFields,
             config = this.packageData.config,
             customMethods = this.customMethods,
             fields = {};
 
-        _.each(data.custom_fields, function(field, name) {
-            var fieldValue;
-            var header = config.headers[field.name]
+        async.each(
+            _.keys(template.customFields),
+            function(name, callback) {
+                var fieldValue,
+                    field = template.customFields[name],
+                    header = config.headers[field.name];
 
-            field.header = header;
+                field.header = header;
 
-            if (customFields[name]) {
-                fieldValue = customFields[name].value || lead[name];
-            } else {
-                fieldValue = lead[name];
-            };
+                // TODO: decouple lead logic from template.
+                if (customFields[name]) {
+                    fieldValue = customFields[name].value || lead[name];
+                } else {
+                    fieldValue = lead[name];
+                };
 
-            fields[name] = _.extend(field, {
-                value: fieldValue
-            });
+                fields[name] = _.extend(field, {
+                    value: fieldValue
+                });
 
-            if (config.customOptions[name]) {
-                fields[name].options = config.customOptions[name];
-            };
-            if (customMethods[name]) {
-                fields[name].customMethod = customMethods[name];
-            };
-            if (config.customTypes[name]) {
-                fields[name].type = config.customTypes[name]
-            };
-            if (_.include(config.disabledFields, name)) {
-                fields[name].disabled = true;
-            };
+                if (config.customOptions[name]) {
+                    fields[name].options = config.customOptions[name];
+                };
+                if (config.customTypes[name]) {
+                    fields[name].type = config.customTypes[name]
+                };
+                if (_.include(config.disabledFields, name)) {
+                    fields[name].disabled = true;
+                };
 
-            return field;
-        });
+                if (customMethods[name]) {
+                    fields[name].customMethod = customMethods[name];
+                };
 
-        return fields;
+                callback(null);
+            },
+            function(err) {
+                template.customFields = fields;
+                callback(err, template);
+            }.bind(this)
+        );
+    },
+
+    currentTemplate: function() {
+        cursors = this.cursors;
+        var i = this.state.templateIndex;
+        console.log("template index", this.state.templateIndex)
+        return this.cursors.templates.get(i);
     },
 
     fetchTemplate: function(callback) {
-        var self = this;
-        var template = _.extend(this.state.template, {}),
+        var self = this,
+            template = this.currentTemplate(),
             campus = this.state.campus;
-        
+        console.log("we got a template", template)
+
+        this.setLoading("Loading Template");
+
         // Use cached customFIelds:
         if (template.customFields) {
-            template.customFields = self.setCustomFields(template);
             return callback(null, template);
         };
 
-        return $.get('/templates/' + template.id, {campus: campus}, function(data) {
-            data.customFields = self.setCustomFields(data);
-            var data = _.extend(data, template);
+        return $.get('/templates/' + template.id, {
+            campus: campus
+        }, function(data) {
+            data.customFields = data.custom_fields;
             return callback(null, data);
         });
     },
@@ -1784,21 +1650,29 @@ TemplateManager = {
         this.fetchTemplateAndSetState();
     },
 
+    setStateFromTemplate: function(template, callback) {
+        console.log("Setting template", template)
+        this.cursors.templates.set(this.state.templateIndex, template)
+        callback(null, template);
+    },
+
     fetchTemplateAndSetState: function() {
-        this.setLoading("Loading Template")
         async.waterfall([
             this.fetchTemplate,
-            function(template) {
-                var templates = _.extend(this.state.templates);
-                templates[template.index] = template;
+            this.setCustomFields,
+            this.setStateFromTemplate
+        ], function(err, data) {
+            if (err) {
                 this.setState({
-                    template: template,
-                    templates: templates,
+                    docError: err
+                });
+            } else {
+                this.setState({
                     templateLoading: false,
                     docUrl: false
                 });
-            }.bind(this)
-        ])
+            };
+        }.bind(this));
     }
 
 };
@@ -2933,7 +2807,2242 @@ module.exports = TemplateManager;
 }());
 
 }).call(this,require('_process'))
-},{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js"}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
+},{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js"}],"/Users/jakesendar/doc_app/node_modules/baobab-react/dist-modules/mixins.js":[function(require,module,exports){
+/**
+ * Baobab-React Mixins
+ * ====================
+ *
+ * Old style react mixins.
+ */
+'use strict';
+
+var PropTypes = require('./utils/prop-types.js');
+
+/**
+ * Root mixin
+ */
+var RootMixin = {
+
+  // Component prop Type
+  propTypes: {
+    tree: PropTypes.baobab
+  },
+
+  // Context prop types
+  childContextTypes: {
+    tree: PropTypes.baobab
+  },
+
+  // Handling child context
+  getChildContext: function getChildContext() {
+    return {
+      tree: this.props.tree
+    };
+  }
+};
+
+/**
+ * Branch mixin
+ */
+var BranchMixin = {
+
+  // Context prop types
+  contextTypes: {
+    tree: PropTypes.baobab
+  },
+
+  // Building initial state
+  getInitialState: function getInitialState() {
+
+    // Setting properties
+    this.__facet = this.context.tree.createFacet({
+      cursors: this.cursors,
+      facets: this.facets
+    }, [this.props, this.context]);
+    this.cursors = this.__facet.cursors;
+
+    if (this.__facet) {
+      return this.__facet.get();
+    }return {};
+  },
+
+  // On component mount
+  componentDidMount: function componentDidMount() {
+    if (!this.__facet) {
+      return;
+    }var handler = (function () {
+      this.setState(this.__facet.get());
+    }).bind(this);
+
+    this.__facet.on('update', handler);
+  },
+
+  // On component unmount
+  componentWillUnmount: function componentWillUnmount() {
+    if (!this.__facet) {
+      return;
+    } // Releasing facet
+    this.__facet.release();
+    this.__facet = null;
+  },
+
+  // On new props
+  componentWillReceiveProps: function componentWillReceiveProps(props) {
+    if (!this.__facet) {
+      return;
+    }this.__facet.refresh([props, this.context]);
+    this.setState(this.__facet.get());
+  }
+};
+
+// Exporting
+exports.root = RootMixin;
+exports.branch = BranchMixin;
+},{"./utils/prop-types.js":"/Users/jakesendar/doc_app/node_modules/baobab-react/dist-modules/utils/prop-types.js"}],"/Users/jakesendar/doc_app/node_modules/baobab-react/dist-modules/utils/prop-types.js":[function(require,module,exports){
+/**
+ * Baobab-React Custom Prop Types
+ * ===============================
+ *
+ * PropTypes used to propagate context safely.
+ */
+'use strict';
+
+var type = require('./type.js');
+
+function errorMessage(propName, what) {
+  return 'prop type `' + propName + '` is invalid; it must be ' + what + '.';
+}
+
+var PropTypes = {};
+
+PropTypes.baobab = function (props, propName) {
+  if (!type.Baobab(props[propName])) return new Error(errorMessage(propName, 'a Baobab tree'));
+};
+
+PropTypes.cursors = function (props, propName) {
+  var p = props[propName];
+
+  var valid = type.Object(p) && Object.keys(p).every(function (k) {
+    return type.Cursor(p[k]);
+  });
+
+  if (!valid) return new Error(errorMessage(propName, 'Baobab cursors'));
+};
+
+module.exports = PropTypes;
+},{"./type.js":"/Users/jakesendar/doc_app/node_modules/baobab-react/dist-modules/utils/type.js"}],"/Users/jakesendar/doc_app/node_modules/baobab-react/dist-modules/utils/type.js":[function(require,module,exports){
+/**
+ * Baobab-React Type Checking
+ * ===========================
+ *
+ * Some helpers to perform runtime validations.
+ */
+'use strict';
+
+var type = {};
+
+type.Object = function (value) {
+  return value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Function);
+};
+
+type.Baobab = function (value) {
+  return value && typeof value.toString === 'function' && value.toString() === '[object Baobab]';
+};
+
+type.Cursor = function (value) {
+  return value && typeof value.toString === 'function' && value.toString() === '[object Cursor]';
+};
+
+module.exports = type;
+},{}],"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js":[function(require,module,exports){
+module.exports = require('./dist-modules/mixins.js');
+
+},{"./dist-modules/mixins.js":"/Users/jakesendar/doc_app/node_modules/baobab-react/dist-modules/mixins.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/defaults.js":[function(require,module,exports){
+/**
+ * Baobab Default Options
+ * =======================
+ *
+ */
+module.exports = {
+
+  // Should the tree handle its transactions on its own?
+  autoCommit: true,
+
+  // Should the transactions be handled asynchronously?
+  asynchronous: true,
+
+  // Facets registration
+  facets: {},
+
+  // Validation specifications
+  validate: null,
+
+  // Validation behaviour 'rollback' or 'notify'
+  validationBehavior: 'rollback'
+};
+
+},{}],"/Users/jakesendar/doc_app/node_modules/baobab/index.js":[function(require,module,exports){
+/**
+ * Baobab Public Interface
+ * ========================
+ *
+ * Exposes the main library classes.
+ */
+var Baobab = require('./src/baobab.js'),
+    helpers = require('./src/helpers.js');
+
+// Non-writable version
+Object.defineProperty(Baobab, 'version', {
+  value: '1.0.2'
+});
+
+// Exposing helpers
+Baobab.getIn = helpers.getIn;
+
+// Exporting
+module.exports = Baobab;
+
+},{"./src/baobab.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/baobab.js","./src/helpers.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/node_modules/emmett/emmett.js":[function(require,module,exports){
+(function() {
+  'use strict';
+
+  /**
+   * Here is the list of every allowed parameter when using Emitter#on:
+   * @type {Object}
+   */
+  var __allowedOptions = {
+    once: 'boolean',
+    scope: 'object'
+  };
+
+  /**
+   * Incremental id used to order event handlers.
+   */
+  var __order = 0;
+
+  /**
+   * A simple helper to shallowly merge two objects. The second one will "win"
+   * over the first one.
+   *
+   * @param  {object}  o1 First target object.
+   * @param  {object}  o2 Second target object.
+   * @return {object}     Returns the merged object.
+   */
+  function shallowMerge(o1, o2) {
+    var o = {},
+        k;
+
+    for (k in o1) o[k] = o1[k];
+    for (k in o2) o[k] = o2[k];
+
+    return o;
+  }
+
+  /**
+   * Is the given variable a plain JavaScript object?
+   *
+   * @param  {mixed}  v   Target.
+   * @return {boolean}    The boolean result.
+   */
+  function isPlainObject(v) {
+    return v &&
+           typeof v === 'object' &&
+           !Array.isArray(v) &&
+           !(v instanceof Function) &&
+           !(v instanceof RegExp);
+  }
+
+  /**
+   * The emitter's constructor. It initializes the handlers-per-events store and
+   * the global handlers store.
+   *
+   * Emitters are useful for non-DOM events communication. Read its methods
+   * documentation for more information about how it works.
+   *
+   * @return {Emitter}         The fresh new instance.
+   */
+  var Emitter = function() {
+    this._enabled = true;
+
+    // Dirty trick that will set the necessary properties to the emitter
+    this.unbindAll();
+  };
+
+  /**
+   * This method unbinds every handlers attached to every or any events. So,
+   * these functions will no more be executed when the related events are
+   * emitted. If the functions were not bound to the events, nothing will
+   * happen, and no error will be thrown.
+   *
+   * Usage:
+   * ******
+   * > myEmitter.unbindAll();
+   *
+   * @return {Emitter}      Returns this.
+   */
+  Emitter.prototype.unbindAll = function() {
+
+    this._handlers = {};
+    this._handlersAll = [];
+    this._handlersComplex = [];
+
+    return this;
+  };
+
+
+  /**
+   * This method binds one or more functions to the emitter, handled to one or a
+   * suite of events. So, these functions will be executed anytime one related
+   * event is emitted.
+   *
+   * It is also possible to bind a function to any emitted event by not
+   * specifying any event to bind the function to.
+   *
+   * Recognized options:
+   * *******************
+   *  - {?boolean} once   If true, the handlers will be unbound after the first
+   *                      execution. Default value: false.
+   *  - {?object}  scope  If a scope is given, then the listeners will be called
+   *                      with this scope as "this".
+   *
+   * Variant 1:
+   * **********
+   * > myEmitter.on('myEvent', function(e) { console.log(e); });
+   * > // Or:
+   * > myEmitter.on('myEvent', function(e) { console.log(e); }, { once: true });
+   *
+   * @param  {string}   event   The event to listen to.
+   * @param  {function} handler The function to bind.
+   * @param  {?object}  options Eventually some options.
+   * @return {Emitter}          Returns this.
+   *
+   * Variant 2:
+   * **********
+   * > myEmitter.on(
+   * >   ['myEvent1', 'myEvent2'],
+   * >   function(e) { console.log(e); }
+   * >);
+   * > // Or:
+   * > myEmitter.on(
+   * >   ['myEvent1', 'myEvent2'],
+   * >   function(e) { console.log(e); }
+   * >   { once: true }}
+   * >);
+   *
+   * @param  {array}    events  The events to listen to.
+   * @param  {function} handler The function to bind.
+   * @param  {?object}  options Eventually some options.
+   * @return {Emitter}          Returns this.
+   *
+   * Variant 3:
+   * **********
+   * > myEmitter.on({
+   * >   myEvent1: function(e) { console.log(e); },
+   * >   myEvent2: function(e) { console.log(e); }
+   * > });
+   * > // Or:
+   * > myEmitter.on({
+   * >   myEvent1: function(e) { console.log(e); },
+   * >   myEvent2: function(e) { console.log(e); }
+   * > }, { once: true });
+   *
+   * @param  {object}  bindings An object containing pairs event / function.
+   * @param  {?object}  options Eventually some options.
+   * @return {Emitter}          Returns this.
+   *
+   * Variant 4:
+   * **********
+   * > myEmitter.on(function(e) { console.log(e); });
+   * > // Or:
+   * > myEmitter.on(function(e) { console.log(e); }, { once: true});
+   *
+   * @param  {function} handler The function to bind to every events.
+   * @param  {?object}  options Eventually some options.
+   * @return {Emitter}          Returns this.
+   */
+  Emitter.prototype.on = function(a, b, c) {
+    var i,
+        l,
+        k,
+        event,
+        eArray,
+        handlersList,
+        bindingObject;
+
+    // Variant 3
+    if (isPlainObject(a)) {
+      for (event in a)
+        this.on(event, a[event], b);
+      return this;
+    }
+
+    // Variant 1, 2 and 4
+    if (typeof a === 'function') {
+      c = b;
+      b = a;
+      a = null;
+    }
+
+    eArray = [].concat(a);
+
+    for (i = 0, l = eArray.length; i < l; i++) {
+      event = eArray[i];
+
+      bindingObject = {
+        order: __order++,
+        fn: b
+      };
+
+      // Defining the list in which the handler should be inserted
+      if (typeof event === 'string') {
+        if (!this._handlers[event])
+          this._handlers[event] = [];
+        handlersList = this._handlers[event];
+      }
+      else if (event instanceof RegExp) {
+        handlersList = this._handlersComplex;
+        bindingObject.pattern = event;
+      }
+      else if (event === null) {
+        handlersList = this._handlersAll;
+      }
+      else {
+        throw Error('Emitter.on: invalid event.');
+      }
+
+      // Appending needed properties
+      for (k in c || {})
+        if (__allowedOptions[k])
+          bindingObject[k] = c[k];
+
+      if (bindingObject.once)
+        bindingObject.parent = handlersList;
+
+      handlersList.push(bindingObject);
+    }
+
+    return this;
+  };
+
+
+  /**
+   * This method works exactly as the previous #on, but will add an options
+   * object if none is given, and set the option "once" to true.
+   *
+   * The polymorphism works exactly as with the #on method.
+   */
+  Emitter.prototype.once = function() {
+    var args = Array.prototype.slice.call(arguments),
+        li = args.length - 1;
+
+    if (isPlainObject(args[li]) && args.length > 1)
+      args[li] = shallowMerge(args[li], {once: true});
+    else
+      args.push({once: true});
+
+    return this.on.apply(this, args);
+  };
+
+
+  /**
+   * This method unbinds one or more functions from events of the emitter. So,
+   * these functions will no more be executed when the related events are
+   * emitted. If the functions were not bound to the events, nothing will
+   * happen, and no error will be thrown.
+   *
+   * Variant 1:
+   * **********
+   * > myEmitter.off('myEvent', myHandler);
+   *
+   * @param  {string}   event   The event to unbind the handler from.
+   * @param  {function} handler The function to unbind.
+   * @return {Emitter}          Returns this.
+   *
+   * Variant 2:
+   * **********
+   * > myEmitter.off(['myEvent1', 'myEvent2'], myHandler);
+   *
+   * @param  {array}    events  The events to unbind the handler from.
+   * @param  {function} handler The function to unbind.
+   * @return {Emitter}          Returns this.
+   *
+   * Variant 3:
+   * **********
+   * > myEmitter.off({
+   * >   myEvent1: myHandler1,
+   * >   myEvent2: myHandler2
+   * > });
+   *
+   * @param  {object} bindings An object containing pairs event / function.
+   * @return {Emitter}         Returns this.
+   *
+   * Variant 4:
+   * **********
+   * > myEmitter.off(myHandler);
+   *
+   * @param  {function} handler The function to unbind from every events.
+   * @return {Emitter}          Returns this.
+   *
+   * Variant 5:
+   * **********
+   * > myEmitter.off(event);
+   *
+   * @param  {string} event     The event we should unbind.
+   * @return {Emitter}          Returns this.
+   */
+  function filter(target, fn) {
+    target = target || [];
+
+    var a = [],
+        l,
+        i;
+
+    for (i = 0, l = target.length; i < l; i++)
+      if (target[i].fn !== fn)
+        a.push(target[i]);
+
+    return a;
+  }
+
+  Emitter.prototype.off = function(events, fn) {
+    var i,
+        n,
+        j,
+        m,
+        k,
+        a,
+        event;
+
+    // Variant 4:
+    if (arguments.length === 1 && typeof events === 'function') {
+      fn = arguments[0];
+
+      // Handlers bound to events:
+      for (k in this._handlers) {
+        this._handlers[k] = filter(this._handlers[k], fn);
+
+        if (this._handlers[k].length === 0)
+          delete this._handlers[k];
+      }
+
+      // Generic Handlers
+      this._handlersAll = filter(this._handlersAll, fn);
+
+      // Complex handlers
+      this._handlersComplex = filter(this._handlersComplex, fn);
+    }
+
+    // Variant 5
+    else if (arguments.length === 1 && typeof events === 'string') {
+      delete this._handlers[events];
+    }
+
+    // Variant 1 and 2:
+    else if (arguments.length === 2) {
+      var eArray = [].concat(events);
+
+      for (i = 0, n = eArray.length; i < n; i++) {
+        event = eArray[i];
+
+        this._handlers[event] = filter(this._handlers[event], fn);
+
+        if ((this._handlers[event] || []).length === 0)
+          delete this._handlers[event];
+      }
+    }
+
+    // Variant 3
+    else if (isPlainObject(events)) {
+      for (k in events)
+        this.off(k, events[k]);
+    }
+
+    return this;
+  };
+
+  /**
+   * This method retrieve the listeners attached to a particular event.
+   *
+   * @param  {?string}    Name of the event.
+   * @return {array}      Array of handler functions.
+   */
+  Emitter.prototype.listeners = function(event) {
+    var handlers = this._handlersAll || [],
+        complex = false,
+        h,
+        i,
+        l;
+
+    if (!event)
+      throw Error('Emitter.listeners: no event provided.');
+
+    handlers = handlers.concat(this._handlers[event] || []);
+
+    for (i = 0, l = this._handlersComplex.length; i < l; i++) {
+      h = this._handlersComplex[i];
+
+      if (~event.search(h.pattern)) {
+        complex = true;
+        handlers.push(h);
+      }
+    }
+
+    // If we have any complex handlers, we need to sort
+    if (this._handlersAll.length || complex)
+      return handlers.sort(function(a, b) {
+        return a.order - b.order;
+      });
+    else
+      return handlers.slice(0);
+  };
+
+  /**
+   * This method emits the specified event(s), and executes every handlers bound
+   * to the event(s).
+   *
+   * Use cases:
+   * **********
+   * > myEmitter.emit('myEvent');
+   * > myEmitter.emit('myEvent', myData);
+   * > myEmitter.emit(['myEvent1', 'myEvent2']);
+   * > myEmitter.emit(['myEvent1', 'myEvent2'], myData);
+   * > myEmitter.emit({myEvent1: myData1, myEvent2: myData2});
+   *
+   * @param  {string|array} events The event(s) to emit.
+   * @param  {object?}      data   The data.
+   * @return {Emitter}             Returns this.
+   */
+  Emitter.prototype.emit = function(events, data) {
+
+    // Short exit if the emitter is disabled
+    if (!this._enabled)
+      return this;
+
+    // Object variant
+    if (isPlainObject(events)) {
+
+      for (var k in events)
+        this.emit(k, events[k]);
+
+      return this;
+    }
+
+    var eArray = [].concat(events),
+        onces = [],
+        event,
+        handlers,
+        handler,
+        i,
+        j,
+        l,
+        m;
+
+    for (i = 0, l = eArray.length; i < l; i++) {
+      handlers = this.listeners(eArray[i]);
+
+      for (j = 0, m = handlers.length; j < m; j++) {
+        handler = handlers[j];
+        event = {
+          type: eArray[i],
+          target: this
+        };
+
+        if (arguments.length > 1)
+          event.data = data;
+
+        handler.fn.call('scope' in handler ? handler.scope : this, event);
+
+        if (handler.once)
+          onces.push(handler);
+      }
+
+      // Cleaning onces
+      for (j = onces.length - 1; j >= 0; j--)
+        onces[j].parent.splice(onces[j].parent.indexOf(onces[j]), 1);
+    }
+
+    return this;
+  };
+
+
+  /**
+   * This method will unbind all listeners and make it impossible to ever
+   * rebind any listener to any event.
+   */
+  Emitter.prototype.kill = function() {
+
+    this.unbindAll();
+    this._handlers = null;
+    this._handlersAll = null;
+    this._handlersComplex = null;
+    this._enabled = false;
+  };
+
+
+  /**
+   * This method disabled the emitter, which means its emit method will do
+   * nothing.
+   *
+   * @return {Emitter} Returns this.
+   */
+  Emitter.prototype.disable = function() {
+    this._enabled = false;
+
+    return this;
+  };
+
+
+  /**
+   * This method enables the emitter.
+   *
+   * @return {Emitter} Returns this.
+   */
+  Emitter.prototype.enable = function() {
+    this._enabled = true;
+
+    return this;
+  };
+
+
+  /**
+   * Version:
+   */
+  Emitter.version = '3.0.0';
+
+
+  // Export:
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports)
+      exports = module.exports = Emitter;
+    exports.Emitter = Emitter;
+  } else if (typeof define === 'function' && define.amd)
+    define('emmett', [], function() {
+      return Emitter;
+    });
+  else
+    this.Emitter = Emitter;
+}).call(this);
+
+},{}],"/Users/jakesendar/doc_app/node_modules/baobab/src/baobab.js":[function(require,module,exports){
+/**
+ * Baobab Data Structure
+ * ======================
+ *
+ * A handy data tree with cursors.
+ */
+var Cursor = require('./cursor.js'),
+    EventEmitter = require('emmett'),
+    Facet = require('./facet.js'),
+    helpers = require('./helpers.js'),
+    update = require('./update.js'),
+    merge = require('./merge.js'),
+    defaults = require('../defaults.js'),
+    type = require('./type.js');
+
+function complexHash(type) {
+  return type + '$' +
+    (new Date()).getTime() + (''  + Math.random()).replace('0.', '');
+}
+
+/**
+ * Main Class
+ */
+function Baobab(initialData, opts) {
+  if (arguments.length < 1)
+    initialData = {};
+
+  // New keyword optional
+  if (!(this instanceof Baobab))
+    return new Baobab(initialData, opts);
+
+  if (!type.Object(initialData) && !type.Array(initialData))
+    throw Error('Baobab: invalid data.');
+
+  // Extending
+  EventEmitter.call(this);
+
+  // Merging defaults
+  this.options = helpers.shallowMerge(defaults, opts);
+
+  // Privates
+  this._transaction = {};
+  this._future = undefined;
+  this._cursors = {};
+  this._identity = '[object Baobab]';
+
+  // Properties
+  this.data = helpers.deepClone(initialData);
+  this.root = this.select([]);
+  this.facets = {};
+
+  // Boostrapping root cursor's methods
+  function bootstrap(name) {
+    this[name] = function() {
+      var r = this.root[name].apply(this.root, arguments);
+      return r instanceof Cursor ? this : r;
+    };
+  }
+
+  ['get', 'set', 'unset', 'update'].forEach(bootstrap.bind(this));
+
+  // Facets
+  if (!type.Object(this.options.facets))
+    throw Error('Baobab: invalid facets.');
+
+  for (var k in this.options.facets)
+    this.addFacet(k, this.options.facets[k]);
+}
+
+helpers.inherits(Baobab, EventEmitter);
+
+/**
+ * Prototype
+ */
+Baobab.prototype.addFacet = function(name, definition, args) {
+  this.facets[name] = this.createFacet(definition, args);
+  return this;
+};
+
+Baobab.prototype.createFacet = function(definition, args) {
+  return new Facet(this, definition, args);
+};
+
+Baobab.prototype.select = function(path) {
+  if (arguments.length > 1)
+    path = helpers.arrayOf(arguments);
+
+  if (!type.Path(path))
+    throw Error('Baobab.select: invalid path.');
+
+  // Casting to array
+  path = [].concat(path);
+
+  // Complex path?
+  var complex = type.ComplexPath(path);
+
+  var solvedPath;
+
+  if (complex)
+    solvedPath = helpers.solvePath(this.data, path, this);
+
+  // Registering a new cursor or giving the already existing one for path
+  var hash = path.map(function(step) {
+    if (type.Function(step))
+      return complexHash('fn');
+    else if (type.Object(step))
+      return complexHash('ob');
+    else
+      return step;
+  }).join('|λ|');
+
+  if (!this._cursors[hash]) {
+    var cursor = new Cursor(this, path, solvedPath, hash);
+    this._cursors[hash] = cursor;
+    return cursor;
+  }
+  else {
+    return this._cursors[hash];
+  }
+};
+
+Baobab.prototype.stack = function(spec, skipMerge) {
+  var self = this;
+
+  if (!type.Object(spec))
+    throw Error('Baobab.update: wrong specification.');
+
+  this._transaction = (skipMerge && !Object.keys(this._transaction).length) ?
+    spec :
+    merge(this._transaction, spec);
+
+  // Should we let the user commit?
+  if (!this.options.autoCommit)
+    return this;
+
+  // Should we update synchronously?
+  if (!this.options.asynchronous)
+    return this.commit();
+
+  // Updating asynchronously
+  if (!this._future)
+    this._future = setTimeout(self.commit.bind(self, null), 0);
+
+  return this;
+};
+
+Baobab.prototype.commit = function() {
+  var self = this;
+
+  // Applying modifications
+  var result = update(this.data, this._transaction, this.options);
+
+  var oldData = this.data;
+
+  // Resetting
+  this._transaction = {};
+
+  if (this._future)
+    this._future = clearTimeout(this._future);
+
+  // Validate?
+  var validate = this.options.validate,
+      behavior = this.options.validationBehavior;
+
+  if (typeof validate === 'function') {
+    var error = validate.call(this, oldData, result.data, result.log);
+
+    if (error instanceof Error) {
+      this.emit('invalid', {error: error});
+
+      if (behavior === 'rollback')
+        return this;
+    }
+  }
+
+  // Switching tree's data
+  this.data = result.data;
+
+  // Baobab-level update event
+  this.emit('update', {
+    log: result.log,
+    previousState: oldData
+  });
+
+  return this;
+};
+
+Baobab.prototype.release = function() {
+  var k;
+
+  delete this.data;
+  delete this._transaction;
+
+  // Releasing cursors
+  for (k in this._cursors)
+    this._cursors[k].release();
+  delete this._cursors;
+
+  // Releasing facets
+  for (k in this.facets)
+    this.facets[k].release();
+  delete this.facets;
+
+  // Killing event emitter
+  this.kill();
+};
+
+/**
+ * Output
+ */
+Baobab.prototype.toJSON = function() {
+  return this.get();
+};
+
+Baobab.prototype.toString = function() {
+  return this._identity;
+};
+
+/**
+ * Export
+ */
+module.exports = Baobab;
+
+},{"../defaults.js":"/Users/jakesendar/doc_app/node_modules/baobab/defaults.js","./cursor.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/cursor.js","./facet.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/facet.js","./helpers.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js","./merge.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/merge.js","./type.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js","./update.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/update.js","emmett":"/Users/jakesendar/doc_app/node_modules/baobab/node_modules/emmett/emmett.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/src/cursor.js":[function(require,module,exports){
+/**
+ * Baobab Cursor Abstraction
+ * ==========================
+ *
+ * Nested selection into a baobab tree.
+ */
+var EventEmitter = require('emmett'),
+    helpers = require('./helpers.js'),
+    defaults = require('../defaults.js'),
+    type = require('./type.js');
+
+/**
+ * Main Class
+ */
+function Cursor(tree, path, solvedPath, hash) {
+  var self = this;
+
+  // Extending event emitter
+  EventEmitter.call(this);
+
+  // Enforcing array
+  path = path || [];
+
+  // Properties
+  this.tree = tree;
+  this.path = path;
+  this.hash = hash;
+  this.archive = null;
+  this.recording = false;
+  this.undoing = false;
+
+  // Privates
+  this._identity = '[object Cursor]';
+
+  // Complex path?
+  this.complexPath = !!solvedPath;
+  this.solvedPath = this.complexPath ? solvedPath : this.path;
+
+  // Relevant?
+  this.relevant = this.get() !== undefined;
+
+  // Root listeners
+  function update(previousState) {
+    if (self.recording && !self.undoing) {
+
+      // Handle archive
+      var record = helpers.getIn(previousState, self.solvedPath, self.tree);
+      self.archive.add(record);
+    }
+
+    self.undoing = false;
+    return self.emit('update');
+  }
+
+  this.updateHandler = function(e) {
+    var log = e.data.log,
+        previousState = e.data.previousState,
+        shouldFire = false,
+        c, p, l, m, i, j;
+
+    // Solving path if needed
+    if (self.complexPath)
+      self.solvedPath = helpers.solvePath(self.tree.data, self.path, self.tree);
+
+    // If selector listens at tree, we fire
+    if (!self.path.length)
+      return update(previousState);
+
+    // Checking update log to see whether the cursor should update.
+    if (self.solvedPath)
+      shouldFire = helpers.solveUpdate(log, [self.solvedPath]);
+
+    // Handling relevancy
+    var data = self.get() !== undefined;
+
+    if (self.relevant) {
+      if (data && shouldFire) {
+        update(previousState);
+      }
+      else if (!data) {
+        self.emit('irrelevant');
+        self.relevant = false;
+      }
+    }
+    else {
+      if (data && shouldFire) {
+        self.emit('relevant');
+        update(previousState);
+        self.relevant = true;
+      }
+    }
+  };
+
+  // Lazy binding
+  var bound = false;
+
+  this._lazyBind = function() {
+    if (bound)
+      return;
+    bound = true;
+    self.tree.on('update', self.updateHandler);
+  };
+
+  this.on = helpers.before(this._lazyBind, this.on.bind(this));
+  this.once = helpers.before(this._lazyBind, this.once.bind(this));
+
+  if (this.complexPath)
+    this._lazyBind();
+}
+
+helpers.inherits(Cursor, EventEmitter);
+
+/**
+ * Predicates
+ */
+Cursor.prototype.isRoot = function() {
+  return !this.path.length;
+};
+
+Cursor.prototype.isLeaf = function() {
+  return type.Primitive(this.get());
+};
+
+Cursor.prototype.isBranch = function() {
+  return !this.isLeaf() && !this.isRoot();
+};
+
+/**
+ * Traversal
+ */
+Cursor.prototype.root = function() {
+  return this.tree.root();
+};
+
+Cursor.prototype.select = function(path) {
+  if (arguments.length > 1)
+    path = helpers.arrayOf(arguments);
+
+  if (!type.Path(path))
+    throw Error('baobab.Cursor.select: invalid path.');
+  return this.tree.select(this.path.concat(path));
+};
+
+Cursor.prototype.up = function() {
+  if (this.solvedPath && this.solvedPath.length)
+    return this.tree.select(this.path.slice(0, -1));
+  else
+    return null;
+};
+
+Cursor.prototype.left = function() {
+  var last = +this.solvedPath[this.solvedPath.length - 1];
+
+  if (isNaN(last))
+    throw Error('baobab.Cursor.left: cannot go left on a non-list type.');
+
+  return last ?
+    this.tree.select(this.solvedPath.slice(0, -1).concat(last - 1)) :
+    null;
+};
+
+Cursor.prototype.leftmost = function() {
+  var last = +this.solvedPath[this.solvedPath.length - 1];
+
+  if (isNaN(last))
+    throw Error('baobab.Cursor.leftmost: cannot go left on a non-list type.');
+
+  return this.tree.select(this.solvedPath.slice(0, -1).concat(0));
+};
+
+Cursor.prototype.right = function() {
+  var last = +this.solvedPath[this.solvedPath.length - 1];
+
+  if (isNaN(last))
+    throw Error('baobab.Cursor.right: cannot go right on a non-list type.');
+
+  if (last + 1 === this.up().get().length)
+    return null;
+
+  return this.tree.select(this.solvedPath.slice(0, -1).concat(last + 1));
+};
+
+Cursor.prototype.rightmost = function() {
+  var last = +this.solvedPath[this.solvedPath.length - 1];
+
+  if (isNaN(last))
+    throw Error('baobab.Cursor.right: cannot go right on a non-list type.');
+
+  var list = this.up().get();
+
+  return this.tree.select(this.solvedPath.slice(0, -1).concat(list.length - 1));
+};
+
+Cursor.prototype.down = function() {
+  var last = +this.solvedPath[this.solvedPath.length - 1];
+
+  if (!(this.get() instanceof Array))
+    return null;
+
+  return this.tree.select(this.solvedPath.concat(0));
+};
+
+/**
+ * Access
+ */
+Cursor.prototype.get = function(path) {
+  if (arguments.length > 1)
+    path = helpers.arrayOf(arguments);
+
+  var fullPath = this.solvedPath.concat(
+    [].concat(path || path === 0 ? path : [])
+  );
+
+  return helpers.getIn(this.tree.data, fullPath, this.tree);
+};
+
+/**
+ * Update
+ */
+function pathPolymorphism(method, allowedType, key, val) {
+  if (arguments.length > 5)
+    throw Error('baobab.Cursor.' + method + ': too many arguments.');
+
+  if (method === 'unset') {
+    val = true;
+
+    if (arguments.length === 2)
+      key = [];
+  }
+
+  else if (arguments.length < 4) {
+    val = key;
+    key = [];
+  }
+
+  if (!type.Path(key))
+    throw Error('baobab.Cursor.' + method + ': invalid path "' + key + '".');
+
+  // Splice exception
+  if (method === 'splice' &&
+      !type.Splicer(val)) {
+    if (type.Array(val))
+      val = [val];
+    else
+      throw Error('baobab.Cursor.splice: incorrect value.');
+  }
+
+  // Checking value validity
+  if (allowedType && !allowedType(val))
+    throw Error('baobab.Cursor.' + method + ': incorrect value.');
+
+  var path = [].concat(key),
+      solvedPath = helpers.solvePath(this.get(), path, this.tree);
+
+  if (!solvedPath)
+    throw Error('baobab.Cursor.' + method + ': could not solve dynamic path.');
+
+  var leaf = {};
+  leaf['$' + method] = val;
+
+  var spec = helpers.pathObject(solvedPath, leaf);
+
+  return spec;
+}
+
+function makeUpdateMethod(command, type) {
+  Cursor.prototype[command] = function() {
+    var spec = pathPolymorphism.bind(this, command, type).apply(this, arguments);
+
+    return this.update(spec, true);
+  };
+}
+
+makeUpdateMethod('set');
+makeUpdateMethod('apply', type.Function);
+makeUpdateMethod('chain', type.Function);
+makeUpdateMethod('push');
+makeUpdateMethod('unshift');
+makeUpdateMethod('merge', type.Object);
+makeUpdateMethod('splice');
+
+Cursor.prototype.unset = function(key) {
+  if (key === undefined && this.isRoot())
+    throw Error('baobab.Cursor.unset: cannot remove root node.');
+
+  var spec = pathPolymorphism.bind(this, 'unset', null).apply(this, arguments);
+
+  return this.update(spec, true);
+};
+
+Cursor.prototype.update = function(spec, skipMerge) {
+  if (!type.Object(spec))
+    throw Error('baobab.Cursor.update: invalid specifications.');
+
+  this.tree.stack(helpers.pathObject(this.solvedPath, spec), skipMerge);
+  return this;
+};
+
+/**
+ * History
+ */
+Cursor.prototype.startRecording = function(maxRecords) {
+  maxRecords = maxRecords || 5;
+
+  if (maxRecords < 1)
+    throw Error('baobab.Cursor.startRecording: invalid maximum number of records.');
+
+  if (this.archive)
+    return this;
+
+  // Lazy bind
+  this._lazyBind();
+
+  this.archive = helpers.archive(maxRecords);
+  this.recording = true;
+  return this;
+};
+
+Cursor.prototype.stopRecording = function() {
+  this.recording = false;
+  return this;
+};
+
+Cursor.prototype.undo = function(steps) {
+  steps = steps || 1;
+
+  if (!this.recording)
+    throw Error('baobab.Cursor.undo: cursor is not recording.');
+
+  if (!type.PositiveInteger(steps))
+    throw Error('baobab.Cursor.undo: expecting a positive integer.');
+
+  var record = this.archive.back(steps);
+
+  if (!record)
+    throw Error('boabab.Cursor.undo: cannot find a relevant record (' + steps + ' back).');
+
+  this.undoing = true;
+  return this.set(record);
+};
+
+Cursor.prototype.hasHistory = function() {
+  return !!(this.archive && this.archive.get().length);
+};
+
+Cursor.prototype.getHistory = function() {
+  return this.archive ? this.archive.get() : [];
+};
+
+Cursor.prototype.clearHistory = function() {
+  this.archive = null;
+  return this;
+};
+
+/**
+ * Releasing
+ */
+Cursor.prototype.release = function() {
+
+  // Removing listener on parent
+  this.tree.off('update', this.updateHandler);
+
+  // If the cursor is hashed, we unsubscribe from the parent
+  if (this.hash)
+    delete this.tree._cursors[this.hash];
+
+  // Dereferencing
+  delete this.tree;
+  delete this.path;
+  delete this.solvedPath;
+  delete this.archive;
+
+  // Killing emitter
+  this.kill();
+};
+
+/**
+ * Output
+ */
+Cursor.prototype.toJSON = function() {
+  return this.get();
+};
+
+Cursor.prototype.toString = function() {
+  return this._identity;
+};
+
+/**
+ * Export
+ */
+module.exports = Cursor;
+
+},{"../defaults.js":"/Users/jakesendar/doc_app/node_modules/baobab/defaults.js","./helpers.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js","./type.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js","emmett":"/Users/jakesendar/doc_app/node_modules/baobab/node_modules/emmett/emmett.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/src/facet.js":[function(require,module,exports){
+/**
+ * Baobab Facet Abstraction
+ * =========================
+ *
+ * Facets enable the user to define views on a given Baobab tree.
+ */
+var EventEmitter = require('emmett'),
+    Cursor = require('./cursor.js'),
+    helpers = require('./helpers.js'),
+    type = require('./type.js');
+
+function Facet(tree, definition, args) {
+  var self = this;
+
+  var firstTime = true,
+      solved = false,
+      getter = definition.get,
+      facetData = null;
+
+  // Extending event emitter
+  EventEmitter.call(this);
+
+  // Properties
+  this.tree = tree;
+  this.cursors = {};
+  this.facets = {};
+
+  var cursorsMapping = definition.cursors,
+      facetsMapping = definition.facets,
+      complexCursors = typeof definition.cursors === 'function',
+      complexFacets = typeof definition.facets === 'function';
+
+  // Refreshing the internal mapping
+  function refresh(complexity, targetMapping, targetProperty, mappingType, refreshArgs) {
+    if (!complexity && !firstTime)
+      return;
+
+    solved = false;
+
+    var solvedMapping = targetMapping;
+
+    if (complexity)
+      solvedMapping = targetMapping.apply(this, refreshArgs);
+
+    if (!mappingType(solvedMapping))
+      throw Error('baobab.Facet: incorrect ' + targetProperty + ' mapping.');
+
+    self[targetProperty] = {};
+
+    Object.keys(solvedMapping).forEach(function(k) {
+
+      if (targetProperty === 'cursors') {
+        if (solvedMapping[k] instanceof Cursor) {
+          self.cursors[k] = solvedMapping[k];
+          return;
+        }
+
+        if (type.Path(solvedMapping[k])) {
+          self.cursors[k] = tree.select(solvedMapping[k]);
+          return;
+        }
+      }
+
+      else {
+        if (solvedMapping[k] instanceof Facet) {
+          self.facets[k] = solvedMapping[k];
+          return;
+        }
+
+        if (typeof solvedMapping[k] === 'string') {
+          self.facets[k] = tree.facets[solvedMapping[k]];
+
+          if (!self.facets[k])
+            throw Error('baobab.Facet: unkown "' + solvedMapping[k] + '" facet in facets mapping.');
+          return;
+        }
+      }
+    });
+  }
+
+  this.refresh = function(refreshArgs) {
+    refreshArgs = refreshArgs || [];
+
+    if (!type.Array(refreshArgs))
+      throw Error('baobab.Facet.refresh: first argument should be an array.');
+
+    if (cursorsMapping)
+      refresh(
+        complexCursors,
+        cursorsMapping,
+        'cursors',
+        type.FacetCursors,
+        refreshArgs
+      );
+
+    if (facetsMapping)
+      refresh(
+        complexFacets,
+        facetsMapping,
+        'facets',
+        type.FacetFacets,
+        refreshArgs
+      );
+  };
+
+  // Data solving
+  this.get = function() {
+    if (solved)
+      return facetData;
+
+    // Solving
+    var data = {},
+        k;
+
+    for (k in self.facets)
+      data[k] = self.facets[k].get();
+
+    for (k in self.cursors)
+      data[k] = self.cursors[k].get();
+
+    // Applying getter
+    data = typeof getter === 'function' ?
+      getter.call(null, data) :
+      data;
+
+    solved = true;
+    facetData = data;
+
+    return facetData;
+  };
+
+  // Tracking the tree's updates
+  function cursorsPaths(cursors) {
+    return Object.keys(cursors).map(function(k) {
+      return cursors[k].solvedPath;
+    });
+  }
+
+  function facetsPaths(facets) {
+    var paths =  Object.keys(facets).map(function(k) {
+      return cursorsPaths(facets[k].cursors);
+    });
+
+    return [].concat.apply([], paths);
+  }
+
+  this.updateHandler = function(e) {
+
+    var paths = cursorsPaths(self.cursors).concat(facetsPaths(self.facets));
+
+    if (helpers.solveUpdate(e.data.log, paths)) {
+      solved = false;
+      self.emit('update');
+    }
+  };
+
+  // Init routine
+  this.refresh(args);
+  this.tree.on('update', this.updateHandler);
+
+  firstTime = false;
+}
+
+helpers.inherits(Facet, EventEmitter);
+
+Facet.prototype.release = function() {
+  this.tree.off('update', this.updateHandler);
+
+  this.tree = null;
+  this.cursors = null;
+  this.facets = null;
+  this.kill();
+};
+
+module.exports = Facet;
+
+},{"./cursor.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/cursor.js","./helpers.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js","./type.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js","emmett":"/Users/jakesendar/doc_app/node_modules/baobab/node_modules/emmett/emmett.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js":[function(require,module,exports){
+(function (global){
+/**
+ * Baobab Helpers
+ * ===============
+ *
+ * Miscellaneous helper functions.
+ */
+var type = require('./type.js');
+
+// Make a real array of an array-like object
+function arrayOf(o) {
+  return Array.prototype.slice.call(o);
+}
+
+// Decorate a function by applying something before it
+function before(decorator, fn) {
+  return function() {
+    decorator();
+    fn.apply(null, arguments);
+  };
+}
+
+// Non-mutative splice function
+function splice(array, index, nb /*, &elements */) {
+  var elements = arrayOf(arguments).slice(3);
+
+  return array
+    .slice(0, index)
+    .concat(elements)
+    .concat(array.slice(index + nb));
+}
+
+// Shallow merge
+function shallowMerge(o1, o2) {
+  var o = {},
+      k;
+
+  for (k in o1) o[k] = o1[k];
+  for (k in o2) o[k] = o2[k];
+
+  return o;
+}
+
+// Clone a regexp
+function cloneRegexp(re) {
+  var pattern = re.source,
+      flags = '';
+
+  if (re.global) flags += 'g';
+  if (re.multiline) flags += 'm';
+  if (re.ignoreCase) flags += 'i';
+  if (re.sticky) flags += 'y';
+  if (re.unicode) flags += 'u';
+
+  return new RegExp(pattern, flags);
+}
+
+// Cloning function
+function clone(deep, item) {
+  if (!item ||
+      typeof item !== 'object' ||
+      item instanceof Error ||
+      ('ArrayBuffer' in global && item instanceof ArrayBuffer))
+    return item;
+
+  // Array
+  if (type.Array(item)) {
+    if (deep) {
+      var i, l, a = [];
+      for (i = 0, l = item.length; i < l; i++)
+        a.push(deepClone(item[i]));
+      return a;
+    }
+    else {
+      return item.slice(0);
+    }
+  }
+
+  // Date
+  if (type.Date(item))
+    return new Date(item.getTime());
+
+  // RegExp
+  if (item instanceof RegExp)
+    return cloneRegexp(item);
+
+  // Object
+  if (type.Object(item)) {
+    var k, o = {};
+
+    if (item.constructor && item.constructor !== Object)
+      o = Object.create(item.constructor.prototype);
+
+    for (k in item)
+      if (item.hasOwnProperty(k))
+        o[k] = deep ? deepClone(item[k]) : item[k];
+    return o;
+  }
+
+  return item;
+}
+
+// Shallow & deep cloning functions
+var shallowClone = clone.bind(null, false),
+    deepClone = clone.bind(null, true);
+
+// Simplistic composition
+function compose(fn1, fn2) {
+  return function(arg) {
+    return fn2(fn1(arg));
+  };
+}
+
+// Get first item matching predicate in list
+function first(a, fn) {
+  var i, l;
+  for (i = 0, l = a.length; i < l; i++) {
+    if (fn(a[i]))
+      return a[i];
+  }
+  return;
+}
+
+function index(a, fn) {
+  var i, l;
+  for (i = 0, l = a.length; i < l; i++) {
+    if (fn(a[i]))
+      return i;
+  }
+  return -1;
+}
+
+// Compare object to spec
+function compare(object, spec) {
+  var ok = true,
+      k;
+
+  // If we reached here via a recursive call, object may be undefined because
+  // not all items in a collection will have the same deep nesting structure
+  if (!object) {
+    return false;
+  }
+
+  for (k in spec) {
+    if (type.Object(spec[k])) {
+      ok = ok && compare(object[k], spec[k]);
+    }
+    else if (type.Array(spec[k])) {
+      ok = ok && !!~spec[k].indexOf(object[k]);
+    }
+    else {
+      if (object[k] !== spec[k])
+        return false;
+    }
+  }
+
+  return ok;
+}
+
+function firstByComparison(object, spec) {
+  return first(object, function(e) {
+    return compare(e, spec);
+  });
+}
+
+function indexByComparison(object, spec) {
+  return index(object, function(e) {
+    return compare(e, spec);
+  });
+}
+
+// Retrieve nested objects
+function getIn(object, path, tree) {
+  path = path || [];
+
+  var c = object,
+      p,
+      i,
+      l;
+
+  for (i = 0, l = path.length; i < l; i++) {
+    if (!c)
+      return;
+
+    if (typeof path[i] === 'function') {
+      if (!type.Array(c))
+        return;
+
+      c = first(c, path[i]);
+    }
+    else if (typeof path[i] === 'object') {
+      if (tree && '$cursor' in path[i]) {
+        if (!type.Path(path[i].$cursor))
+          throw Error('baobab.getIn: $cursor path must be an array.');
+
+        p = tree.get(path[i].$cursor);
+        c = c[p];
+      }
+
+      else if (!type.Array(c)) {
+        return;
+      }
+
+      else {
+        c = firstByComparison(c, path[i]);
+      }
+    }
+    else {
+      c = c[path[i]];
+    }
+  }
+
+  return c;
+}
+
+// Solve a complex path
+function solvePath(object, path, tree) {
+  var solvedPath = [],
+      c = object,
+      idx,
+      i,
+      l;
+
+  for (i = 0, l = path.length; i < l; i++) {
+    if (!c)
+      return null;
+
+    if (typeof path[i] === 'function') {
+      if (!type.Array(c))
+        return;
+
+      idx = index(c, path[i]);
+      solvedPath.push(idx);
+      c = c[idx];
+    }
+    else if (typeof path[i] === 'object') {
+      if (tree && '$cursor' in path[i]) {
+        if (!type.Path(path[i].$cursor))
+          throw Error('baobab.getIn: $cursor path must be an array.');
+
+        p = tree.get(path[i].$cursor);
+        solvedPath.push(p);
+        c = c[p];
+      }
+
+      else if (!type.Array(c)) {
+        return;
+      }
+
+      else {
+        idx = indexByComparison(c, path[i]);
+        solvedPath.push(idx);
+        c = c[idx];
+      }
+    }
+    else {
+      solvedPath.push(path[i]);
+      c = c[path[i]] || {};
+    }
+  }
+
+  return solvedPath;
+}
+
+// Determine whether an update should fire for the given paths
+// NOTES: 1) if performance becomes an issue, the threefold loop can be
+//           simplified to become a complex twofold one.
+//        2) a regex version could also work but I am not confident it would be
+//           faster.
+function solveUpdate(log, paths) {
+  var i, j, k, l, m, n, p, c, s;
+
+  // Looping through possible paths
+  for (i = 0, l = paths.length; i < l; i++) {
+    p = paths[i];
+
+    // Looping through logged paths
+    for (j = 0, m = log.length; j < m; j++) {
+      c = log[j];
+
+      // Looping through steps
+      for (k = 0, n = c.length; k < n; k++) {
+        s = c[k];
+
+        // If path is not relevant, we break
+        if (s != p[k])
+          break;
+
+        // If we reached last item and we are relevant
+        if (k + 1 === n || k + 1 === p.length)
+          return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// Return a fake object relative to the given path
+function pathObject(path, spec) {
+  var l = path.length,
+      o = {},
+      c = o,
+      i;
+
+  if (!l)
+    o = spec;
+
+  for (i = 0; i < l; i++) {
+    c[path[i]] = (i + 1 === l) ? spec : {};
+    c = c[path[i]];
+  }
+
+  return o;
+}
+
+// Shim used for cross-compatible event emitting extension
+function inherits(ctor, superCtor) {
+  ctor.super_ = superCtor;
+  var TempCtor = function () {};
+  TempCtor.prototype = superCtor.prototype;
+  ctor.prototype = new TempCtor();
+  ctor.prototype.constructor = ctor;
+}
+
+// Archive
+function archive(size) {
+  var records = [];
+
+  return {
+    add: function(record) {
+      records.unshift(record);
+
+      if (records.length > size)
+        records.length = size;
+    },
+    back: function(steps) {
+      var record = records[steps - 1];
+
+      if (record)
+        records = records.slice(steps);
+      return record;
+    },
+    get: function() {
+      return records;
+    }
+  };
+}
+
+module.exports = {
+  archive: archive,
+  arrayOf: arrayOf,
+  before: before,
+  deepClone: deepClone,
+  shallowClone: shallowClone,
+  shallowMerge: shallowMerge,
+  compose: compose,
+  getIn: getIn,
+  inherits: inherits,
+  pathObject: pathObject,
+  solvePath: solvePath,
+  solveUpdate: solveUpdate,
+  splice: splice
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./type.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/src/merge.js":[function(require,module,exports){
+/**
+ * Baobab Merge
+ * =============
+ *
+ * A function used to merge updates in the stack.
+ */
+var helpers = require('./helpers.js'),
+    type = require('./type.js');
+
+// Helpers
+var COMMANDS = ['$unset', '$set', '$apply'];
+
+function only(command, commandValue) {
+  var o = {};
+  o[command] = commandValue;
+  return o;
+}
+
+// Main function
+function merge(a, b) {
+  var o = helpers.shallowClone(a || {}),
+      leafLevel = false,
+      k,
+      i;
+
+  COMMANDS.forEach(function(c) {
+    if (c in b) {
+      o = only(c, b[c]);
+      leafLevel = true;
+    }
+  });
+
+  if (b.$chain) {
+
+    if (o.$apply)
+      o.$apply = helpers.compose(o.$apply, b.$chain);
+    else
+      o.$apply = b.$chain;
+
+    o = only('$apply', o.$apply);
+    leafLevel = true;
+  }
+
+  if (b.$merge) {
+    o.$merge = helpers.shallowMerge(o.$merge || {}, b.$merge);
+    leafLevel = true;
+  }
+
+  if (b.$splice || b.$splice) {
+    o.$splice = [].concat(o.$splice || []).concat(b.$splice || []);
+    leafLevel = true;
+  }
+
+  if (b.$push || o.$push) {
+    o.$push = [].concat(o.$push || []).concat(b.$push || []);
+    leafLevel = true;
+  }
+
+  if (b.$unshift || o.$unshift) {
+    o.$unshift = [].concat(b.$unshift || []).concat(o.$unshift || []);
+    leafLevel = true;
+  }
+
+  if (leafLevel)
+    return o;
+
+  for (k in o) {
+    if (k.charAt(0) === '$')
+      delete o[k];
+  }
+
+  for (k in b) {
+    if (type.Object(b[k]))
+      o[k] = merge(o[k], b[k]);
+  }
+
+  return o;
+}
+
+module.exports = merge;
+
+},{"./helpers.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js","./type.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js":[function(require,module,exports){
+/**
+ * Baobab Type Checking
+ * =====================
+ *
+ * Misc helpers functions used throughout the library to perform some type
+ * tests at runtime.
+ *
+ * @christianalfoni
+ */
+var type = {};
+
+/**
+ * Helpers
+ */
+function anyOf(value, allowed) {
+  return allowed.some(function(t) {
+    return type[t](value);
+  });
+}
+
+/**
+ * Simple types
+ */
+type.Array = function(value) {
+  return Array.isArray(value);
+};
+
+type.Object = function(value) {
+  return value &&
+         typeof value === 'object' &&
+         !Array.isArray(value) &&
+         !(value instanceof Function);
+};
+
+type.String = function(value) {
+  return typeof value === 'string';
+};
+
+type.Number = function(value) {
+  return typeof value === 'number';
+};
+
+type.PositiveInteger = function(value) {
+  return typeof value === 'number' && value > 0 && value % 1 === 0;
+};
+
+type.Function = function(value) {
+  return typeof value === 'function';
+};
+
+type.Primitive = function(value) {
+  return !value ||
+         typeof value === 'string' ||
+         typeof value === 'number' ||
+         typeof value === 'boolean';
+};
+
+type.Date = function(value) {
+  return value instanceof Date;
+};
+
+/**
+ * Complex types
+ */
+type.NonScalar = function(value) {
+  return type.Object(value) || type.Array(value);
+};
+
+type.Splicer = function(value) {
+  return type.Array(value) &&
+         value.every(type.Array);
+};
+
+type.Path = function(value, allowed) {
+  allowed = allowed || ['String', 'Number', 'Function', 'Object'];
+
+  if (type.Array(value)) {
+    return value.every(function(step) {
+      return anyOf(step, allowed);
+    });
+  }
+  else {
+    return anyOf(value, allowed);
+  }
+};
+
+type.ComplexPath = function(value) {
+  return value.some(function(step) {
+    return anyOf(step, ['Object', 'Function']);
+  });
+};
+
+type.FacetCursors = function(value) {
+  if (!type.Object(value))
+    return false;
+
+  return Object.keys(value).every(function(k) {
+    var v = value[k];
+
+    return type.Path(v, ['String', 'Number', 'Object']) ||
+           v instanceof require('./cursor.js');
+  });
+};
+
+type.FacetFacets = function(value) {
+  if (!type.Object(value))
+    return false;
+
+  return Object.keys(value).every(function(k) {
+    var v = value[k];
+
+    return typeof v === 'string' ||
+           v instanceof require('./facet.js');
+  });
+};
+
+module.exports = type;
+
+},{"./cursor.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/cursor.js","./facet.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/facet.js"}],"/Users/jakesendar/doc_app/node_modules/baobab/src/update.js":[function(require,module,exports){
+/**
+ * Baobab Update
+ * ==============
+ *
+ * A handy method to mutate an atom according to the given specification.
+ * Mostly inspired by http://facebook.github.io/react/docs/update.html
+ */
+var helpers = require('./helpers.js'),
+    type = require('./type.js');
+
+// Helpers
+function makeError(path, message) {
+  var e = new Error('baobab.update: ' + message + ' at path /' +
+                    path.slice(1).join('/'));
+
+  e.path = path;
+  return e;
+}
+
+module.exports = function(data, spec, opts) {
+  opts = opts || {};
+
+  var log = {};
+
+  // Shifting root
+  data = {root: helpers.shallowClone(data)};
+
+  // Closure performing the updates themselves
+  var mutator = function(o, spec, path, parent) {
+    path = path || ['root'];
+
+    var hash = path.join('|λ|'),
+        lastKey = path[path.length - 1],
+        oldValue = o[lastKey],
+        fn,
+        k,
+        v,
+        i,
+        l;
+
+    // If nested object does not exist, we create it
+    if (type.Primitive(o[lastKey]))
+      o[lastKey] = {};
+    else
+      o[lastKey] = helpers.shallowClone(o[lastKey]);
+
+    // Are we at leaf level?
+    var leafLevel = Object.keys(spec).some(function(k) {
+      return k.charAt(0) === '$';
+    });
+
+    // Leaf level updates
+    if (leafLevel) {
+      log[hash] = true;
+
+      for (k in spec) {
+
+        // $unset
+        if (k === '$unset') {
+          var olderKey = path[path.length - 2];
+
+          if (!type.Object(parent[olderKey]))
+            throw makeError(path.slice(0, -1), 'using command $unset on a non-object');
+
+          parent[olderKey] = helpers.shallowClone(o);
+          delete parent[olderKey][lastKey];
+
+          break;
+        }
+
+        // $set
+        if (k === '$set') {
+          v = spec.$set;
+
+          o[lastKey] = v;
+        }
+
+        // $apply
+        else if (k === '$apply' || k === '$chain') {
+          fn = spec.$apply || spec.$chain;
+
+          if (typeof fn !== 'function')
+            throw makeError(path, 'using command $apply with a non function');
+
+          o[lastKey] = fn.call(null, oldValue);
+        }
+
+        // $merge
+        else if (k === '$merge') {
+          v = spec.$merge;
+
+          if (!type.Object(o[lastKey]) || !type.Object(v))
+            throw makeError(path, 'using command $merge with a non object');
+
+          o[lastKey] = helpers.shallowMerge(o[lastKey], v);
+        }
+
+        // $splice
+        if (k === '$splice') {
+          v = spec.$splice;
+
+          if (!type.Array(o[lastKey]))
+            throw makeError(path, 'using command $push to a non array');
+
+          for (i = 0, l = v.length; i < l; i++)
+            o[lastKey] = helpers.splice.apply(null, [o[lastKey]].concat(v[i]));
+        }
+
+        // $push
+        if (k === '$push') {
+          v = spec.$push;
+
+          if (!type.Array(o[lastKey]))
+            throw makeError(path, 'using command $push to a non array');
+
+          o[lastKey] = o[lastKey].concat(v);
+        }
+
+        // $unshift
+        if (k === '$unshift') {
+          v = spec.$unshift;
+
+          if (!type.Array(o[lastKey]))
+            throw makeError(path, 'using command $unshift to a non array');
+
+          o[lastKey] = [].concat(v).concat(o[lastKey]);
+        }
+      }
+    }
+    else {
+      for (k in spec)  {
+
+        // Recur
+        mutator(
+          o[lastKey],
+          spec[k],
+          path.concat(k),
+          o
+        );
+      }
+    }
+  };
+
+  mutator(data, spec);
+
+  // Returning data and path log
+  return {
+    data: data.root,
+
+    // SHIFT LOG
+    log: Object.keys(log).map(function(hash) {
+      return hash.split('|λ|').slice(1);
+    })
+  };
+};
+
+},{"./helpers.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/helpers.js","./type.js":"/Users/jakesendar/doc_app/node_modules/baobab/src/type.js"}],"/Users/jakesendar/doc_app/node_modules/lodash/index.js":[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -15103,2986 +17212,6 @@ module.exports = TemplateManager;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/Cancellation.js":[function(require,module,exports){
-"use strict";
-
-/**
- * Represents a cancellation caused by navigating away
- * before the previous transition has fully resolved.
- */
-function Cancellation() {}
-
-module.exports = Cancellation;
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js":[function(require,module,exports){
-"use strict";
-
-var invariant = require("react/lib/invariant");
-var canUseDOM = require("react/lib/ExecutionEnvironment").canUseDOM;
-
-var History = {
-
-  /**
-   * The current number of entries in the history.
-   *
-   * Note: This property is read-only.
-   */
-  length: 1,
-
-  /**
-   * Sends the browser back one entry in the history.
-   */
-  back: function back() {
-    invariant(canUseDOM, "Cannot use History.back without a DOM");
-
-    // Do this first so that History.length will
-    // be accurate in location change listeners.
-    History.length -= 1;
-
-    window.history.back();
-  }
-
-};
-
-module.exports = History;
-},{"react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/Match.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-/* jshint -W084 */
-var PathUtils = require("./PathUtils");
-
-function deepSearch(route, pathname, query) {
-  // Check the subtree first to find the most deeply-nested match.
-  var childRoutes = route.childRoutes;
-  if (childRoutes) {
-    var match, childRoute;
-    for (var i = 0, len = childRoutes.length; i < len; ++i) {
-      childRoute = childRoutes[i];
-
-      if (childRoute.isDefault || childRoute.isNotFound) continue; // Check these in order later.
-
-      if (match = deepSearch(childRoute, pathname, query)) {
-        // A route in the subtree matched! Add this route and we're done.
-        match.routes.unshift(route);
-        return match;
-      }
-    }
-  }
-
-  // No child routes matched; try the default route.
-  var defaultRoute = route.defaultRoute;
-  if (defaultRoute && (params = PathUtils.extractParams(defaultRoute.path, pathname))) {
-    return new Match(pathname, params, query, [route, defaultRoute]);
-  } // Does the "not found" route match?
-  var notFoundRoute = route.notFoundRoute;
-  if (notFoundRoute && (params = PathUtils.extractParams(notFoundRoute.path, pathname))) {
-    return new Match(pathname, params, query, [route, notFoundRoute]);
-  } // Last attempt: check this route.
-  var params = PathUtils.extractParams(route.path, pathname);
-  if (params) {
-    return new Match(pathname, params, query, [route]);
-  }return null;
-}
-
-var Match = (function () {
-  function Match(pathname, params, query, routes) {
-    _classCallCheck(this, Match);
-
-    this.pathname = pathname;
-    this.params = params;
-    this.query = query;
-    this.routes = routes;
-  }
-
-  _createClass(Match, null, {
-    findMatch: {
-
-      /**
-       * Attempts to match depth-first a route in the given route's
-       * subtree against the given path and returns the match if it
-       * succeeds, null if no match can be made.
-       */
-
-      value: function findMatch(routes, path) {
-        var pathname = PathUtils.withoutQuery(path);
-        var query = PathUtils.extractQuery(path);
-        var match = null;
-
-        for (var i = 0, len = routes.length; match == null && i < len; ++i) match = deepSearch(routes[i], pathname, query);
-
-        return match;
-      }
-    }
-  });
-
-  return Match;
-})();
-
-module.exports = Match;
-},{"./PathUtils":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PathUtils.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/Navigation.js":[function(require,module,exports){
-"use strict";
-
-var warning = require("react/lib/warning");
-var PropTypes = require("./PropTypes");
-
-function deprecatedMethod(routerMethodName, fn) {
-  return function () {
-    warning(false, "Router.Navigation is deprecated. Please use this.context.router." + routerMethodName + "() instead");
-
-    return fn.apply(this, arguments);
-  };
-}
-
-/**
- * A mixin for components that modify the URL.
- *
- * Example:
- *
- *   var MyLink = React.createClass({
- *     mixins: [ Router.Navigation ],
- *     handleClick(event) {
- *       event.preventDefault();
- *       this.transitionTo('aRoute', { the: 'params' }, { the: 'query' });
- *     },
- *     render() {
- *       return (
- *         <a onClick={this.handleClick}>Click me!</a>
- *       );
- *     }
- *   });
- */
-var Navigation = {
-
-  contextTypes: {
-    router: PropTypes.router.isRequired
-  },
-
-  /**
-   * Returns an absolute URL path created from the given route
-   * name, URL parameters, and query values.
-   */
-  makePath: deprecatedMethod("makePath", function (to, params, query) {
-    return this.context.router.makePath(to, params, query);
-  }),
-
-  /**
-   * Returns a string that may safely be used as the href of a
-   * link to the route with the given name.
-   */
-  makeHref: deprecatedMethod("makeHref", function (to, params, query) {
-    return this.context.router.makeHref(to, params, query);
-  }),
-
-  /**
-   * Transitions to the URL specified in the arguments by pushing
-   * a new URL onto the history stack.
-   */
-  transitionTo: deprecatedMethod("transitionTo", function (to, params, query) {
-    this.context.router.transitionTo(to, params, query);
-  }),
-
-  /**
-   * Transitions to the URL specified in the arguments by replacing
-   * the current URL in the history stack.
-   */
-  replaceWith: deprecatedMethod("replaceWith", function (to, params, query) {
-    this.context.router.replaceWith(to, params, query);
-  }),
-
-  /**
-   * Transitions to the previous URL.
-   */
-  goBack: deprecatedMethod("goBack", function () {
-    return this.context.router.goBack();
-  })
-
-};
-
-module.exports = Navigation;
-},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/PathUtils.js":[function(require,module,exports){
-"use strict";
-
-var invariant = require("react/lib/invariant");
-var objectAssign = require("object-assign");
-var qs = require("qs");
-
-var paramCompileMatcher = /:([a-zA-Z_$][a-zA-Z0-9_$]*)|[*.()\[\]\\+|{}^$]/g;
-var paramInjectMatcher = /:([a-zA-Z_$][a-zA-Z0-9_$?]*[?]?)|[*]/g;
-var paramInjectTrailingSlashMatcher = /\/\/\?|\/\?\/|\/\?/g;
-var queryMatcher = /\?(.*)$/;
-
-var _compiledPatterns = {};
-
-function compilePattern(pattern) {
-  if (!(pattern in _compiledPatterns)) {
-    var paramNames = [];
-    var source = pattern.replace(paramCompileMatcher, function (match, paramName) {
-      if (paramName) {
-        paramNames.push(paramName);
-        return "([^/?#]+)";
-      } else if (match === "*") {
-        paramNames.push("splat");
-        return "(.*?)";
-      } else {
-        return "\\" + match;
-      }
-    });
-
-    _compiledPatterns[pattern] = {
-      matcher: new RegExp("^" + source + "$", "i"),
-      paramNames: paramNames
-    };
-  }
-
-  return _compiledPatterns[pattern];
-}
-
-var PathUtils = {
-
-  /**
-   * Returns true if the given path is absolute.
-   */
-  isAbsolute: function isAbsolute(path) {
-    return path.charAt(0) === "/";
-  },
-
-  /**
-   * Joins two URL paths together.
-   */
-  join: function join(a, b) {
-    return a.replace(/\/*$/, "/") + b;
-  },
-
-  /**
-   * Returns an array of the names of all parameters in the given pattern.
-   */
-  extractParamNames: function extractParamNames(pattern) {
-    return compilePattern(pattern).paramNames;
-  },
-
-  /**
-   * Extracts the portions of the given URL path that match the given pattern
-   * and returns an object of param name => value pairs. Returns null if the
-   * pattern does not match the given path.
-   */
-  extractParams: function extractParams(pattern, path) {
-    var _compilePattern = compilePattern(pattern);
-
-    var matcher = _compilePattern.matcher;
-    var paramNames = _compilePattern.paramNames;
-
-    var match = path.match(matcher);
-
-    if (!match) {
-      return null;
-    }var params = {};
-
-    paramNames.forEach(function (paramName, index) {
-      params[paramName] = match[index + 1];
-    });
-
-    return params;
-  },
-
-  /**
-   * Returns a version of the given route path with params interpolated. Throws
-   * if there is a dynamic segment of the route path for which there is no param.
-   */
-  injectParams: function injectParams(pattern, params) {
-    params = params || {};
-
-    var splatIndex = 0;
-
-    return pattern.replace(paramInjectMatcher, function (match, paramName) {
-      paramName = paramName || "splat";
-
-      // If param is optional don't check for existence
-      if (paramName.slice(-1) === "?") {
-        paramName = paramName.slice(0, -1);
-
-        if (params[paramName] == null) return "";
-      } else {
-        invariant(params[paramName] != null, "Missing \"%s\" parameter for path \"%s\"", paramName, pattern);
-      }
-
-      var segment;
-      if (paramName === "splat" && Array.isArray(params[paramName])) {
-        segment = params[paramName][splatIndex++];
-
-        invariant(segment != null, "Missing splat # %s for path \"%s\"", splatIndex, pattern);
-      } else {
-        segment = params[paramName];
-      }
-
-      return segment;
-    }).replace(paramInjectTrailingSlashMatcher, "/");
-  },
-
-  /**
-   * Returns an object that is the result of parsing any query string contained
-   * in the given path, null if the path contains no query string.
-   */
-  extractQuery: function extractQuery(path) {
-    var match = path.match(queryMatcher);
-    return match && qs.parse(match[1]);
-  },
-
-  /**
-   * Returns a version of the given path without the query string.
-   */
-  withoutQuery: function withoutQuery(path) {
-    return path.replace(queryMatcher, "");
-  },
-
-  /**
-   * Returns a version of the given path with the parameters in the given
-   * query merged into the query string.
-   */
-  withQuery: function withQuery(path, query) {
-    var existingQuery = PathUtils.extractQuery(path);
-
-    if (existingQuery) query = query ? objectAssign(existingQuery, query) : existingQuery;
-
-    var queryString = qs.stringify(query, { arrayFormat: "brackets" });
-
-    if (queryString) {
-      return PathUtils.withoutQuery(path) + "?" + queryString;
-    }return PathUtils.withoutQuery(path);
-  }
-
-};
-
-module.exports = PathUtils;
-},{"object-assign":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/object-assign/index.js","qs":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/index.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js":[function(require,module,exports){
-"use strict";
-
-var assign = require("react/lib/Object.assign");
-var ReactPropTypes = require("react").PropTypes;
-var Route = require("./Route");
-
-var PropTypes = assign({}, ReactPropTypes, {
-
-  /**
-   * Indicates that a prop should be falsy.
-   */
-  falsy: function falsy(props, propName, componentName) {
-    if (props[propName]) {
-      return new Error("<" + componentName + "> may not have a \"" + propName + "\" prop");
-    }
-  },
-
-  /**
-   * Indicates that a prop should be a Route object.
-   */
-  route: ReactPropTypes.instanceOf(Route),
-
-  /**
-   * Indicates that a prop should be a Router object.
-   */
-  //router: ReactPropTypes.instanceOf(Router) // TODO
-  router: ReactPropTypes.func
-
-});
-
-module.exports = PropTypes;
-},{"./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Route.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/Redirect.js":[function(require,module,exports){
-"use strict";
-
-/**
- * Encapsulates a redirect to the given route.
- */
-function Redirect(to, params, query) {
-  this.to = to;
-  this.params = params;
-  this.query = query;
-}
-
-module.exports = Redirect;
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/Route.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var assign = require("react/lib/Object.assign");
-var invariant = require("react/lib/invariant");
-var warning = require("react/lib/warning");
-var PathUtils = require("./PathUtils");
-
-var _currentRoute;
-
-var Route = (function () {
-  function Route(name, path, ignoreScrollBehavior, isDefault, isNotFound, onEnter, onLeave, handler) {
-    _classCallCheck(this, Route);
-
-    this.name = name;
-    this.path = path;
-    this.paramNames = PathUtils.extractParamNames(this.path);
-    this.ignoreScrollBehavior = !!ignoreScrollBehavior;
-    this.isDefault = !!isDefault;
-    this.isNotFound = !!isNotFound;
-    this.onEnter = onEnter;
-    this.onLeave = onLeave;
-    this.handler = handler;
-  }
-
-  _createClass(Route, {
-    appendChild: {
-
-      /**
-       * Appends the given route to this route's child routes.
-       */
-
-      value: function appendChild(route) {
-        invariant(route instanceof Route, "route.appendChild must use a valid Route");
-
-        if (!this.childRoutes) this.childRoutes = [];
-
-        this.childRoutes.push(route);
-      }
-    },
-    toString: {
-      value: function toString() {
-        var string = "<Route";
-
-        if (this.name) string += " name=\"" + this.name + "\"";
-
-        string += " path=\"" + this.path + "\">";
-
-        return string;
-      }
-    }
-  }, {
-    createRoute: {
-
-      /**
-       * Creates and returns a new route. Options may be a URL pathname string
-       * with placeholders for named params or an object with any of the following
-       * properties:
-       *
-       * - name                     The name of the route. This is used to lookup a
-       *                            route relative to its parent route and should be
-       *                            unique among all child routes of the same parent
-       * - path                     A URL pathname string with optional placeholders
-       *                            that specify the names of params to extract from
-       *                            the URL when the path matches. Defaults to `/${name}`
-       *                            when there is a name given, or the path of the parent
-       *                            route, or /
-       * - ignoreScrollBehavior     True to make this route (and all descendants) ignore
-       *                            the scroll behavior of the router
-       * - isDefault                True to make this route the default route among all
-       *                            its siblings
-       * - isNotFound               True to make this route the "not found" route among
-       *                            all its siblings
-       * - onEnter                  A transition hook that will be called when the
-       *                            router is going to enter this route
-       * - onLeave                  A transition hook that will be called when the
-       *                            router is going to leave this route
-       * - handler                  A React component that will be rendered when
-       *                            this route is active
-       * - parentRoute              The parent route to use for this route. This option
-       *                            is automatically supplied when creating routes inside
-       *                            the callback to another invocation of createRoute. You
-       *                            only ever need to use this when declaring routes
-       *                            independently of one another to manually piece together
-       *                            the route hierarchy
-       *
-       * The callback may be used to structure your route hierarchy. Any call to
-       * createRoute, createDefaultRoute, createNotFoundRoute, or createRedirect
-       * inside the callback automatically uses this route as its parent.
-       */
-
-      value: function createRoute(options, callback) {
-        options = options || {};
-
-        if (typeof options === "string") options = { path: options };
-
-        var parentRoute = _currentRoute;
-
-        if (parentRoute) {
-          warning(options.parentRoute == null || options.parentRoute === parentRoute, "You should not use parentRoute with createRoute inside another route's child callback; it is ignored");
-        } else {
-          parentRoute = options.parentRoute;
-        }
-
-        var name = options.name;
-        var path = options.path || name;
-
-        if (path && !(options.isDefault || options.isNotFound)) {
-          if (PathUtils.isAbsolute(path)) {
-            if (parentRoute) {
-              invariant(path === parentRoute.path || parentRoute.paramNames.length === 0, "You cannot nest path \"%s\" inside \"%s\"; the parent requires URL parameters", path, parentRoute.path);
-            }
-          } else if (parentRoute) {
-            // Relative paths extend their parent.
-            path = PathUtils.join(parentRoute.path, path);
-          } else {
-            path = "/" + path;
-          }
-        } else {
-          path = parentRoute ? parentRoute.path : "/";
-        }
-
-        if (options.isNotFound && !/\*$/.test(path)) path += "*"; // Auto-append * to the path of not found routes.
-
-        var route = new Route(name, path, options.ignoreScrollBehavior, options.isDefault, options.isNotFound, options.onEnter, options.onLeave, options.handler);
-
-        if (parentRoute) {
-          if (route.isDefault) {
-            invariant(parentRoute.defaultRoute == null, "%s may not have more than one default route", parentRoute);
-
-            parentRoute.defaultRoute = route;
-          } else if (route.isNotFound) {
-            invariant(parentRoute.notFoundRoute == null, "%s may not have more than one not found route", parentRoute);
-
-            parentRoute.notFoundRoute = route;
-          }
-
-          parentRoute.appendChild(route);
-        }
-
-        // Any routes created in the callback
-        // use this route as their parent.
-        if (typeof callback === "function") {
-          var currentRoute = _currentRoute;
-          _currentRoute = route;
-          callback.call(route, route);
-          _currentRoute = currentRoute;
-        }
-
-        return route;
-      }
-    },
-    createDefaultRoute: {
-
-      /**
-       * Creates and returns a route that is rendered when its parent matches
-       * the current URL.
-       */
-
-      value: function createDefaultRoute(options) {
-        return Route.createRoute(assign({}, options, { isDefault: true }));
-      }
-    },
-    createNotFoundRoute: {
-
-      /**
-       * Creates and returns a route that is rendered when its parent matches
-       * the current URL but none of its siblings do.
-       */
-
-      value: function createNotFoundRoute(options) {
-        return Route.createRoute(assign({}, options, { isNotFound: true }));
-      }
-    },
-    createRedirect: {
-
-      /**
-       * Creates and returns a route that automatically redirects the transition
-       * to another route. In addition to the normal options to createRoute, this
-       * function accepts the following options:
-       *
-       * - from         An alias for the `path` option. Defaults to *
-       * - to           The path/route/route name to redirect to
-       * - params       The params to use in the redirect URL. Defaults
-       *                to using the current params
-       * - query        The query to use in the redirect URL. Defaults
-       *                to using the current query
-       */
-
-      value: function createRedirect(options) {
-        return Route.createRoute(assign({}, options, {
-          path: options.path || options.from || "*",
-          onEnter: function onEnter(transition, params, query) {
-            transition.redirect(options.to, options.params || params, options.query || query);
-          }
-        }));
-      }
-    }
-  });
-
-  return Route;
-})();
-
-module.exports = Route;
-},{"./PathUtils":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PathUtils.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/ScrollHistory.js":[function(require,module,exports){
-"use strict";
-
-var invariant = require("react/lib/invariant");
-var canUseDOM = require("react/lib/ExecutionEnvironment").canUseDOM;
-var getWindowScrollPosition = require("./getWindowScrollPosition");
-
-function shouldUpdateScroll(state, prevState) {
-  if (!prevState) {
-    return true;
-  } // Don't update scroll position when only the query has changed.
-  if (state.pathname === prevState.pathname) {
-    return false;
-  }var routes = state.routes;
-  var prevRoutes = prevState.routes;
-
-  var sharedAncestorRoutes = routes.filter(function (route) {
-    return prevRoutes.indexOf(route) !== -1;
-  });
-
-  return !sharedAncestorRoutes.some(function (route) {
-    return route.ignoreScrollBehavior;
-  });
-}
-
-/**
- * Provides the router with the ability to manage window scroll position
- * according to its scroll behavior.
- */
-var ScrollHistory = {
-
-  statics: {
-
-    /**
-     * Records curent scroll position as the last known position for the given URL path.
-     */
-    recordScrollPosition: function recordScrollPosition(path) {
-      if (!this.scrollHistory) this.scrollHistory = {};
-
-      this.scrollHistory[path] = getWindowScrollPosition();
-    },
-
-    /**
-     * Returns the last known scroll position for the given URL path.
-     */
-    getScrollPosition: function getScrollPosition(path) {
-      if (!this.scrollHistory) this.scrollHistory = {};
-
-      return this.scrollHistory[path] || null;
-    }
-
-  },
-
-  componentWillMount: function componentWillMount() {
-    invariant(this.constructor.getScrollBehavior() == null || canUseDOM, "Cannot use scroll behavior without a DOM");
-  },
-
-  componentDidMount: function componentDidMount() {
-    this._updateScroll();
-  },
-
-  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
-    this._updateScroll(prevState);
-  },
-
-  _updateScroll: function _updateScroll(prevState) {
-    if (!shouldUpdateScroll(this.state, prevState)) {
-      return;
-    }var scrollBehavior = this.constructor.getScrollBehavior();
-
-    if (scrollBehavior) scrollBehavior.updateScrollPosition(this.constructor.getScrollPosition(this.state.path), this.state.action);
-  }
-
-};
-
-module.exports = ScrollHistory;
-},{"./getWindowScrollPosition":"/Users/jakesendar/doc_app/node_modules/react-router/lib/getWindowScrollPosition.js","react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/State.js":[function(require,module,exports){
-"use strict";
-
-var warning = require("react/lib/warning");
-var PropTypes = require("./PropTypes");
-
-function deprecatedMethod(routerMethodName, fn) {
-  return function () {
-    warning(false, "Router.State is deprecated. Please use this.context.router." + routerMethodName + "() instead");
-
-    return fn.apply(this, arguments);
-  };
-}
-
-/**
- * A mixin for components that need to know the path, routes, URL
- * params and query that are currently active.
- *
- * Example:
- *
- *   var AboutLink = React.createClass({
- *     mixins: [ Router.State ],
- *     render() {
- *       var className = this.props.className;
- *   
- *       if (this.isActive('about'))
- *         className += ' is-active';
- *   
- *       return React.DOM.a({ className: className }, this.props.children);
- *     }
- *   });
- */
-var State = {
-
-  contextTypes: {
-    router: PropTypes.router.isRequired
-  },
-
-  /**
-   * Returns the current URL path.
-   */
-  getPath: deprecatedMethod("getCurrentPath", function () {
-    return this.context.router.getCurrentPath();
-  }),
-
-  /**
-   * Returns the current URL path without the query string.
-   */
-  getPathname: deprecatedMethod("getCurrentPathname", function () {
-    return this.context.router.getCurrentPathname();
-  }),
-
-  /**
-   * Returns an object of the URL params that are currently active.
-   */
-  getParams: deprecatedMethod("getCurrentParams", function () {
-    return this.context.router.getCurrentParams();
-  }),
-
-  /**
-   * Returns an object of the query params that are currently active.
-   */
-  getQuery: deprecatedMethod("getCurrentQuery", function () {
-    return this.context.router.getCurrentQuery();
-  }),
-
-  /**
-   * Returns an array of the routes that are currently active.
-   */
-  getRoutes: deprecatedMethod("getCurrentRoutes", function () {
-    return this.context.router.getCurrentRoutes();
-  }),
-
-  /**
-   * A helper method to determine if a given route, params, and query
-   * are active.
-   */
-  isActive: deprecatedMethod("isActive", function (to, params, query) {
-    return this.context.router.isActive(to, params, query);
-  })
-
-};
-
-module.exports = State;
-},{"./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/Transition.js":[function(require,module,exports){
-"use strict";
-
-/* jshint -W058 */
-
-var Cancellation = require("./Cancellation");
-var Redirect = require("./Redirect");
-
-/**
- * Encapsulates a transition to a given path.
- *
- * The willTransitionTo and willTransitionFrom handlers receive
- * an instance of this class as their first argument.
- */
-function Transition(path, retry) {
-  this.path = path;
-  this.abortReason = null;
-  // TODO: Change this to router.retryTransition(transition)
-  this.retry = retry.bind(this);
-}
-
-Transition.prototype.abort = function (reason) {
-  if (this.abortReason == null) this.abortReason = reason || "ABORT";
-};
-
-Transition.prototype.redirect = function (to, params, query) {
-  this.abort(new Redirect(to, params, query));
-};
-
-Transition.prototype.cancel = function () {
-  this.abort(new Cancellation());
-};
-
-Transition.from = function (transition, routes, components, callback) {
-  routes.reduce(function (callback, route, index) {
-    return function (error) {
-      if (error || transition.abortReason) {
-        callback(error);
-      } else if (route.onLeave) {
-        try {
-          route.onLeave(transition, components[index], callback);
-
-          // If there is no callback in the argument list, call it automatically.
-          if (route.onLeave.length < 3) callback();
-        } catch (e) {
-          callback(e);
-        }
-      } else {
-        callback();
-      }
-    };
-  }, callback)();
-};
-
-Transition.to = function (transition, routes, params, query, callback) {
-  routes.reduceRight(function (callback, route) {
-    return function (error) {
-      if (error || transition.abortReason) {
-        callback(error);
-      } else if (route.onEnter) {
-        try {
-          route.onEnter(transition, params, query, callback);
-
-          // If there is no callback in the argument list, call it automatically.
-          if (route.onEnter.length < 4) callback();
-        } catch (e) {
-          callback(e);
-        }
-      } else {
-        callback();
-      }
-    };
-  }, callback)();
-};
-
-module.exports = Transition;
-},{"./Cancellation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Cancellation.js","./Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Redirect.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/actions/LocationActions.js":[function(require,module,exports){
-"use strict";
-
-/**
- * Actions that modify the URL.
- */
-var LocationActions = {
-
-  /**
-   * Indicates a new location is being pushed to the history stack.
-   */
-  PUSH: "push",
-
-  /**
-   * Indicates the current location should be replaced.
-   */
-  REPLACE: "replace",
-
-  /**
-   * Indicates the most recent entry should be removed from the history stack.
-   */
-  POP: "pop"
-
-};
-
-module.exports = LocationActions;
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/behaviors/ImitateBrowserBehavior.js":[function(require,module,exports){
-"use strict";
-
-var LocationActions = require("../actions/LocationActions");
-
-/**
- * A scroll behavior that attempts to imitate the default behavior
- * of modern browsers.
- */
-var ImitateBrowserBehavior = {
-
-  updateScrollPosition: function updateScrollPosition(position, actionType) {
-    switch (actionType) {
-      case LocationActions.PUSH:
-      case LocationActions.REPLACE:
-        window.scrollTo(0, 0);
-        break;
-      case LocationActions.POP:
-        if (position) {
-          window.scrollTo(position.x, position.y);
-        } else {
-          window.scrollTo(0, 0);
-        }
-        break;
-    }
-  }
-
-};
-
-module.exports = ImitateBrowserBehavior;
-},{"../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/lib/actions/LocationActions.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/behaviors/ScrollToTopBehavior.js":[function(require,module,exports){
-"use strict";
-
-/**
- * A scroll behavior that always scrolls to the top of the page
- * after a transition.
- */
-var ScrollToTopBehavior = {
-
-  updateScrollPosition: function updateScrollPosition() {
-    window.scrollTo(0, 0);
-  }
-
-};
-
-module.exports = ScrollToTopBehavior;
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/ContextWrapper.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-/**
- * This component is necessary to get around a context warning
- * present in React 0.13.0. It sovles this by providing a separation
- * between the "owner" and "parent" contexts.
- */
-
-var React = require("react");
-
-var ContextWrapper = (function (_React$Component) {
-  function ContextWrapper() {
-    _classCallCheck(this, ContextWrapper);
-
-    if (_React$Component != null) {
-      _React$Component.apply(this, arguments);
-    }
-  }
-
-  _inherits(ContextWrapper, _React$Component);
-
-  _createClass(ContextWrapper, {
-    render: {
-      value: function render() {
-        return this.props.children;
-      }
-    }
-  });
-
-  return ContextWrapper;
-})(React.Component);
-
-module.exports = ContextWrapper;
-},{"react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/DefaultRoute.js":[function(require,module,exports){
-"use strict";
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var PropTypes = require("../PropTypes");
-var RouteHandler = require("./RouteHandler");
-var Route = require("./Route");
-
-/**
- * A <DefaultRoute> component is a special kind of <Route> that
- * renders when its parent matches but none of its siblings do.
- * Only one such route may be used at any given level in the
- * route hierarchy.
- */
-
-var DefaultRoute = (function (_Route) {
-  function DefaultRoute() {
-    _classCallCheck(this, DefaultRoute);
-
-    if (_Route != null) {
-      _Route.apply(this, arguments);
-    }
-  }
-
-  _inherits(DefaultRoute, _Route);
-
-  return DefaultRoute;
-})(Route);
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-DefaultRoute.propTypes = {
-  name: PropTypes.string,
-  path: PropTypes.falsy,
-  children: PropTypes.falsy,
-  handler: PropTypes.func.isRequired
-};
-
-DefaultRoute.defaultProps = {
-  handler: RouteHandler
-};
-
-module.exports = DefaultRoute;
-},{"../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Route.js","./RouteHandler":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/RouteHandler.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Link.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var React = require("react");
-var assign = require("react/lib/Object.assign");
-var PropTypes = require("../PropTypes");
-
-function isLeftClickEvent(event) {
-  return event.button === 0;
-}
-
-function isModifiedEvent(event) {
-  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
-}
-
-/**
- * <Link> components are used to create an <a> element that links to a route.
- * When that route is active, the link gets an "active" class name (or the
- * value of its `activeClassName` prop).
- *
- * For example, assuming you have the following route:
- *
- *   <Route name="showPost" path="/posts/:postID" handler={Post}/>
- *
- * You could use the following component to link to that route:
- *
- *   <Link to="showPost" params={{ postID: "123" }} />
- *
- * In addition to params, links may pass along query string parameters
- * using the `query` prop.
- *
- *   <Link to="showPost" params={{ postID: "123" }} query={{ show:true }}/>
- */
-
-var Link = (function (_React$Component) {
-  function Link() {
-    _classCallCheck(this, Link);
-
-    if (_React$Component != null) {
-      _React$Component.apply(this, arguments);
-    }
-  }
-
-  _inherits(Link, _React$Component);
-
-  _createClass(Link, {
-    handleClick: {
-      value: function handleClick(event) {
-        var allowTransition = true;
-        var clickResult;
-
-        if (this.props.onClick) clickResult = this.props.onClick(event);
-
-        if (isModifiedEvent(event) || !isLeftClickEvent(event)) {
-          return;
-        }if (clickResult === false || event.defaultPrevented === true) allowTransition = false;
-
-        event.preventDefault();
-
-        if (allowTransition) this.context.router.transitionTo(this.props.to, this.props.params, this.props.query);
-      }
-    },
-    getHref: {
-
-      /**
-       * Returns the value of the "href" attribute to use on the DOM element.
-       */
-
-      value: function getHref() {
-        return this.context.router.makeHref(this.props.to, this.props.params, this.props.query);
-      }
-    },
-    getClassName: {
-
-      /**
-       * Returns the value of the "class" attribute to use on the DOM element, which contains
-       * the value of the activeClassName property when this <Link> is active.
-       */
-
-      value: function getClassName() {
-        var className = this.props.className;
-
-        if (this.getActiveState()) className += " " + this.props.activeClassName;
-
-        return className;
-      }
-    },
-    getActiveState: {
-      value: function getActiveState() {
-        return this.context.router.isActive(this.props.to, this.props.params, this.props.query);
-      }
-    },
-    render: {
-      value: function render() {
-        var props = assign({}, this.props, {
-          href: this.getHref(),
-          className: this.getClassName(),
-          onClick: this.handleClick.bind(this)
-        });
-
-        if (props.activeStyle && this.getActiveState()) props.style = props.activeStyle;
-
-        return React.DOM.a(props, this.props.children);
-      }
-    }
-  });
-
-  return Link;
-})(React.Component);
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-Link.contextTypes = {
-  router: PropTypes.router.isRequired
-};
-
-Link.propTypes = {
-  activeClassName: PropTypes.string.isRequired,
-  to: PropTypes.oneOfType([PropTypes.string, PropTypes.route]).isRequired,
-  params: PropTypes.object,
-  query: PropTypes.object,
-  activeStyle: PropTypes.object,
-  onClick: PropTypes.func
-};
-
-Link.defaultProps = {
-  activeClassName: "active",
-  className: ""
-};
-
-module.exports = Link;
-},{"../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/NotFoundRoute.js":[function(require,module,exports){
-"use strict";
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var PropTypes = require("../PropTypes");
-var RouteHandler = require("./RouteHandler");
-var Route = require("./Route");
-
-/**
- * A <NotFoundRoute> is a special kind of <Route> that
- * renders when the beginning of its parent's path matches
- * but none of its siblings do, including any <DefaultRoute>.
- * Only one such route may be used at any given level in the
- * route hierarchy.
- */
-
-var NotFoundRoute = (function (_Route) {
-  function NotFoundRoute() {
-    _classCallCheck(this, NotFoundRoute);
-
-    if (_Route != null) {
-      _Route.apply(this, arguments);
-    }
-  }
-
-  _inherits(NotFoundRoute, _Route);
-
-  return NotFoundRoute;
-})(Route);
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-NotFoundRoute.propTypes = {
-  name: PropTypes.string,
-  path: PropTypes.falsy,
-  children: PropTypes.falsy,
-  handler: PropTypes.func.isRequired
-};
-
-NotFoundRoute.defaultProps = {
-  handler: RouteHandler
-};
-
-module.exports = NotFoundRoute;
-},{"../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Route.js","./RouteHandler":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/RouteHandler.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Redirect.js":[function(require,module,exports){
-"use strict";
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var PropTypes = require("../PropTypes");
-var Route = require("./Route");
-
-/**
- * A <Redirect> component is a special kind of <Route> that always
- * redirects to another route when it matches.
- */
-
-var Redirect = (function (_Route) {
-  function Redirect() {
-    _classCallCheck(this, Redirect);
-
-    if (_Route != null) {
-      _Route.apply(this, arguments);
-    }
-  }
-
-  _inherits(Redirect, _Route);
-
-  return Redirect;
-})(Route);
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-Redirect.propTypes = {
-  path: PropTypes.string,
-  from: PropTypes.string, // Alias for path.
-  to: PropTypes.string,
-  handler: PropTypes.falsy
-};
-
-// Redirects should not have a default handler
-Redirect.defaultProps = {};
-
-module.exports = Redirect;
-},{"../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Route.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Route.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var React = require("react");
-var invariant = require("react/lib/invariant");
-var PropTypes = require("../PropTypes");
-var RouteHandler = require("./RouteHandler");
-
-/**
- * <Route> components specify components that are rendered to the page when the
- * URL matches a given pattern.
- *
- * Routes are arranged in a nested tree structure. When a new URL is requested,
- * the tree is searched depth-first to find a route whose path matches the URL.
- * When one is found, all routes in the tree that lead to it are considered
- * "active" and their components are rendered into the DOM, nested in the same
- * order as they are in the tree.
- *
- * The preferred way to configure a router is using JSX. The XML-like syntax is
- * a great way to visualize how routes are laid out in an application.
- *
- *   var routes = [
- *     <Route handler={App}>
- *       <Route name="login" handler={Login}/>
- *       <Route name="logout" handler={Logout}/>
- *       <Route name="about" handler={About}/>
- *     </Route>
- *   ];
- *   
- *   Router.run(routes, function (Handler) {
- *     React.render(<Handler/>, document.body);
- *   });
- *
- * Handlers for Route components that contain children can render their active
- * child route using a <RouteHandler> element.
- *
- *   var App = React.createClass({
- *     render: function () {
- *       return (
- *         <div class="application">
- *           <RouteHandler/>
- *         </div>
- *       );
- *     }
- *   });
- *
- * If no handler is provided for the route, it will render a matched child route.
- */
-
-var Route = (function (_React$Component) {
-  function Route() {
-    _classCallCheck(this, Route);
-
-    if (_React$Component != null) {
-      _React$Component.apply(this, arguments);
-    }
-  }
-
-  _inherits(Route, _React$Component);
-
-  _createClass(Route, {
-    render: {
-      value: function render() {
-        invariant(false, "%s elements are for router configuration only and should not be rendered", this.constructor.name);
-      }
-    }
-  });
-
-  return Route;
-})(React.Component);
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-Route.propTypes = {
-  name: PropTypes.string,
-  path: PropTypes.string,
-  handler: PropTypes.func,
-  ignoreScrollBehavior: PropTypes.bool
-};
-
-Route.defaultProps = {
-  handler: RouteHandler
-};
-
-module.exports = Route;
-},{"../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","./RouteHandler":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/RouteHandler.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/RouteHandler.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var React = require("react");
-var ContextWrapper = require("./ContextWrapper");
-var assign = require("react/lib/Object.assign");
-var PropTypes = require("../PropTypes");
-
-var REF_NAME = "__routeHandler__";
-
-/**
- * A <RouteHandler> component renders the active child route handler
- * when routes are nested.
- */
-
-var RouteHandler = (function (_React$Component) {
-  function RouteHandler() {
-    _classCallCheck(this, RouteHandler);
-
-    if (_React$Component != null) {
-      _React$Component.apply(this, arguments);
-    }
-  }
-
-  _inherits(RouteHandler, _React$Component);
-
-  _createClass(RouteHandler, {
-    getChildContext: {
-      value: function getChildContext() {
-        return {
-          routeDepth: this.context.routeDepth + 1
-        };
-      }
-    },
-    componentDidMount: {
-      value: function componentDidMount() {
-        this._updateRouteComponent(this.refs[REF_NAME]);
-      }
-    },
-    componentDidUpdate: {
-      value: function componentDidUpdate() {
-        this._updateRouteComponent(this.refs[REF_NAME]);
-      }
-    },
-    componentWillUnmount: {
-      value: function componentWillUnmount() {
-        this._updateRouteComponent(null);
-      }
-    },
-    _updateRouteComponent: {
-      value: function _updateRouteComponent(component) {
-        this.context.router.setRouteComponentAtDepth(this.getRouteDepth(), component);
-      }
-    },
-    getRouteDepth: {
-      value: function getRouteDepth() {
-        return this.context.routeDepth;
-      }
-    },
-    createChildRouteHandler: {
-      value: function createChildRouteHandler(props) {
-        var route = this.context.router.getRouteAtDepth(this.getRouteDepth());
-        return route ? React.createElement(route.handler, assign({}, props || this.props, { ref: REF_NAME })) : null;
-      }
-    },
-    render: {
-      value: function render() {
-        var handler = this.createChildRouteHandler();
-        // <script/> for things like <CSSTransitionGroup/> that don't like null
-        return handler ? React.createElement(
-          ContextWrapper,
-          null,
-          handler
-        ) : React.createElement("script", null);
-      }
-    }
-  });
-
-  return RouteHandler;
-})(React.Component);
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-RouteHandler.contextTypes = {
-  routeDepth: PropTypes.number.isRequired,
-  router: PropTypes.router.isRequired
-};
-
-RouteHandler.childContextTypes = {
-  routeDepth: PropTypes.number.isRequired
-};
-
-module.exports = RouteHandler;
-},{"../PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","./ContextWrapper":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/ContextWrapper.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/createRouter.js":[function(require,module,exports){
-(function (process){
-"use strict";
-
-/* jshint -W058 */
-var React = require("react");
-var warning = require("react/lib/warning");
-var invariant = require("react/lib/invariant");
-var canUseDOM = require("react/lib/ExecutionEnvironment").canUseDOM;
-var LocationActions = require("./actions/LocationActions");
-var ImitateBrowserBehavior = require("./behaviors/ImitateBrowserBehavior");
-var HashLocation = require("./locations/HashLocation");
-var HistoryLocation = require("./locations/HistoryLocation");
-var RefreshLocation = require("./locations/RefreshLocation");
-var StaticLocation = require("./locations/StaticLocation");
-var ScrollHistory = require("./ScrollHistory");
-var createRoutesFromReactChildren = require("./createRoutesFromReactChildren");
-var isReactChildren = require("./isReactChildren");
-var Transition = require("./Transition");
-var PropTypes = require("./PropTypes");
-var Redirect = require("./Redirect");
-var History = require("./History");
-var Cancellation = require("./Cancellation");
-var Match = require("./Match");
-var Route = require("./Route");
-var supportsHistory = require("./supportsHistory");
-var PathUtils = require("./PathUtils");
-
-/**
- * The default location for new routers.
- */
-var DEFAULT_LOCATION = canUseDOM ? HashLocation : "/";
-
-/**
- * The default scroll behavior for new routers.
- */
-var DEFAULT_SCROLL_BEHAVIOR = canUseDOM ? ImitateBrowserBehavior : null;
-
-function hasProperties(object, properties) {
-  for (var propertyName in properties) if (properties.hasOwnProperty(propertyName) && object[propertyName] !== properties[propertyName]) {
-    return false;
-  }return true;
-}
-
-function hasMatch(routes, route, prevParams, nextParams, prevQuery, nextQuery) {
-  return routes.some(function (r) {
-    if (r !== route) return false;
-
-    var paramNames = route.paramNames;
-    var paramName;
-
-    // Ensure that all params the route cares about did not change.
-    for (var i = 0, len = paramNames.length; i < len; ++i) {
-      paramName = paramNames[i];
-
-      if (nextParams[paramName] !== prevParams[paramName]) return false;
-    }
-
-    // Ensure the query hasn't changed.
-    return hasProperties(prevQuery, nextQuery) && hasProperties(nextQuery, prevQuery);
-  });
-}
-
-function addRoutesToNamedRoutes(routes, namedRoutes) {
-  var route;
-  for (var i = 0, len = routes.length; i < len; ++i) {
-    route = routes[i];
-
-    if (route.name) {
-      invariant(namedRoutes[route.name] == null, "You may not have more than one route named \"%s\"", route.name);
-
-      namedRoutes[route.name] = route;
-    }
-
-    if (route.childRoutes) addRoutesToNamedRoutes(route.childRoutes, namedRoutes);
-  }
-}
-
-function routeIsActive(activeRoutes, routeName) {
-  return activeRoutes.some(function (route) {
-    return route.name === routeName;
-  });
-}
-
-function paramsAreActive(activeParams, params) {
-  for (var property in params) if (String(activeParams[property]) !== String(params[property])) {
-    return false;
-  }return true;
-}
-
-function queryIsActive(activeQuery, query) {
-  for (var property in query) if (String(activeQuery[property]) !== String(query[property])) {
-    return false;
-  }return true;
-}
-
-/**
- * Creates and returns a new router using the given options. A router
- * is a ReactComponent class that knows how to react to changes in the
- * URL and keep the contents of the page in sync.
- *
- * Options may be any of the following:
- *
- * - routes           (required) The route config
- * - location         The location to use. Defaults to HashLocation when
- *                    the DOM is available, "/" otherwise
- * - scrollBehavior   The scroll behavior to use. Defaults to ImitateBrowserBehavior
- *                    when the DOM is available, null otherwise
- * - onError          A function that is used to handle errors
- * - onAbort          A function that is used to handle aborted transitions
- *
- * When rendering in a server-side environment, the location should simply
- * be the URL path that was used in the request, including the query string.
- */
-function createRouter(options) {
-  options = options || {};
-
-  if (isReactChildren(options)) options = { routes: options };
-
-  var mountedComponents = [];
-  var location = options.location || DEFAULT_LOCATION;
-  var scrollBehavior = options.scrollBehavior || DEFAULT_SCROLL_BEHAVIOR;
-  var state = {};
-  var nextState = {};
-  var pendingTransition = null;
-  var dispatchHandler = null;
-
-  if (typeof location === "string") location = new StaticLocation(location);
-
-  if (location instanceof StaticLocation) {
-    warning(!canUseDOM || process.env.NODE_ENV === "test", "You should not use a static location in a DOM environment because " + "the router will not be kept in sync with the current URL");
-  } else {
-    invariant(canUseDOM || location.needsDOM === false, "You cannot use %s without a DOM", location);
-  }
-
-  // Automatically fall back to full page refreshes in
-  // browsers that don't support the HTML history API.
-  if (location === HistoryLocation && !supportsHistory()) location = RefreshLocation;
-
-  var Router = React.createClass({
-
-    displayName: "Router",
-
-    statics: {
-
-      isRunning: false,
-
-      cancelPendingTransition: function cancelPendingTransition() {
-        if (pendingTransition) {
-          pendingTransition.cancel();
-          pendingTransition = null;
-        }
-      },
-
-      clearAllRoutes: function clearAllRoutes() {
-        Router.cancelPendingTransition();
-        Router.namedRoutes = {};
-        Router.routes = [];
-      },
-
-      /**
-       * Adds routes to this router from the given children object (see ReactChildren).
-       */
-      addRoutes: function addRoutes(routes) {
-        if (isReactChildren(routes)) routes = createRoutesFromReactChildren(routes);
-
-        addRoutesToNamedRoutes(routes, Router.namedRoutes);
-
-        Router.routes.push.apply(Router.routes, routes);
-      },
-
-      /**
-       * Replaces routes of this router from the given children object (see ReactChildren).
-       */
-      replaceRoutes: function replaceRoutes(routes) {
-        Router.clearAllRoutes();
-        Router.addRoutes(routes);
-        Router.refresh();
-      },
-
-      /**
-       * Performs a match of the given path against this router and returns an object
-       * with the { routes, params, pathname, query } that match. Returns null if no
-       * match can be made.
-       */
-      match: function match(path) {
-        return Match.findMatch(Router.routes, path);
-      },
-
-      /**
-       * Returns an absolute URL path created from the given route
-       * name, URL parameters, and query.
-       */
-      makePath: function makePath(to, params, query) {
-        var path;
-        if (PathUtils.isAbsolute(to)) {
-          path = to;
-        } else {
-          var route = to instanceof Route ? to : Router.namedRoutes[to];
-
-          invariant(route instanceof Route, "Cannot find a route named \"%s\"", to);
-
-          path = route.path;
-        }
-
-        return PathUtils.withQuery(PathUtils.injectParams(path, params), query);
-      },
-
-      /**
-       * Returns a string that may safely be used as the href of a link
-       * to the route with the given name, URL parameters, and query.
-       */
-      makeHref: function makeHref(to, params, query) {
-        var path = Router.makePath(to, params, query);
-        return location === HashLocation ? "#" + path : path;
-      },
-
-      /**
-       * Transitions to the URL specified in the arguments by pushing
-       * a new URL onto the history stack.
-       */
-      transitionTo: function transitionTo(to, params, query) {
-        var path = Router.makePath(to, params, query);
-
-        if (pendingTransition) {
-          // Replace so pending location does not stay in history.
-          location.replace(path);
-        } else {
-          location.push(path);
-        }
-      },
-
-      /**
-       * Transitions to the URL specified in the arguments by replacing
-       * the current URL in the history stack.
-       */
-      replaceWith: function replaceWith(to, params, query) {
-        location.replace(Router.makePath(to, params, query));
-      },
-
-      /**
-       * Transitions to the previous URL if one is available. Returns true if the
-       * router was able to go back, false otherwise.
-       *
-       * Note: The router only tracks history entries in your application, not the
-       * current browser session, so you can safely call this function without guarding
-       * against sending the user back to some other site. However, when using
-       * RefreshLocation (which is the fallback for HistoryLocation in browsers that
-       * don't support HTML5 history) this method will *always* send the client back
-       * because we cannot reliably track history length.
-       */
-      goBack: function goBack() {
-        if (History.length > 1 || location === RefreshLocation) {
-          location.pop();
-          return true;
-        }
-
-        warning(false, "goBack() was ignored because there is no router history");
-
-        return false;
-      },
-
-      handleAbort: options.onAbort || function (abortReason) {
-        if (location instanceof StaticLocation) throw new Error("Unhandled aborted transition! Reason: " + abortReason);
-
-        if (abortReason instanceof Cancellation) {
-          return;
-        } else if (abortReason instanceof Redirect) {
-          location.replace(Router.makePath(abortReason.to, abortReason.params, abortReason.query));
-        } else {
-          location.pop();
-        }
-      },
-
-      handleError: options.onError || function (error) {
-        // Throw so we don't silently swallow async errors.
-        throw error; // This error probably originated in a transition hook.
-      },
-
-      handleLocationChange: function handleLocationChange(change) {
-        Router.dispatch(change.path, change.type);
-      },
-
-      /**
-       * Performs a transition to the given path and calls callback(error, abortReason)
-       * when the transition is finished. If both arguments are null the router's state
-       * was updated. Otherwise the transition did not complete.
-       *
-       * In a transition, a router first determines which routes are involved by beginning
-       * with the current route, up the route tree to the first parent route that is shared
-       * with the destination route, and back down the tree to the destination route. The
-       * willTransitionFrom hook is invoked on all route handlers we're transitioning away
-       * from, in reverse nesting order. Likewise, the willTransitionTo hook is invoked on
-       * all route handlers we're transitioning to.
-       *
-       * Both willTransitionFrom and willTransitionTo hooks may either abort or redirect the
-       * transition. To resolve asynchronously, they may use the callback argument. If no
-       * hooks wait, the transition is fully synchronous.
-       */
-      dispatch: function dispatch(path, action) {
-        Router.cancelPendingTransition();
-
-        var prevPath = state.path;
-        var isRefreshing = action == null;
-
-        if (prevPath === path && !isRefreshing) {
-          return;
-        } // Nothing to do!
-
-        // Record the scroll position as early as possible to
-        // get it before browsers try update it automatically.
-        if (prevPath && action === LocationActions.PUSH) Router.recordScrollPosition(prevPath);
-
-        var match = Router.match(path);
-
-        warning(match != null, "No route matches path \"%s\". Make sure you have <Route path=\"%s\"> somewhere in your routes", path, path);
-
-        if (match == null) match = {};
-
-        var prevRoutes = state.routes || [];
-        var prevParams = state.params || {};
-        var prevQuery = state.query || {};
-
-        var nextRoutes = match.routes || [];
-        var nextParams = match.params || {};
-        var nextQuery = match.query || {};
-
-        var fromRoutes, toRoutes;
-        if (prevRoutes.length) {
-          fromRoutes = prevRoutes.filter(function (route) {
-            return !hasMatch(nextRoutes, route, prevParams, nextParams, prevQuery, nextQuery);
-          });
-
-          toRoutes = nextRoutes.filter(function (route) {
-            return !hasMatch(prevRoutes, route, prevParams, nextParams, prevQuery, nextQuery);
-          });
-        } else {
-          fromRoutes = [];
-          toRoutes = nextRoutes;
-        }
-
-        var transition = new Transition(path, Router.replaceWith.bind(Router, path));
-        pendingTransition = transition;
-
-        var fromComponents = mountedComponents.slice(prevRoutes.length - fromRoutes.length);
-
-        Transition.from(transition, fromRoutes, fromComponents, function (error) {
-          if (error || transition.abortReason) return dispatchHandler.call(Router, error, transition); // No need to continue.
-
-          Transition.to(transition, toRoutes, nextParams, nextQuery, function (error) {
-            dispatchHandler.call(Router, error, transition, {
-              path: path,
-              action: action,
-              pathname: match.pathname,
-              routes: nextRoutes,
-              params: nextParams,
-              query: nextQuery
-            });
-          });
-        });
-      },
-
-      /**
-       * Starts this router and calls callback(router, state) when the route changes.
-       *
-       * If the router's location is static (i.e. a URL path in a server environment)
-       * the callback is called only once. Otherwise, the location should be one of the
-       * Router.*Location objects (e.g. Router.HashLocation or Router.HistoryLocation).
-       */
-      run: function run(callback) {
-        invariant(!Router.isRunning, "Router is already running");
-
-        dispatchHandler = function (error, transition, newState) {
-          if (error) Router.handleError(error);
-
-          if (pendingTransition !== transition) return;
-
-          pendingTransition = null;
-
-          if (transition.abortReason) {
-            Router.handleAbort(transition.abortReason);
-          } else {
-            callback.call(Router, Router, nextState = newState);
-          }
-        };
-
-        if (!(location instanceof StaticLocation)) {
-          if (location.addChangeListener) location.addChangeListener(Router.handleLocationChange);
-
-          Router.isRunning = true;
-        }
-
-        // Bootstrap using the current path.
-        Router.refresh();
-      },
-
-      refresh: function refresh() {
-        Router.dispatch(location.getCurrentPath(), null);
-      },
-
-      stop: function stop() {
-        Router.cancelPendingTransition();
-
-        if (location.removeChangeListener) location.removeChangeListener(Router.handleLocationChange);
-
-        Router.isRunning = false;
-      },
-
-      getLocation: function getLocation() {
-        return location;
-      },
-
-      getScrollBehavior: function getScrollBehavior() {
-        return scrollBehavior;
-      },
-
-      getRouteAtDepth: function getRouteAtDepth(routeDepth) {
-        var routes = state.routes;
-        return routes && routes[routeDepth];
-      },
-
-      setRouteComponentAtDepth: function setRouteComponentAtDepth(routeDepth, component) {
-        mountedComponents[routeDepth] = component;
-      },
-
-      /**
-       * Returns the current URL path + query string.
-       */
-      getCurrentPath: function getCurrentPath() {
-        return state.path;
-      },
-
-      /**
-       * Returns the current URL path without the query string.
-       */
-      getCurrentPathname: function getCurrentPathname() {
-        return state.pathname;
-      },
-
-      /**
-       * Returns an object of the currently active URL parameters.
-       */
-      getCurrentParams: function getCurrentParams() {
-        return state.params;
-      },
-
-      /**
-       * Returns an object of the currently active query parameters.
-       */
-      getCurrentQuery: function getCurrentQuery() {
-        return state.query;
-      },
-
-      /**
-       * Returns an array of the currently active routes.
-       */
-      getCurrentRoutes: function getCurrentRoutes() {
-        return state.routes;
-      },
-
-      /**
-       * Returns true if the given route, params, and query are active.
-       */
-      isActive: function isActive(to, params, query) {
-        if (PathUtils.isAbsolute(to)) {
-          return to === state.path;
-        }return routeIsActive(state.routes, to) && paramsAreActive(state.params, params) && (query == null || queryIsActive(state.query, query));
-      }
-
-    },
-
-    mixins: [ScrollHistory],
-
-    propTypes: {
-      children: PropTypes.falsy
-    },
-
-    childContextTypes: {
-      routeDepth: PropTypes.number.isRequired,
-      router: PropTypes.router.isRequired
-    },
-
-    getChildContext: function getChildContext() {
-      return {
-        routeDepth: 1,
-        router: Router
-      };
-    },
-
-    getInitialState: function getInitialState() {
-      return state = nextState;
-    },
-
-    componentWillReceiveProps: function componentWillReceiveProps() {
-      this.setState(state = nextState);
-    },
-
-    componentWillUnmount: function componentWillUnmount() {
-      Router.stop();
-    },
-
-    render: function render() {
-      var route = Router.getRouteAtDepth(0);
-      return route ? React.createElement(route.handler, this.props) : null;
-    }
-
-  });
-
-  Router.clearAllRoutes();
-
-  if (options.routes) Router.addRoutes(options.routes);
-
-  return Router;
-}
-
-module.exports = createRouter;
-}).call(this,require('_process'))
-},{"./Cancellation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Cancellation.js","./History":"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js","./Match":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Match.js","./PathUtils":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PathUtils.js","./PropTypes":"/Users/jakesendar/doc_app/node_modules/react-router/lib/PropTypes.js","./Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Redirect.js","./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Route.js","./ScrollHistory":"/Users/jakesendar/doc_app/node_modules/react-router/lib/ScrollHistory.js","./Transition":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Transition.js","./actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/lib/actions/LocationActions.js","./behaviors/ImitateBrowserBehavior":"/Users/jakesendar/doc_app/node_modules/react-router/lib/behaviors/ImitateBrowserBehavior.js","./createRoutesFromReactChildren":"/Users/jakesendar/doc_app/node_modules/react-router/lib/createRoutesFromReactChildren.js","./isReactChildren":"/Users/jakesendar/doc_app/node_modules/react-router/lib/isReactChildren.js","./locations/HashLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HashLocation.js","./locations/HistoryLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HistoryLocation.js","./locations/RefreshLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/RefreshLocation.js","./locations/StaticLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/StaticLocation.js","./supportsHistory":"/Users/jakesendar/doc_app/node_modules/react-router/lib/supportsHistory.js","_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/createRoutesFromReactChildren.js":[function(require,module,exports){
-"use strict";
-
-/* jshint -W084 */
-var React = require("react");
-var assign = require("react/lib/Object.assign");
-var warning = require("react/lib/warning");
-var DefaultRoute = require("./components/DefaultRoute");
-var NotFoundRoute = require("./components/NotFoundRoute");
-var Redirect = require("./components/Redirect");
-var Route = require("./Route");
-
-function checkPropTypes(componentName, propTypes, props) {
-  componentName = componentName || "UnknownComponent";
-
-  for (var propName in propTypes) {
-    if (propTypes.hasOwnProperty(propName)) {
-      var error = propTypes[propName](props, propName, componentName);
-
-      if (error instanceof Error) warning(false, error.message);
-    }
-  }
-}
-
-function createRouteOptions(props) {
-  var options = assign({}, props);
-  var handler = options.handler;
-
-  if (handler) {
-    options.onEnter = handler.willTransitionTo;
-    options.onLeave = handler.willTransitionFrom;
-  }
-
-  return options;
-}
-
-function createRouteFromReactElement(element) {
-  if (!React.isValidElement(element)) {
-    return;
-  }var type = element.type;
-  var props = assign({}, type.defaultProps, element.props);
-
-  if (type.propTypes) checkPropTypes(type.displayName, type.propTypes, props);
-
-  if (type === DefaultRoute) {
-    return Route.createDefaultRoute(createRouteOptions(props));
-  }if (type === NotFoundRoute) {
-    return Route.createNotFoundRoute(createRouteOptions(props));
-  }if (type === Redirect) {
-    return Route.createRedirect(createRouteOptions(props));
-  }return Route.createRoute(createRouteOptions(props), function () {
-    if (props.children) createRoutesFromReactChildren(props.children);
-  });
-}
-
-/**
- * Creates and returns an array of routes created from the given
- * ReactChildren, all of which should be one of <Route>, <DefaultRoute>,
- * <NotFoundRoute>, or <Redirect>, e.g.:
- *
- *   var { createRoutesFromReactChildren, Route, Redirect } = require('react-router');
- *
- *   var routes = createRoutesFromReactChildren(
- *     <Route path="/" handler={App}>
- *       <Route name="user" path="/user/:userId" handler={User}>
- *         <Route name="task" path="tasks/:taskId" handler={Task}/>
- *         <Redirect from="todos/:taskId" to="task"/>
- *       </Route>
- *     </Route>
- *   );
- */
-function createRoutesFromReactChildren(children) {
-  var routes = [];
-
-  React.Children.forEach(children, function (child) {
-    if (child = createRouteFromReactElement(child)) routes.push(child);
-  });
-
-  return routes;
-}
-
-module.exports = createRoutesFromReactChildren;
-},{"./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Route.js","./components/DefaultRoute":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/DefaultRoute.js","./components/NotFoundRoute":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/NotFoundRoute.js","./components/Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Redirect.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js","react/lib/Object.assign":"/Users/jakesendar/doc_app/node_modules/react/lib/Object.assign.js","react/lib/warning":"/Users/jakesendar/doc_app/node_modules/react/lib/warning.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/getWindowScrollPosition.js":[function(require,module,exports){
-"use strict";
-
-var invariant = require("react/lib/invariant");
-var canUseDOM = require("react/lib/ExecutionEnvironment").canUseDOM;
-
-/**
- * Returns the current scroll position of the window as { x, y }.
- */
-function getWindowScrollPosition() {
-  invariant(canUseDOM, "Cannot get current scroll position without a DOM");
-
-  return {
-    x: window.pageXOffset || document.documentElement.scrollLeft,
-    y: window.pageYOffset || document.documentElement.scrollTop
-  };
-}
-
-module.exports = getWindowScrollPosition;
-},{"react/lib/ExecutionEnvironment":"/Users/jakesendar/doc_app/node_modules/react/lib/ExecutionEnvironment.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/index.js":[function(require,module,exports){
-"use strict";
-
-exports.DefaultRoute = require("./components/DefaultRoute");
-exports.Link = require("./components/Link");
-exports.NotFoundRoute = require("./components/NotFoundRoute");
-exports.Redirect = require("./components/Redirect");
-exports.Route = require("./components/Route");
-exports.RouteHandler = require("./components/RouteHandler");
-
-exports.HashLocation = require("./locations/HashLocation");
-exports.HistoryLocation = require("./locations/HistoryLocation");
-exports.RefreshLocation = require("./locations/RefreshLocation");
-exports.StaticLocation = require("./locations/StaticLocation");
-exports.TestLocation = require("./locations/TestLocation");
-
-exports.ImitateBrowserBehavior = require("./behaviors/ImitateBrowserBehavior");
-exports.ScrollToTopBehavior = require("./behaviors/ScrollToTopBehavior");
-
-exports.History = require("./History");
-exports.Navigation = require("./Navigation");
-exports.State = require("./State");
-
-exports.createRoute = require("./Route").createRoute;
-exports.createDefaultRoute = require("./Route").createDefaultRoute;
-exports.createNotFoundRoute = require("./Route").createNotFoundRoute;
-exports.createRedirect = require("./Route").createRedirect;
-exports.createRoutesFromReactChildren = require("./createRoutesFromReactChildren");
-exports.create = require("./createRouter");
-exports.run = require("./runRouter");
-},{"./History":"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js","./Navigation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Navigation.js","./Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/Route.js","./State":"/Users/jakesendar/doc_app/node_modules/react-router/lib/State.js","./behaviors/ImitateBrowserBehavior":"/Users/jakesendar/doc_app/node_modules/react-router/lib/behaviors/ImitateBrowserBehavior.js","./behaviors/ScrollToTopBehavior":"/Users/jakesendar/doc_app/node_modules/react-router/lib/behaviors/ScrollToTopBehavior.js","./components/DefaultRoute":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/DefaultRoute.js","./components/Link":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Link.js","./components/NotFoundRoute":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/NotFoundRoute.js","./components/Redirect":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Redirect.js","./components/Route":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/Route.js","./components/RouteHandler":"/Users/jakesendar/doc_app/node_modules/react-router/lib/components/RouteHandler.js","./createRouter":"/Users/jakesendar/doc_app/node_modules/react-router/lib/createRouter.js","./createRoutesFromReactChildren":"/Users/jakesendar/doc_app/node_modules/react-router/lib/createRoutesFromReactChildren.js","./locations/HashLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HashLocation.js","./locations/HistoryLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HistoryLocation.js","./locations/RefreshLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/RefreshLocation.js","./locations/StaticLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/StaticLocation.js","./locations/TestLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/TestLocation.js","./runRouter":"/Users/jakesendar/doc_app/node_modules/react-router/lib/runRouter.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/isReactChildren.js":[function(require,module,exports){
-"use strict";
-
-var React = require("react");
-
-function isValidChild(object) {
-  return object == null || React.isValidElement(object);
-}
-
-function isReactChildren(object) {
-  return isValidChild(object) || Array.isArray(object) && object.every(isValidChild);
-}
-
-module.exports = isReactChildren;
-},{"react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HashLocation.js":[function(require,module,exports){
-"use strict";
-
-var LocationActions = require("../actions/LocationActions");
-var History = require("../History");
-
-var _listeners = [];
-var _isListening = false;
-var _actionType;
-
-function notifyChange(type) {
-  if (type === LocationActions.PUSH) History.length += 1;
-
-  var change = {
-    path: HashLocation.getCurrentPath(),
-    type: type
-  };
-
-  _listeners.forEach(function (listener) {
-    listener.call(HashLocation, change);
-  });
-}
-
-function ensureSlash() {
-  var path = HashLocation.getCurrentPath();
-
-  if (path.charAt(0) === "/") {
-    return true;
-  }HashLocation.replace("/" + path);
-
-  return false;
-}
-
-function onHashChange() {
-  if (ensureSlash()) {
-    // If we don't have an _actionType then all we know is the hash
-    // changed. It was probably caused by the user clicking the Back
-    // button, but may have also been the Forward button or manual
-    // manipulation. So just guess 'pop'.
-    var curActionType = _actionType;
-    _actionType = null;
-    notifyChange(curActionType || LocationActions.POP);
-  }
-}
-
-/**
- * A Location that uses `window.location.hash`.
- */
-var HashLocation = {
-
-  addChangeListener: function addChangeListener(listener) {
-    _listeners.push(listener);
-
-    // Do this BEFORE listening for hashchange.
-    ensureSlash();
-
-    if (!_isListening) {
-      if (window.addEventListener) {
-        window.addEventListener("hashchange", onHashChange, false);
-      } else {
-        window.attachEvent("onhashchange", onHashChange);
-      }
-
-      _isListening = true;
-    }
-  },
-
-  removeChangeListener: function removeChangeListener(listener) {
-    _listeners = _listeners.filter(function (l) {
-      return l !== listener;
-    });
-
-    if (_listeners.length === 0) {
-      if (window.removeEventListener) {
-        window.removeEventListener("hashchange", onHashChange, false);
-      } else {
-        window.removeEvent("onhashchange", onHashChange);
-      }
-
-      _isListening = false;
-    }
-  },
-
-  push: function push(path) {
-    _actionType = LocationActions.PUSH;
-    window.location.hash = path;
-  },
-
-  replace: function replace(path) {
-    _actionType = LocationActions.REPLACE;
-    window.location.replace(window.location.pathname + window.location.search + "#" + path);
-  },
-
-  pop: function pop() {
-    _actionType = LocationActions.POP;
-    History.back();
-  },
-
-  getCurrentPath: function getCurrentPath() {
-    return decodeURI(
-    // We can't use window.location.hash here because it's not
-    // consistent across browsers - Firefox will pre-decode it!
-    window.location.href.split("#")[1] || "");
-  },
-
-  toString: function toString() {
-    return "<HashLocation>";
-  }
-
-};
-
-module.exports = HashLocation;
-},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js","../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/lib/actions/LocationActions.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HistoryLocation.js":[function(require,module,exports){
-"use strict";
-
-var LocationActions = require("../actions/LocationActions");
-var History = require("../History");
-
-var _listeners = [];
-var _isListening = false;
-
-function notifyChange(type) {
-  var change = {
-    path: HistoryLocation.getCurrentPath(),
-    type: type
-  };
-
-  _listeners.forEach(function (listener) {
-    listener.call(HistoryLocation, change);
-  });
-}
-
-function onPopState(event) {
-  if (event.state === undefined) {
-    return;
-  } // Ignore extraneous popstate events in WebKit.
-
-  notifyChange(LocationActions.POP);
-}
-
-/**
- * A Location that uses HTML5 history.
- */
-var HistoryLocation = {
-
-  addChangeListener: function addChangeListener(listener) {
-    _listeners.push(listener);
-
-    if (!_isListening) {
-      if (window.addEventListener) {
-        window.addEventListener("popstate", onPopState, false);
-      } else {
-        window.attachEvent("onpopstate", onPopState);
-      }
-
-      _isListening = true;
-    }
-  },
-
-  removeChangeListener: function removeChangeListener(listener) {
-    _listeners = _listeners.filter(function (l) {
-      return l !== listener;
-    });
-
-    if (_listeners.length === 0) {
-      if (window.addEventListener) {
-        window.removeEventListener("popstate", onPopState, false);
-      } else {
-        window.removeEvent("onpopstate", onPopState);
-      }
-
-      _isListening = false;
-    }
-  },
-
-  push: function push(path) {
-    window.history.pushState({ path: path }, "", path);
-    History.length += 1;
-    notifyChange(LocationActions.PUSH);
-  },
-
-  replace: function replace(path) {
-    window.history.replaceState({ path: path }, "", path);
-    notifyChange(LocationActions.REPLACE);
-  },
-
-  pop: History.back,
-
-  getCurrentPath: function getCurrentPath() {
-    return decodeURI(window.location.pathname + window.location.search);
-  },
-
-  toString: function toString() {
-    return "<HistoryLocation>";
-  }
-
-};
-
-module.exports = HistoryLocation;
-},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js","../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/lib/actions/LocationActions.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/RefreshLocation.js":[function(require,module,exports){
-"use strict";
-
-var HistoryLocation = require("./HistoryLocation");
-var History = require("../History");
-
-/**
- * A Location that uses full page refreshes. This is used as
- * the fallback for HistoryLocation in browsers that do not
- * support the HTML5 history API.
- */
-var RefreshLocation = {
-
-  push: function push(path) {
-    window.location = path;
-  },
-
-  replace: function replace(path) {
-    window.location.replace(path);
-  },
-
-  pop: History.back,
-
-  getCurrentPath: HistoryLocation.getCurrentPath,
-
-  toString: function toString() {
-    return "<RefreshLocation>";
-  }
-
-};
-
-module.exports = RefreshLocation;
-},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js","./HistoryLocation":"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/HistoryLocation.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/StaticLocation.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var invariant = require("react/lib/invariant");
-
-function throwCannotModify() {
-  invariant(false, "You cannot modify a static location");
-}
-
-/**
- * A location that only ever contains a single path. Useful in
- * stateless environments like servers where there is no path history,
- * only the path that was used in the request.
- */
-
-var StaticLocation = (function () {
-  function StaticLocation(path) {
-    _classCallCheck(this, StaticLocation);
-
-    this.path = path;
-  }
-
-  _createClass(StaticLocation, {
-    getCurrentPath: {
-      value: function getCurrentPath() {
-        return this.path;
-      }
-    },
-    toString: {
-      value: function toString() {
-        return "<StaticLocation path=\"" + this.path + "\">";
-      }
-    }
-  });
-
-  return StaticLocation;
-})();
-
-// TODO: Include these in the above class definition
-// once we can use ES7 property initializers.
-// https://github.com/babel/babel/issues/619
-
-StaticLocation.prototype.push = throwCannotModify;
-StaticLocation.prototype.replace = throwCannotModify;
-StaticLocation.prototype.pop = throwCannotModify;
-
-module.exports = StaticLocation;
-},{"react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/locations/TestLocation.js":[function(require,module,exports){
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var invariant = require("react/lib/invariant");
-var LocationActions = require("../actions/LocationActions");
-var History = require("../History");
-
-/**
- * A location that is convenient for testing and does not require a DOM.
- */
-
-var TestLocation = (function () {
-  function TestLocation(history) {
-    _classCallCheck(this, TestLocation);
-
-    this.history = history || [];
-    this.listeners = [];
-    this._updateHistoryLength();
-  }
-
-  _createClass(TestLocation, {
-    needsDOM: {
-      get: function () {
-        return false;
-      }
-    },
-    _updateHistoryLength: {
-      value: function _updateHistoryLength() {
-        History.length = this.history.length;
-      }
-    },
-    _notifyChange: {
-      value: function _notifyChange(type) {
-        var change = {
-          path: this.getCurrentPath(),
-          type: type
-        };
-
-        for (var i = 0, len = this.listeners.length; i < len; ++i) this.listeners[i].call(this, change);
-      }
-    },
-    addChangeListener: {
-      value: function addChangeListener(listener) {
-        this.listeners.push(listener);
-      }
-    },
-    removeChangeListener: {
-      value: function removeChangeListener(listener) {
-        this.listeners = this.listeners.filter(function (l) {
-          return l !== listener;
-        });
-      }
-    },
-    push: {
-      value: function push(path) {
-        this.history.push(path);
-        this._updateHistoryLength();
-        this._notifyChange(LocationActions.PUSH);
-      }
-    },
-    replace: {
-      value: function replace(path) {
-        invariant(this.history.length, "You cannot replace the current path with no history");
-
-        this.history[this.history.length - 1] = path;
-
-        this._notifyChange(LocationActions.REPLACE);
-      }
-    },
-    pop: {
-      value: function pop() {
-        this.history.pop();
-        this._updateHistoryLength();
-        this._notifyChange(LocationActions.POP);
-      }
-    },
-    getCurrentPath: {
-      value: function getCurrentPath() {
-        return this.history[this.history.length - 1];
-      }
-    },
-    toString: {
-      value: function toString() {
-        return "<TestLocation>";
-      }
-    }
-  });
-
-  return TestLocation;
-})();
-
-module.exports = TestLocation;
-},{"../History":"/Users/jakesendar/doc_app/node_modules/react-router/lib/History.js","../actions/LocationActions":"/Users/jakesendar/doc_app/node_modules/react-router/lib/actions/LocationActions.js","react/lib/invariant":"/Users/jakesendar/doc_app/node_modules/react/lib/invariant.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/runRouter.js":[function(require,module,exports){
-"use strict";
-
-var createRouter = require("./createRouter");
-
-/**
- * A high-level convenience method that creates, configures, and
- * runs a router in one shot. The method signature is:
- *
- *   Router.run(routes[, location ], callback);
- *
- * Using `window.location.hash` to manage the URL, you could do:
- *
- *   Router.run(routes, function (Handler) {
- *     React.render(<Handler/>, document.body);
- *   });
- * 
- * Using HTML5 history and a custom "cursor" prop:
- * 
- *   Router.run(routes, Router.HistoryLocation, function (Handler) {
- *     React.render(<Handler cursor={cursor}/>, document.body);
- *   });
- *
- * Returns the newly created router.
- *
- * Note: If you need to specify further options for your router such
- * as error/abort handling or custom scroll behavior, use Router.create
- * instead.
- *
- *   var router = Router.create(options);
- *   router.run(function (Handler) {
- *     // ...
- *   });
- */
-function runRouter(routes, location, callback) {
-  if (typeof location === "function") {
-    callback = location;
-    location = null;
-  }
-
-  var router = createRouter({
-    routes: routes,
-    location: location
-  });
-
-  router.run(callback);
-
-  return router;
-}
-
-module.exports = runRouter;
-},{"./createRouter":"/Users/jakesendar/doc_app/node_modules/react-router/lib/createRouter.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/lib/supportsHistory.js":[function(require,module,exports){
-"use strict";
-
-function supportsHistory() {
-  /*! taken from modernizr
-   * https://github.com/Modernizr/Modernizr/blob/master/LICENSE
-   * https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
-   * changed to avoid false negatives for Windows Phones: https://github.com/rackt/react-router/issues/586
-   */
-  var ua = navigator.userAgent;
-  if ((ua.indexOf("Android 2.") !== -1 || ua.indexOf("Android 4.0") !== -1) && ua.indexOf("Mobile Safari") !== -1 && ua.indexOf("Chrome") === -1 && ua.indexOf("Windows Phone") === -1) {
-    return false;
-  }
-  return window.history && "pushState" in window.history;
-}
-
-module.exports = supportsHistory;
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/object-assign/index.js":[function(require,module,exports){
-'use strict';
-
-function ToObject(val) {
-	if (val == null) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
-
-	return Object(val);
-}
-
-module.exports = Object.assign || function (target, source) {
-	var from;
-	var keys;
-	var to = ToObject(target);
-
-	for (var s = 1; s < arguments.length; s++) {
-		from = arguments[s];
-		keys = Object.keys(Object(from));
-
-		for (var i = 0; i < keys.length; i++) {
-			to[keys[i]] = from[keys[i]];
-		}
-	}
-
-	return to;
-};
-
-},{}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/index.js":[function(require,module,exports){
-module.exports = require('./lib/');
-
-},{"./lib/":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/index.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/index.js":[function(require,module,exports){
-// Load modules
-
-var Stringify = require('./stringify');
-var Parse = require('./parse');
-
-
-// Declare internals
-
-var internals = {};
-
-
-module.exports = {
-    stringify: Stringify,
-    parse: Parse
-};
-
-},{"./parse":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/parse.js","./stringify":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/stringify.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/parse.js":[function(require,module,exports){
-// Load modules
-
-var Utils = require('./utils');
-
-
-// Declare internals
-
-var internals = {
-    delimiter: '&',
-    depth: 5,
-    arrayLimit: 20,
-    parameterLimit: 1000
-};
-
-
-internals.parseValues = function (str, options) {
-
-    var obj = {};
-    var parts = str.split(options.delimiter, options.parameterLimit === Infinity ? undefined : options.parameterLimit);
-
-    for (var i = 0, il = parts.length; i < il; ++i) {
-        var part = parts[i];
-        var pos = part.indexOf(']=') === -1 ? part.indexOf('=') : part.indexOf(']=') + 1;
-
-        if (pos === -1) {
-            obj[Utils.decode(part)] = '';
-        }
-        else {
-            var key = Utils.decode(part.slice(0, pos));
-            var val = Utils.decode(part.slice(pos + 1));
-
-            if (Object.prototype.hasOwnProperty(key)) {
-                continue;
-            }
-
-            if (!obj.hasOwnProperty(key)) {
-                obj[key] = val;
-            }
-            else {
-                obj[key] = [].concat(obj[key]).concat(val);
-            }
-        }
-    }
-
-    return obj;
-};
-
-
-internals.parseObject = function (chain, val, options) {
-
-    if (!chain.length) {
-        return val;
-    }
-
-    var root = chain.shift();
-
-    var obj = {};
-    if (root === '[]') {
-        obj = [];
-        obj = obj.concat(internals.parseObject(chain, val, options));
-    }
-    else {
-        var cleanRoot = root[0] === '[' && root[root.length - 1] === ']' ? root.slice(1, root.length - 1) : root;
-        var index = parseInt(cleanRoot, 10);
-        var indexString = '' + index;
-        if (!isNaN(index) &&
-            root !== cleanRoot &&
-            indexString === cleanRoot &&
-            index >= 0 &&
-            index <= options.arrayLimit) {
-
-            obj = [];
-            obj[index] = internals.parseObject(chain, val, options);
-        }
-        else {
-            obj[cleanRoot] = internals.parseObject(chain, val, options);
-        }
-    }
-
-    return obj;
-};
-
-
-internals.parseKeys = function (key, val, options) {
-
-    if (!key) {
-        return;
-    }
-
-    // The regex chunks
-
-    var parent = /^([^\[\]]*)/;
-    var child = /(\[[^\[\]]*\])/g;
-
-    // Get the parent
-
-    var segment = parent.exec(key);
-
-    // Don't allow them to overwrite object prototype properties
-
-    if (Object.prototype.hasOwnProperty(segment[1])) {
-        return;
-    }
-
-    // Stash the parent if it exists
-
-    var keys = [];
-    if (segment[1]) {
-        keys.push(segment[1]);
-    }
-
-    // Loop through children appending to the array until we hit depth
-
-    var i = 0;
-    while ((segment = child.exec(key)) !== null && i < options.depth) {
-
-        ++i;
-        if (!Object.prototype.hasOwnProperty(segment[1].replace(/\[|\]/g, ''))) {
-            keys.push(segment[1]);
-        }
-    }
-
-    // If there's a remainder, just add whatever is left
-
-    if (segment) {
-        keys.push('[' + key.slice(segment.index) + ']');
-    }
-
-    return internals.parseObject(keys, val, options);
-};
-
-
-module.exports = function (str, options) {
-
-    if (str === '' ||
-        str === null ||
-        typeof str === 'undefined') {
-
-        return {};
-    }
-
-    options = options || {};
-    options.delimiter = typeof options.delimiter === 'string' || Utils.isRegExp(options.delimiter) ? options.delimiter : internals.delimiter;
-    options.depth = typeof options.depth === 'number' ? options.depth : internals.depth;
-    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : internals.arrayLimit;
-    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : internals.parameterLimit;
-
-    var tempObj = typeof str === 'string' ? internals.parseValues(str, options) : str;
-    var obj = {};
-
-    // Iterate over the keys and setup the new object
-
-    var keys = Object.keys(tempObj);
-    for (var i = 0, il = keys.length; i < il; ++i) {
-        var key = keys[i];
-        var newObj = internals.parseKeys(key, tempObj[key], options);
-        obj = Utils.merge(obj, newObj);
-    }
-
-    return Utils.compact(obj);
-};
-
-},{"./utils":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/stringify.js":[function(require,module,exports){
-// Load modules
-
-var Utils = require('./utils');
-
-
-// Declare internals
-
-var internals = {
-    delimiter: '&',
-    arrayPrefixGenerators: {
-        brackets: function (prefix, key) {
-            return prefix + '[]';
-        },
-        indices: function (prefix, key) {
-            return prefix + '[' + key + ']';
-        },
-        repeat: function (prefix, key) {
-            return prefix;
-        }
-    }
-};
-
-
-internals.stringify = function (obj, prefix, generateArrayPrefix) {
-
-    if (Utils.isBuffer(obj)) {
-        obj = obj.toString();
-    }
-    else if (obj instanceof Date) {
-        obj = obj.toISOString();
-    }
-    else if (obj === null) {
-        obj = '';
-    }
-
-    if (typeof obj === 'string' ||
-        typeof obj === 'number' ||
-        typeof obj === 'boolean') {
-
-        return [encodeURIComponent(prefix) + '=' + encodeURIComponent(obj)];
-    }
-
-    var values = [];
-
-    if (typeof obj === 'undefined') {
-        return values;
-    }
-
-    var objKeys = Object.keys(obj);
-    for (var i = 0, il = objKeys.length; i < il; ++i) {
-        var key = objKeys[i];
-        if (Array.isArray(obj)) {
-            values = values.concat(internals.stringify(obj[key], generateArrayPrefix(prefix, key), generateArrayPrefix));
-        }
-        else {
-            values = values.concat(internals.stringify(obj[key], prefix + '[' + key + ']', generateArrayPrefix));
-        }
-    }
-
-    return values;
-};
-
-
-module.exports = function (obj, options) {
-
-    options = options || {};
-    var delimiter = typeof options.delimiter === 'undefined' ? internals.delimiter : options.delimiter;
-
-    var keys = [];
-
-    if (typeof obj !== 'object' ||
-        obj === null) {
-
-        return '';
-    }
-
-    var arrayFormat;
-    if (options.arrayFormat in internals.arrayPrefixGenerators) {
-        arrayFormat = options.arrayFormat;
-    }
-    else if ('indices' in options) {
-        arrayFormat = options.indices ? 'indices' : 'repeat';
-    }
-    else {
-        arrayFormat = 'indices';
-    }
-
-    var generateArrayPrefix = internals.arrayPrefixGenerators[arrayFormat];
-
-    var objKeys = Object.keys(obj);
-    for (var i = 0, il = objKeys.length; i < il; ++i) {
-        var key = objKeys[i];
-        keys = keys.concat(internals.stringify(obj[key], key, generateArrayPrefix));
-    }
-
-    return keys.join(delimiter);
-};
-
-},{"./utils":"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js"}],"/Users/jakesendar/doc_app/node_modules/react-router/node_modules/qs/lib/utils.js":[function(require,module,exports){
-// Load modules
-
-
-// Declare internals
-
-var internals = {};
-
-
-exports.arrayToObject = function (source) {
-
-    var obj = {};
-    for (var i = 0, il = source.length; i < il; ++i) {
-        if (typeof source[i] !== 'undefined') {
-
-            obj[i] = source[i];
-        }
-    }
-
-    return obj;
-};
-
-
-exports.merge = function (target, source) {
-
-    if (!source) {
-        return target;
-    }
-
-    if (typeof source !== 'object') {
-        if (Array.isArray(target)) {
-            target.push(source);
-        }
-        else {
-            target[source] = true;
-        }
-
-        return target;
-    }
-
-    if (typeof target !== 'object') {
-        target = [target].concat(source);
-        return target;
-    }
-
-    if (Array.isArray(target) &&
-        !Array.isArray(source)) {
-
-        target = exports.arrayToObject(target);
-    }
-
-    var keys = Object.keys(source);
-    for (var k = 0, kl = keys.length; k < kl; ++k) {
-        var key = keys[k];
-        var value = source[key];
-
-        if (!target[key]) {
-            target[key] = value;
-        }
-        else {
-            target[key] = exports.merge(target[key], value);
-        }
-    }
-
-    return target;
-};
-
-
-exports.decode = function (str) {
-
-    try {
-        return decodeURIComponent(str.replace(/\+/g, ' '));
-    } catch (e) {
-        return str;
-    }
-};
-
-
-exports.compact = function (obj, refs) {
-
-    if (typeof obj !== 'object' ||
-        obj === null) {
-
-        return obj;
-    }
-
-    refs = refs || [];
-    var lookup = refs.indexOf(obj);
-    if (lookup !== -1) {
-        return refs[lookup];
-    }
-
-    refs.push(obj);
-
-    if (Array.isArray(obj)) {
-        var compacted = [];
-
-        for (var i = 0, il = obj.length; i < il; ++i) {
-            if (typeof obj[i] !== 'undefined') {
-                compacted.push(obj[i]);
-            }
-        }
-
-        return compacted;
-    }
-
-    var keys = Object.keys(obj);
-    for (i = 0, il = keys.length; i < il; ++i) {
-        var key = keys[i];
-        obj[key] = exports.compact(obj[key], refs);
-    }
-
-    return obj;
-};
-
-
-exports.isRegExp = function (obj) {
-    return Object.prototype.toString.call(obj) === '[object RegExp]';
-};
-
-
-exports.isBuffer = function (obj) {
-
-    if (obj === null ||
-        typeof obj === 'undefined') {
-
-        return false;
-    }
-
-    return !!(obj.constructor &&
-        obj.constructor.isBuffer &&
-        obj.constructor.isBuffer(obj));
-};
-
 },{}],"/Users/jakesendar/doc_app/node_modules/react/lib/AutoFocusMixin.js":[function(require,module,exports){
 /**
  * Copyright 2013-2015, Facebook, Inc.

@@ -1,26 +1,30 @@
-var LeadDocs = require('./lead_docs.jsx'),
-    TemplateInput = require('./template_input.jsx'),
-    LeadInputs = require('./lead_inputs.jsx'),
-    LeadData = require('./lead_data.jsx'),
-    DocForm = require('./../../doc/new/doc_form.jsx'),
-    LeadManager = require('./../../../mixins/lead_manager.js'),
-    TemplateManager = require('./../../../mixins/template_manager.js');
+var TemplateBlock = require('./template_block.jsx'),
+    RecipientBlock = require('./recipient_block.jsx'),
+    DocForm = require('./doc_form.jsx'),
+    TemplateManager = require('./../../mixins/template_manager.js');
 
-var LeadShowTemplate = React.createClass({
-    mixins: [LeadManager, TemplateManager],
+var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
+    LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
+    LeadManager = require('./../../extensions/lead/mixins/lead_manager.js'),
+    BranchMixin = require('baobab-react/mixins').branch;
+
+var TemplateLayout = React.createClass({
+    mixins: [LeadManager, TemplateManager, BranchMixin],
+
+    cursors: {
+        allCustomFields: ['allCustomFields'],
+        recipient: ['recipient'],
+        templates: ['package', 'templates'], 
+        extensions: ['extensions']
+    },
 
     getInitialState: function() {
-        var templates = this.packageData.templates,
-            campus = this.props.query.campus;
-
         return {
-            campus: campus,
-            allCustomFields: {},
-            recipient: {},
-            templates: templates, 
-            template: templates[0],
+            campus: "Austin",
             templateLoading: "Downloading Package Data",
-            docUrl: false
+            templateIndex: 0,
+            docUrl: false,
+            docError: false
         }
     },
 
@@ -67,11 +71,12 @@ var LeadShowTemplate = React.createClass({
 
     handleTemplateInputChange: function(e) {
         var i = e.target.value;
-        var template = this.state.templates[i];
-        template.index = i;
-        console.log("cf", template.customFields);
+        //var template = this.state.templates[i];
+        //this.cursors.templates.set(i, template);
+        //template.index = i;
+        //this.cursors.template.set(this.cursors.templates.get(i));
         this.setState({
-            template: template 
+            templateIndex: i
         });
     },
 
@@ -108,10 +113,12 @@ var LeadShowTemplate = React.createClass({
 
 
     componentDidUpdate: function(prevProps, prevState) {
-        if (this.state.template && this.state.template.id != prevState.template.id) {
+        var template = this.state.templates[this.state.templateIndex];
+        var prevTemplate = prevState.templates[prevState.templateIndex];
+        if (template && template.id != prevTemplate.id) {
             var allCustomFields = _.extend(
                 this.state.allCustomFields, 
-                prevState.template.customFields
+                prevTemplate.customFields
             );
             this.setState({allCustomFields: allCustomFields});
             this.fetchTemplateAndSetState();
@@ -124,23 +131,24 @@ var LeadShowTemplate = React.createClass({
     },
 
     render: function() {
+                var template = this.state.templates[this.state.templateIndex]
         return (
             <div className="app-template-inner">
                 <div className="col-sm-3 left-div">
-                    <TemplateInput  packageName={this.packageData.name}
-                                    template={this.state.template}
+                    <TemplateBlock  packageName={this.packageData.name}
+                                    template={template}
                                     templates={this.state.templates} 
                                     templateLoading={this.state.templateLoading}
                                     onChange={this.handleTemplateInputChange} 
                                     onSubmit={this.handleTemplateInputSubmit}/>
-                    <LeadInputs onEmailChange={this.handleLeadEmailInputChange} 
-                                onNameChange={this.handleLeadNameInputChange} 
-                                recipient={this.state.recipient} />
-                    <LeadDocs   lead={this.state.lead} docs={this.state.docs} />
+                    <RecipientBlock onEmailChange={this.handleLeadEmailInputChange} 
+                                    onNameChange={this.handleLeadNameInputChange} 
+                                    recipient={this.state.recipient} />
+                    <LeadDocsBlock   lead={this.state.extensions.lead} docs={this.state.docs} />
                 </div>
                 <div className="col-sm-6 doc-form-div middle-div">
-                    <DocForm    template={this.state.template}
-                                customFields={this.state.template.customFields} 
+                    <DocForm    template={template}
+                                customFields={this.state.templates[this.state.templateIndex].customFields} 
                                 callCustomMethod={this.callCustomMethod}
                                 updateCustomField={this.updateCustomField} 
                                 removeCustomField={this.removeCustomField}
@@ -153,14 +161,14 @@ var LeadShowTemplate = React.createClass({
                                 onDocError={this.handleDocError}
                                 email={this.state.recipient.email}
                                 name={this.state.recipient.name}
-                                lead={this.state.lead} />
+                                lead={this.state.extensions.lead} />
                 </div>
                 <div className="col-sm-3 right-div">
-                    <LeadData   lead={this.state.lead} 
-                                leadPending={this.state.leadPending} 
-                                customFields={this.state.template.customFields}
-                                syncRemote={this.state.syncRemote}
-                                handleSync={this.handleSync} />
+                    <LeadDataBlock  lead={this.state.extensions.lead} 
+                                    leadPending={this.state.extensions.leadPending} 
+                                    customFields={this.state.templates[this.state.templateIndex].customFields}
+                                    syncRemote={this.state.syncRemote}
+                                    handleSync={this.handleSync} />
                 </div>
             </div>
         );
@@ -168,4 +176,4 @@ var LeadShowTemplate = React.createClass({
 
 });
 
-module.exports = LeadShowTemplate;
+module.exports = TemplateLayout;

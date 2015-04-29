@@ -12,7 +12,7 @@ var DocForm = React.createClass({
         return _.map(
             this.props.customFields, function (field, fieldName) {
                 return (
-                    <div>
+                    <div key={fieldName}>
                         {this.renderDocInputHeader(field)}
                         <DocInput field={field} 
                                   updateField={this.props.updateCustomField} 
@@ -46,13 +46,14 @@ var DocForm = React.createClass({
     },
 
     handleSubmit: function (e) {
+        var lead = this.props.lead || {};
         e.preventDefault();
         this.props.onLoading();
         $.post("/docs", {
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
             template_title: this.props.template.title,
-            leads_id: this.props.lead.LeadsID,
+            leads_id: lead.LeadsID,
             email: this.props.email,
             name: this.props.name,
             campus: this.props.campus

@@ -7,85 +7,108 @@ TemplateManager = {
     customMethods: EA_CUSTOM_METHODS,
 
     updateCustomField: function(fieldName, field) {
-        var template = _.extend(this.state.template, {}),
-            cf = template.customFields;
-        
-        cf[fieldName] = field;
-        template.customFields = cf;
-        this.setState({
-            template: template
-        });
+
+        this.cursors.templates.set([
+            this.state.templateIndex,
+            "customFields",
+            fieldName
+        ], field);
+
+        //this.cursors.templates.set(this.state.templateIndex, template)
+
         if (field.customMethod) field.customMethod(this);
-        this.updateLeadPending(fieldName, field.value)
+
+        // TODO: Decouple lead logic from template logic.
+        this.updateLeadPending(fieldName, field.value);
     },
 
     removeCustomField: function(fieldName) {
-        var template = _.extend(this.state.template, {}),
+        var template = this.cursors.templates.get(this.state.templateIndex),
             cf = template.customFields,
             omitted = _.omit(cf, fieldName);
 
         template.customFields = omitted;
-        this.setState({
-            template: template
-        });
+        this.cursors.templates.set(this.state.templateIndex, template);
+        //this.setState({
+        //template: template
+        //});
     },
 
-    setCustomFields: function(data) {
-        var lead = this.state.lead,
+    setCustomFields: function(template, callback) {
+        var lead = this.state.extensions.lead || {},
+            template = _.extend(template),
             customFields = this.state.allCustomFields,
             config = this.packageData.config,
             customMethods = this.customMethods,
             fields = {};
 
-        _.each(data.custom_fields, function(field, name) {
-            var fieldValue;
-            var header = config.headers[field.name]
+        async.each(
+            _.keys(template.customFields),
+            function(name, callback) {
+                var fieldValue,
+                    field = template.customFields[name],
+                    header = config.headers[field.name];
 
-            field.header = header;
+                field.header = header;
 
-            if (customFields[name]) {
-                fieldValue = customFields[name].value || lead[name];
-            } else {
-                fieldValue = lead[name];
-            };
+                // TODO: decouple lead logic from template.
+                if (customFields[name]) {
+                    fieldValue = customFields[name].value || lead[name];
+                } else {
+                    fieldValue = lead[name];
+                };
 
-            fields[name] = _.extend(field, {
-                value: fieldValue
-            });
+                fields[name] = _.extend(field, {
+                    value: fieldValue
+                });
 
-            if (config.customOptions[name]) {
-                fields[name].options = config.customOptions[name];
-            };
-            if (customMethods[name]) {
-                fields[name].customMethod = customMethods[name];
-            };
-            if (config.customTypes[name]) {
-                fields[name].type = config.customTypes[name]
-            };
-            if (_.include(config.disabledFields, name)) {
-                fields[name].disabled = true;
-            };
+                if (config.customOptions[name]) {
+                    fields[name].options = config.customOptions[name];
+                };
+                if (config.customTypes[name]) {
+                    fields[name].type = config.customTypes[name]
+                };
+                if (_.include(config.disabledFields, name)) {
+                    fields[name].disabled = true;
+                };
 
-            return field;
-        });
+                if (customMethods[name]) {
+                    fields[name].customMethod = customMethods[name];
+                };
 
-        return fields;
+                callback(null);
+            },
+            function(err) {
+                template.customFields = fields;
+                callback(err, template);
+            }.bind(this)
+        );
+    },
+
+    currentTemplate: function() {
+        cursors = this.cursors;
+        var i = this.state.templateIndex;
+        console.log("template index", this.state.templateIndex)
+        return this.cursors.templates.get(i);
     },
 
     fetchTemplate: function(callback) {
-        var self = this;
-        var template = _.extend(this.state.template, {}),
+        var self = this,
+            template = this.currentTemplate(),
             campus = this.state.campus;
-        
+        console.log("we got a template", template)
+
+        this.setLoading("Loading Template");
+
         // Use cached customFIelds:
         if (template.customFields) {
-            template.customFields = self.setCustomFields(template);
             return callback(null, template);
         };
 
-        return $.get('/templates/' + template.id, {campus: campus}, function(data) {
-            data.customFields = self.setCustomFields(data);
-            var data = _.extend(data, template);
+        return $.get('/templates/' + template.id, {
+            campus: campus
+        }, function(data) {
+            data.customFields = data.custom_fields;
             return callback(null, data);
         });
     },
@@ -94,21 +117,29 @@ TemplateManager = {
         this.fetchTemplateAndSetState();
     },
 
+    setStateFromTemplate: function(template, callback) {
+        console.log("Setting template", template)
+        this.cursors.templates.set(this.state.templateIndex, template)
+        callback(null, template);
+    },
+
     fetchTemplateAndSetState: function() {
-        this.setLoading("Loading Template")
         async.waterfall([
             this.fetchTemplate,
-            function(template) {
-                var templates = _.extend(this.state.templates);
-                templates[template.index] = template;
+            this.setCustomFields,
+            this.setStateFromTemplate
+        ], function(err, data) {
+            if (err) {
                 this.setState({
-                    template: template,
-                    templates: templates,
+                    docError: err
+                });
+            } else {
+                this.setState({
                     templateLoading: false,
                     docUrl: false
                 });
-            }.bind(this)
-        ])
+            };
+        }.bind(this));
     }
 
 };
