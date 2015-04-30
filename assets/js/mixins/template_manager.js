@@ -86,9 +86,7 @@ TemplateManager = {
     },
 
     currentTemplate: function() {
-        cursors = this.cursors;
         var i = this.state.templateIndex;
-        console.log("template index", this.state.templateIndex)
         return this.cursors.templates.get(i);
     },
 
@@ -113,9 +111,9 @@ TemplateManager = {
         });
     },
 
-    componentWillMount: function() {
-        this.fetchTemplateAndSetState();
-    },
+    //componentWillMount: function() {
+        //this.fetchTemplateAndSetState();
+    //},
 
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)

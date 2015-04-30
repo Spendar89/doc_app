@@ -6,15 +6,8 @@ async = require('async');
 var Baobab = require('baobab'),
     RootMixin = require('baobab-react/mixins').root;
 
-//var LeadIndexLayout = require('./extensions/lead/components/index/layout.jsx');
 var TemplateLayout = require('./components/template/layout.jsx');
 var EA_PACKAGE_DATA = require('./lib/packages/ea_package/package_data.json');
-
-//var Router = require('react-router'); // or var Router = ReactRouter; in browsers
-//var DefaultRoute = Router.DefaultRoute;
-//var Link = Router.Link;
-//var Route = Router.Route;
-//var RouteHandler = Router.RouteHandler;
 
 var tree = new Baobab({
     package: EA_PACKAGE_DATA,
@@ -26,45 +19,20 @@ var tree = new Baobab({
 var App = React.createClass({displayName: "App",
     mixins: [RootMixin],
 
+
+
     render: function () {
         return (
             React.createElement("div", null, 
-                React.createElement("header", null
-                ), 
-                React.createElement("nav", {className: "navbar navbar-default navbar-fixed-top"}, 
-                    React.createElement("div", {className: "container-fluid"}, 
-                        React.createElement("div", {className: "navbar-header"}, 
-                            React.createElement("a", {className: "navbar-brand", href: "#"}, 
-                                React.createElement("img", {alt: "Brand", src: "/images/sci-logo.png"})
-                            )
-                        ), 
-                        React.createElement("h4", {className: "pull-right"}, "SCI Document Manager")
-                    )
-                ), 
                 React.createElement("div", {className: "app-template-div container-fluid"}, 
                     React.createElement(TemplateLayout, {params: {leadId: "1409446"}, query: {campus: "Austin"}})
-                    /* <RouteHandler {...this.props}/> */ 
                 )
             )
         );
     }
 });
 
-/*
-    var routes = (
-        <Route name="app" path="/" handler={App}>
-            <DefaultRoute handler={LeadIndexLayout} />
-            <Route name="leads" handler={LeadIndexLayout}/>
-            <Route name="lead" path="/leads/:leadId" handler={TemplateLayout}/>
-        </Route>
-    );
-*/
-
 React.render(React.createElement(App, {tree: tree}), document.body);
-
-//Router.run(routes, function (Handler, state) {
-    //React.render(<Handler params={state.params} query={state.query}/>, document.body);
-//});
 
 
 },{"./components/template/layout.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/layout.jsx","./lib/packages/ea_package/package_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","baobab":"/Users/jakesendar/doc_app/node_modules/baobab/index.js","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js","lodash":"/Users/jakesendar/doc_app/node_modules/lodash/index.js","react":"/Users/jakesendar/doc_app/node_modules/react/react.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx":[function(require,module,exports){
@@ -380,6 +348,7 @@ var TemplateBlock = require('./template_block.jsx'),
 
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
+    LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
     LeadManager = require('./../../extensions/lead/mixins/lead_manager.js'),
     BranchMixin = require('baobab-react/mixins').branch;
 
@@ -505,45 +474,77 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         }
     },
 
+    handleLeadsSearch: function(leads) {
+        this.setState({
+            leads: leads,
+            searching: false
+        });
+    },
+
+    handleLeadsResult: function(lead) {
+        this.setState({
+            leadId: lead.id,
+            campus: lead["college/campus_of_interest"]
+        })
+    },
+
     render: function() {
                 var template = this.state.templates[this.state.templateIndex]
         return (
-            React.createElement("div", {className: "app-template-inner"}, 
-                React.createElement("div", {className: "col-sm-3 left-div"}, 
-                    React.createElement(TemplateBlock, {packageName: this.packageData.name, 
-                                    template: template, 
-                                    templates: this.state.templates, 
-                                    templateLoading: this.state.templateLoading, 
-                                    onChange: this.handleTemplateInputChange, 
-                                    onSubmit: this.handleTemplateInputSubmit}), 
-                    React.createElement(RecipientBlock, {onEmailChange: this.handleLeadEmailInputChange, 
-                                    onNameChange: this.handleLeadNameInputChange, 
-                                    recipient: this.state.recipient}), 
-                    React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, docs: this.state.docs})
+            React.createElement("div", {className: "template-layout"}, 
+                React.createElement("nav", {className: "navbar navbar-default navbar-fixed-top"}, 
+                    React.createElement("div", {className: "container-fluid"}, 
+                        React.createElement("div", {className: "navbar-header"}, 
+                            React.createElement("a", {className: "navbar-brand", href: "#"}, 
+                                React.createElement("img", {alt: "Brand", src: "/images/sci-logo.png"})
+                            ), 
+                            React.createElement("h5", {className: "pull-left"}, "SCI Document Manager")
+                        ), 
+                        React.createElement("div", {id: "navbar", className: "navbar-collapse collapse"}, 
+                            React.createElement("ul", {className: "nav navbar-nav navbar-right"}, 
+                                React.createElement(LeadsSearchBlock, {onLeadsResult: this.handleLeadsResult, handleLeadsSearch: this.handleLeadsSearch})
+                            )
+                        )
+                    )
                 ), 
-                React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
-                    React.createElement(DocForm, {template: template, 
-                                customFields: this.state.templates[this.state.templateIndex].customFields, 
-                                callCustomMethod: this.callCustomMethod, 
-                                updateCustomField: this.updateCustomField, 
-                                removeCustomField: this.removeCustomField, 
-                                campus: this.state.campus, 
-                                docUrl: this.state.docUrl, 
-                                templateLoading: this.state.templateLoading, 
-                                onLoading: this.handleFormSubmitLoading, 
-                                onComplete: this.handleFormComplete, 
-                                docError: this.state.docError, 
-                                onDocError: this.handleDocError, 
-                                email: this.state.recipient.email, 
-                                name: this.state.recipient.name, 
-                                lead: this.state.extensions.lead})
-                ), 
-                React.createElement("div", {className: "col-sm-3 right-div"}, 
-                    React.createElement(LeadDataBlock, {lead: this.state.extensions.lead, 
-                                    leadPending: this.state.extensions.leadPending, 
-                                    customFields: this.state.templates[this.state.templateIndex].customFields, 
-                                    syncRemote: this.state.syncRemote, 
-                                    handleSync: this.handleSync})
+                React.createElement("div", {className: "app-template-inner"}, 
+                    React.createElement("div", {className: "col-sm-3 left-div"}, 
+                        React.createElement(TemplateBlock, {packageName: this.packageData.name, 
+                            template: template, 
+                            templates: this.state.templates, 
+                            templateLoading: this.state.templateLoading, 
+                            onChange: this.handleTemplateInputChange, 
+                            onSubmit: this.handleTemplateInputSubmit}), 
+                        React.createElement(RecipientBlock, {onEmailChange: this.handleLeadEmailInputChange, 
+                            onNameChange: this.handleLeadNameInputChange, 
+                            recipient: this.state.recipient}), 
+                        React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
+                            docs: this.state.docs})
+                    ), 
+                    React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
+                        React.createElement(DocForm, {template: template, 
+                            customFields: this.state.templates[this.state.templateIndex].customFields, 
+                            callCustomMethod: this.callCustomMethod, 
+                            updateCustomField: this.updateCustomField, 
+                            removeCustomField: this.removeCustomField, 
+                            campus: this.state.campus, 
+                            docUrl: this.state.docUrl, 
+                            templateLoading: this.state.templateLoading, 
+                            onLoading: this.handleFormSubmitLoading, 
+                            onComplete: this.handleFormComplete, 
+                            docError: this.state.docError, 
+                            onDocError: this.handleDocError, 
+                            email: this.state.recipient.email, 
+                            name: this.state.recipient.name, 
+                            lead: this.state.extensions.lead})
+                    ), 
+                    React.createElement("div", {className: "col-sm-3 right-div"}, 
+                        React.createElement(LeadDataBlock, {lead: this.state.extensions.lead, 
+                            leadPending: this.state.extensions.leadPending, 
+                            customFields: this.state.templates[this.state.templateIndex].customFields, 
+                            syncRemote: this.state.syncRemote, 
+                            handleSync: this.handleSync})
+                    )
                 )
             )
         );
@@ -554,7 +555,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 module.exports = TemplateLayout;
 
 
-},{"./../../extensions/lead/components/lead_data_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_data_block.jsx","./../../extensions/lead/components/lead_docs_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_docs_block.jsx","./../../extensions/lead/mixins/lead_manager.js":"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js","./../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx","./recipient_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx","./template_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/template_block.jsx","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx":[function(require,module,exports){
+},{"./../../extensions/lead/components/lead_data_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_data_block.jsx","./../../extensions/lead/components/lead_docs_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_docs_block.jsx","./../../extensions/lead/components/leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_block.jsx","./../../extensions/lead/mixins/lead_manager.js":"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js","./../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx","./recipient_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx","./template_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/template_block.jsx","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx":[function(require,module,exports){
 var LeadInputs = React.createClass({displayName: "LeadInputs",
 
     render: function () {
@@ -747,6 +748,168 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
 module.exports = LeadDocsBlock;
 
 
+},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_block.jsx":[function(require,module,exports){
+var LeadsSearchInput = require('./leads_search_input.jsx');
+var LeadsSearchResults = require('./leads_search_results.jsx');
+
+var fetchLeads = function (phone, isEmail, callback) {
+    var url;
+    if (isEmail) {
+        url = '/leads?email='
+    } else {
+        url = '/leads?phone='
+    }
+    return $.get(url + phone, function (data) {
+        return callback(data)
+    });
+};
+
+var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
+
+    getInitialState: function () {
+        return {
+            searching: false,
+            leads: []
+        }
+    },
+
+    handleSearchSubmit: function (phone, isEmail) {
+        this.setState({searching: true, leads: []});
+        fetchLeads(phone, isEmail, function (data) {
+            this.setState({
+                leads: data
+            });
+        }.bind(this)); 
+    },
+
+    handleLeadsResult: function(lead) {
+        this.props.onLeadsResult(lead);
+        this.setState({
+            leads: []
+        });
+    },
+
+    render: function() {
+        return (
+            React.createElement("li", {className: "leads-search-block dropdown open"}, 
+                React.createElement(LeadsSearchInput, {handleSubmit: this.handleSearchSubmit}), 
+                React.createElement(LeadsSearchResults, {onLeadsResult: this.handleLeadsResult, leads: this.state.leads})
+            )
+        )
+
+    }
+
+});
+
+module.exports = LeadsSearchBlock;
+
+
+
+},{"./leads_search_input.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_input.jsx","./leads_search_results.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_results.jsx"}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_input.jsx":[function(require,module,exports){
+var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
+    getInitialState: function () {
+        return {
+            input: "",
+            isEmail: false,
+            isValid: false
+        }
+    },
+
+    handleChange: function (e) {
+        e.preventDefault();
+        var input = e.target.value;
+        var isEmail = this.handleEmailValidation(input) ? true : false;
+        var isPhone = this.handlePhoneValidation(input) ? true : false;
+        var isValid = (isEmail || isPhone)  ? true : false;
+        this.setState({input: input, isValid: isValid, isEmail: isEmail});
+    },
+
+    handleEmailValidation: function (input) {
+        var emailReg = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        return input.match(emailReg);
+    },
+
+    handlePhoneValidation: function (input) {
+        var phoneReg = /(\+*\d{1,})*([ |\( ])*(\d{3})[^\d]*(\d{3})[^\d]*(\d{4})/;
+        return input.match(phoneReg);
+    },
+
+    handleClick: function (e) {
+        e.preventDefault();
+        this.props.handleSubmit(this.state.input, this.state.isEmail);
+    },
+
+    render: function() {
+        return (
+            React.createElement("form", {className: "navbar-form navbar-right", role: "search"}, 
+                React.createElement("div", {className: "form-group"}, 
+                    React.createElement("input", {onChange: this.handleChange, 
+                            type: "tel", 
+                            className: "form-control", 
+                            placeholder: "Search For Leads by Email or Phone Number"})
+                ), 
+                React.createElement("button", {className: "btn btn-default", 
+                        disabled: !this.state.isValid, 
+                        onClick: this.handleClick}, 
+                    "Search"
+                )
+            )
+        );
+
+    }
+
+});
+
+module.exports = LeadsSearchBlock;
+
+
+},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_results.jsx":[function(require,module,exports){
+var LeadsSearchResults = React.createClass({displayName: "LeadsSearchResults",
+
+    handleClick: function(lead) {
+        //window.location.href = "#/leads/" + lead.id + "?campus=" + lead["college/campus_of_interest"];
+this.props.onLeadsResult(lead);
+    },
+
+    renderLeads: function () {
+       return this.props.leads.map(function (lead, i) {
+           return (
+               React.createElement("li", {key: i}, 
+                   React.createElement("a", {className: "col-sm-12 lead-results-row", onClick: this.handleClick.bind(this, lead)}, 
+                       React.createElement("div", {className: "col-sm-6 lead-results-field-value"}, lead.first_name, " ", lead.last_name), 
+                       React.createElement("div", {className: "col-sm-6 lead-results-field-value"}, lead["college/campus_of_interest"])
+                   )
+               )
+           )
+        }, this)
+    },
+
+
+    render: function () {
+
+        var getTableStyle = function () {
+            var display = this.props.leads.length > 0
+                ? "block"
+                : "none";
+
+            return {
+                display: display 
+            };
+        }.bind(this);
+
+        return (
+            React.createElement("ul", {className: "dropdown-menu", style: getTableStyle()}, 
+                this.renderLeads()
+            )
+        )
+
+    }
+
+})
+
+module.exports = LeadsSearchResults;
+
+
 },{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js":[function(require,module,exports){
 var request = require('superagent');
 
@@ -775,6 +938,7 @@ var fetchLeadDocs = function(lead, callback) {
 };
 
 var fetchLeadAndSetState = function() {
+    if (!this.state.leadId) return this.fetchTemplateAndSetState();
     async.waterfall([
             fetchLead.bind(this),
             setStateFromLead.bind(this),
@@ -787,9 +951,10 @@ var fetchLeadAndSetState = function() {
                     docError: err.response.body
                 });
             };
-            this.currentTemplate().customFields
-                ? this.setLoading(false)
-                : this.setLoading("Loading Template");
+            this.fetchTemplateAndSetState();
+            //this.currentTemplate().customFields
+                //? this.setLoading(false)
+                //: this.setLoading("Loading Template");
         }.bind(this));
 };
 
@@ -816,7 +981,7 @@ var setStateFromLead = function(lead, callback) {
 };
 
 var fetchLead = function(callback) {
-    var leadId = this.props.params.leadId,
+    var leadId = this.state.leadId,
         path = '/leads/' + leadId,
         campus = this.state.campus;
 
@@ -867,6 +1032,7 @@ var syncLeadAndSetState = function() {
 var LeadManager = {
     getInitialState: function() {
         return {
+            leadId: "1409446",
             syncRemote: true
         };
     },
@@ -879,6 +1045,7 @@ var LeadManager = {
         var shouldSync = (!prevState.docUrl && this.state.docUrl &&
             this.state.syncRemote && _.any(this.state.extensions.leadPending));
         if (shouldSync) syncLeadAndSetState.call(this);
+        if (this.state.leadId != prevState.leadId) fetchLeadAndSetState.call(this);
     },
 
     updateLeadPending: function(key, value) {
@@ -892,7 +1059,7 @@ module.exports = LeadManager;
 
 
 },{"superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1365,7 +1532,8 @@ PROGRAM_DATA = require('./custom_data.json').packages;
 
 var CustomMethods = {
     "Program": function(form) {
-        var customFields = form.state.template.customFields;
+        var template = form.currentTemplate();
+        var customFields = template.customFields;
         var program = customFields.Program.value;
 
         if (!program) return false;
@@ -1374,6 +1542,7 @@ var CustomMethods = {
         var startField = _.extend(customFields["StartDate"], {});
 
         $.get('/terms', {
+                campus: form.state.campus,
                 program_description: program
             },
             function(data) {
@@ -1386,7 +1555,7 @@ var CustomMethods = {
                         startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
                         startField.disabled = false;
                         form.updateCustomField("StartDate", startField);
-                        form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
+                        form.updateLeadPending("ProgramNo", term["ProgramNo"]);
                     }
                 );
 
@@ -1418,7 +1587,8 @@ var CustomMethods = {
     },
 
     "StartDate": function(form, force) {
-        var customFields = form.state.template.customFields;
+        var template = form.currentTemplate();
+        var customFields = template.customFields;
         var program = customFields.Program.value,
             startDate = customFields.StartDate.value,
             terms = PROGRAM_DATA[program]["terms"];
@@ -1432,7 +1602,7 @@ var CustomMethods = {
         var gradField = _.extend(customFields["GradDate"], {});
 
         gradField.value = new Date(term["TermEndDate"]);
-        form.updateLeadUpdate("TermID", term["TermID"]);
+        form.updateLeadPending("TermID", term["TermID"]);
         form.updateCustomField("GradDate", gradField);
     },
 
@@ -1447,7 +1617,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
@@ -1619,9 +1789,7 @@ TemplateManager = {
     },
 
     currentTemplate: function() {
-        cursors = this.cursors;
         var i = this.state.templateIndex;
-        console.log("template index", this.state.templateIndex)
         return this.cursors.templates.get(i);
     },
 
@@ -1646,9 +1814,9 @@ TemplateManager = {
         });
     },
 
-    componentWillMount: function() {
-        this.fetchTemplateAndSetState();
-    },
+    //componentWillMount: function() {
+        //this.fetchTemplateAndSetState();
+    //},
 
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)

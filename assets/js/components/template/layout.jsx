@@ -5,6 +5,7 @@ var TemplateBlock = require('./template_block.jsx'),
 
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
+    LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
     LeadManager = require('./../../extensions/lead/mixins/lead_manager.js'),
     BranchMixin = require('baobab-react/mixins').branch;
 
@@ -130,45 +131,77 @@ var TemplateLayout = React.createClass({
         }
     },
 
+    handleLeadsSearch: function(leads) {
+        this.setState({
+            leads: leads,
+            searching: false
+        });
+    },
+
+    handleLeadsResult: function(lead) {
+        this.setState({
+            leadId: lead.id,
+            campus: lead["college/campus_of_interest"]
+        })
+    },
+
     render: function() {
                 var template = this.state.templates[this.state.templateIndex]
         return (
-            <div className="app-template-inner">
-                <div className="col-sm-3 left-div">
-                    <TemplateBlock  packageName={this.packageData.name}
-                                    template={template}
-                                    templates={this.state.templates} 
-                                    templateLoading={this.state.templateLoading}
-                                    onChange={this.handleTemplateInputChange} 
-                                    onSubmit={this.handleTemplateInputSubmit}/>
-                    <RecipientBlock onEmailChange={this.handleLeadEmailInputChange} 
-                                    onNameChange={this.handleLeadNameInputChange} 
-                                    recipient={this.state.recipient} />
-                    <LeadDocsBlock   lead={this.state.extensions.lead} docs={this.state.docs} />
-                </div>
-                <div className="col-sm-6 doc-form-div middle-div">
-                    <DocForm    template={template}
-                                customFields={this.state.templates[this.state.templateIndex].customFields} 
-                                callCustomMethod={this.callCustomMethod}
-                                updateCustomField={this.updateCustomField} 
-                                removeCustomField={this.removeCustomField}
-                                campus={this.state.campus}
-                                docUrl={this.state.docUrl}
-                                templateLoading={this.state.templateLoading}
-                                onLoading={this.handleFormSubmitLoading}
-                                onComplete={this.handleFormComplete}
-                                docError={this.state.docError}
-                                onDocError={this.handleDocError}
-                                email={this.state.recipient.email}
-                                name={this.state.recipient.name}
-                                lead={this.state.extensions.lead} />
-                </div>
-                <div className="col-sm-3 right-div">
-                    <LeadDataBlock  lead={this.state.extensions.lead} 
-                                    leadPending={this.state.extensions.leadPending} 
-                                    customFields={this.state.templates[this.state.templateIndex].customFields}
-                                    syncRemote={this.state.syncRemote}
-                                    handleSync={this.handleSync} />
+            <div className="template-layout">
+                <nav className="navbar navbar-default navbar-fixed-top">
+                    <div className="container-fluid">
+                        <div className="navbar-header">
+                            <a className="navbar-brand" href="#">
+                                <img alt="Brand" src="/images/sci-logo.png"/>
+                            </a>
+                            <h5 className="pull-left">SCI Document Manager</h5>
+                        </div>
+                        <div id="navbar" className="navbar-collapse collapse">
+                            <ul className="nav navbar-nav navbar-right">
+                                <LeadsSearchBlock onLeadsResult={this.handleLeadsResult} handleLeadsSearch={this.handleLeadsSearch}/>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                <div className="app-template-inner">
+                    <div className="col-sm-3 left-div">
+                        <TemplateBlock  packageName={this.packageData.name}
+                            template={template}
+                            templates={this.state.templates} 
+                            templateLoading={this.state.templateLoading}
+                            onChange={this.handleTemplateInputChange} 
+                            onSubmit={this.handleTemplateInputSubmit}/>
+                        <RecipientBlock onEmailChange={this.handleLeadEmailInputChange} 
+                            onNameChange={this.handleLeadNameInputChange} 
+                            recipient={this.state.recipient} />
+                        <LeadDocsBlock  lead={this.state.extensions.lead} 
+                            docs={this.state.docs} />
+                    </div>
+                    <div className="col-sm-6 doc-form-div middle-div">
+                        <DocForm    template={template}
+                            customFields={this.state.templates[this.state.templateIndex].customFields} 
+                            callCustomMethod={this.callCustomMethod}
+                            updateCustomField={this.updateCustomField} 
+                            removeCustomField={this.removeCustomField}
+                            campus={this.state.campus}
+                            docUrl={this.state.docUrl}
+                            templateLoading={this.state.templateLoading}
+                            onLoading={this.handleFormSubmitLoading}
+                            onComplete={this.handleFormComplete}
+                            docError={this.state.docError}
+                            onDocError={this.handleDocError}
+                            email={this.state.recipient.email}
+                            name={this.state.recipient.name}
+                            lead={this.state.extensions.lead} />
+                    </div>
+                    <div className="col-sm-3 right-div">
+                        <LeadDataBlock  lead={this.state.extensions.lead} 
+                            leadPending={this.state.extensions.leadPending} 
+                            customFields={this.state.templates[this.state.templateIndex].customFields}
+                            syncRemote={this.state.syncRemote}
+                            handleSync={this.handleSync} />
+                    </div>
                 </div>
             </div>
         );

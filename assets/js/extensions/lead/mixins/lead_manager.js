@@ -25,6 +25,7 @@ var fetchLeadDocs = function(lead, callback) {
 };
 
 var fetchLeadAndSetState = function() {
+    if (!this.state.leadId) return this.fetchTemplateAndSetState();
     async.waterfall([
             fetchLead.bind(this),
             setStateFromLead.bind(this),
@@ -37,9 +38,10 @@ var fetchLeadAndSetState = function() {
                     docError: err.response.body
                 });
             };
-            this.currentTemplate().customFields
-                ? this.setLoading(false)
-                : this.setLoading("Loading Template");
+            this.fetchTemplateAndSetState();
+            //this.currentTemplate().customFields
+                //? this.setLoading(false)
+                //: this.setLoading("Loading Template");
         }.bind(this));
 };
 
@@ -66,7 +68,7 @@ var setStateFromLead = function(lead, callback) {
 };
 
 var fetchLead = function(callback) {
-    var leadId = this.props.params.leadId,
+    var leadId = this.state.leadId,
         path = '/leads/' + leadId,
         campus = this.state.campus;
 
@@ -117,6 +119,7 @@ var syncLeadAndSetState = function() {
 var LeadManager = {
     getInitialState: function() {
         return {
+            leadId: "1409446",
             syncRemote: true
         };
     },
@@ -129,6 +132,7 @@ var LeadManager = {
         var shouldSync = (!prevState.docUrl && this.state.docUrl &&
             this.state.syncRemote && _.any(this.state.extensions.leadPending));
         if (shouldSync) syncLeadAndSetState.call(this);
+        if (this.state.leadId != prevState.leadId) fetchLeadAndSetState.call(this);
     },
 
     updateLeadPending: function(key, value) {

@@ -33,19 +33,19 @@ var LeadsSearchBlock = React.createClass({
 
     render: function() {
         return (
-            <div className="leads-search-block form-group row col-sm-12">
-                <div className="col-sm-8">
-                    <input  onChange={this.handleChange} 
-                            className="lead-block-input form-control" 
-                            type="tel" />
+            <form className="navbar-form navbar-right" role="search">
+                <div className="form-group">
+                    <input  onChange={this.handleChange}  
+                            type="tel" 
+                            className="form-control" 
+                            placeholder="Search For Leads by Email or Phone Number"/>
                 </div>
-                <div className="col-sm-4">
-                    <input  type="submit"
-                            disabled={!this.state.isValid}
-                            onClick={this.handleClick} 
-                            className="btn btn-submit col-sm-12" />
-                </div>
-            </div>
+                <button className="btn btn-default"
+                        disabled={!this.state.isValid}
+                        onClick={this.handleClick} >
+                    Search
+                </button>
+            </form>
         );
 
     }

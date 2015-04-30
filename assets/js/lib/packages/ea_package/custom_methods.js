@@ -2,7 +2,8 @@ PROGRAM_DATA = require('./custom_data.json').packages;
 
 var CustomMethods = {
     "Program": function(form) {
-        var customFields = form.state.template.customFields;
+        var template = form.currentTemplate();
+        var customFields = template.customFields;
         var program = customFields.Program.value;
 
         if (!program) return false;
@@ -11,6 +12,7 @@ var CustomMethods = {
         var startField = _.extend(customFields["StartDate"], {});
 
         $.get('/terms', {
+                campus: form.state.campus,
                 program_description: program
             },
             function(data) {
@@ -23,7 +25,7 @@ var CustomMethods = {
                         startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
                         startField.disabled = false;
                         form.updateCustomField("StartDate", startField);
-                        form.updateLeadUpdate("ProgramNo", term["ProgramNo"]);
+                        form.updateLeadPending("ProgramNo", term["ProgramNo"]);
                     }
                 );
 
@@ -55,7 +57,8 @@ var CustomMethods = {
     },
 
     "StartDate": function(form, force) {
-        var customFields = form.state.template.customFields;
+        var template = form.currentTemplate();
+        var customFields = template.customFields;
         var program = customFields.Program.value,
             startDate = customFields.StartDate.value,
             terms = PROGRAM_DATA[program]["terms"];
@@ -69,7 +72,7 @@ var CustomMethods = {
         var gradField = _.extend(customFields["GradDate"], {});
 
         gradField.value = new Date(term["TermEndDate"]);
-        form.updateLeadUpdate("TermID", term["TermID"]);
+        form.updateLeadPending("TermID", term["TermID"]);
         form.updateCustomField("GradDate", gradField);
     },
 
