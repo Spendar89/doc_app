@@ -74,13 +74,8 @@ var CustomMethods = {
         gradField.value = new Date(term["TermEndDate"]);
         form.updateLeadPending("TermID", term["TermID"]);
         form.updateCustomField("GradDate", gradField);
-    },
-
-    "Email": function(form) {
-        var customFields = form.state.template.customFields;
-        var emailField = customFields.Email;
-        emailField.type = "email";
     }
+
 }
 
 module.exports = CustomMethods;

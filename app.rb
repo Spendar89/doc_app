@@ -108,10 +108,11 @@ end
 put '/leads/:id' do
   content_type :json
   if params[:lead]
-    d = Diamond.new(params[:campus])
+    @diamond = Diamond.new(params[:campus])
     lead = params[:lead]
+    puts "LEAD: #{lead}"
     lead[:StatusCode] = "Pending FA"
-    lead_data = d.update_lead params[:id], lead
+    lead_data = @diamond.update_lead params[:id], lead
     return lead_data.to_json
   end
 end

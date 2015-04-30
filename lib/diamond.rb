@@ -20,9 +20,9 @@ class Diamond
       TinyTds::Client.new(
         username: 'sci\\' + ENV['DIAMOND_USERNAME'],
         password: ENV['DIAMOND_PASSWORD'],
-        host: ENV['DIAMOND_HOST'],
+        host: ENV['DIAMOND_HOST']
         #host: '10.10.17.7',
-        login_timeout: 30
+        #login_timeout: 30
       )
     rescue Exception => e
       @errors.push({

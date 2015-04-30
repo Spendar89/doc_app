@@ -38,10 +38,10 @@ var fetchLeadAndSetState = function() {
                     docError: err.response.body
                 });
             };
-            this.fetchTemplateAndSetState();
-            //this.currentTemplate().customFields
-                //? this.setLoading(false)
-                //: this.setLoading("Loading Template");
+
+            this.state.docUrl
+                ? this.setLoading(false)
+                : this.fetchTemplateAndSetState();
         }.bind(this));
 };
 
@@ -85,8 +85,8 @@ var fetchLead = function(callback) {
 };
 
 var syncLead = function(callback) {
-    var leadId = this.state.lead["LeadsID"],
-        lead = this.state.lead,
+    var leadId = this.state.extensions.lead["LeadsID"],
+        lead = this.state.extensions.leadPending,
         path = "/leads/" + leadId,
         campus = this.state.campus;
 
