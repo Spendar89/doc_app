@@ -110,7 +110,6 @@ put '/leads/:id' do
   if params[:lead]
     @diamond = Diamond.new(params[:campus])
     lead = params[:lead]
-    puts "LEAD: #{lead}"
     lead[:StatusCode] = "Pending FA"
     lead_data = @diamond.update_lead params[:id], lead
     return lead_data.to_json
