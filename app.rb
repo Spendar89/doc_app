@@ -1,11 +1,12 @@
 require 'uri'
 require 'rubygems'
-require 'sinatra'
 require './lib/doc_maker'
 require './models/document'
 require './lib/velocify'
 require './lib/diamond'
+require './lib/helpers'
 require 'json'
+
 
 set :root, File.dirname(__FILE__)
 
@@ -107,11 +108,13 @@ end
 
 put '/leads/:id' do
   content_type :json
+  request.logger.info "Lead: #{params[:lead]}".yellow
   if params[:lead]
     @diamond = Diamond.new(params[:campus])
     lead = params[:lead]
     lead[:StatusCode] = "Pending FA"
     lead_data = @diamond.update_lead params[:id], lead
+    request.logger.info "LEAD DATA: #{lead_data}".yellow
     return lead_data.to_json
   end
 end

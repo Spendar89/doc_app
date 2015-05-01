@@ -8,5 +8,10 @@ gem 'sinatra-contrib'
 gem 'compass'
 gem 'savon', '~> 2.8.0'
 gem 'tiny_tds'
-gem 'dotenv'
 gem 'thin'
+gem 'rack-parser', :require => 'rack/parser'
+
+group :development do
+  gem 'colorize'
+  gem 'dotenv'
+end

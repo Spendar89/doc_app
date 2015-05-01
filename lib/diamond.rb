@@ -1,4 +1,5 @@
 require 'tiny_tds'
+
 class Diamond
   attr_accessor :client, :errors
 
@@ -25,7 +26,7 @@ class Diamond
         login_timeout: 10
       )
     rescue Exception => e
-      puts e
+      puts e.red
       @errors.push({
         message: "Unable to Connect to Diamond Database Server", 
         type: "Timeout Error"
@@ -51,8 +52,7 @@ class Diamond
     @client.execute(
       "UPDATE [#{@db_name}].dbo.lead 
       SET #{l} 
-      WHERE LeadsID = '#{id}'")
-    .do
+      WHERE LeadsID = '#{id}'").do
   end
 
   def get_lead_documents(lead_id)
