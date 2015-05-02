@@ -35,3 +35,5 @@ build/
 .powenv
 .env
 /node_modules/
+/log/
+/.sass-cache/
