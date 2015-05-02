@@ -1080,7 +1080,7 @@ module.exports = LeadManager;
 
 }).call(this,require('_process'))
 },{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1633,7 +1633,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
@@ -1830,9 +1830,9 @@ TemplateManager = {
         });
     },
 
-    //componentWillMount: function() {
-        //this.fetchTemplateAndSetState();
-    //},
+    componentDidMount: function() {
+        this.fetchTemplateAndSetState();
+    },
 
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)

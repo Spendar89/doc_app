@@ -111,9 +111,9 @@ TemplateManager = {
         });
     },
 
-    //componentWillMount: function() {
-        //this.fetchTemplateAndSetState();
-    //},
+    componentDidMount: function() {
+        this.fetchTemplateAndSetState();
+    },
 
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)
