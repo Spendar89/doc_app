@@ -72,31 +72,19 @@ var TemplateLayout = React.createClass({
 
     handleTemplateInputChange: function(e) {
         var i = e.target.value;
-        //var template = this.state.templates[i];
-        //this.cursors.templates.set(i, template);
-        //template.index = i;
-        //this.cursors.template.set(this.cursors.templates.get(i));
         this.setState({
             templateIndex: i
         });
     },
 
     handleLeadEmailInputChange: function(e) {
-        var recipient = _.extend(this.state.recipient, {
-            email: e.target.value
-        });
-        this.setState({
-            recipient: recipient
-        });
+        var email = e.target.value;
+        this.cursors.recipient.set('email', email);
     },
 
     handleLeadNameInputChange: function(e) {
-        var recipient = _.extend(this.state.recipient, {
-            name: e.target.value
-        });
-        this.setState({
-            recipient: recipient
-        });
+        var name = e.target.value;
+        this.cursors.recipient.set('name', name);
     },
 
     handleSync: function(e) {
@@ -121,7 +109,7 @@ var TemplateLayout = React.createClass({
                 this.state.allCustomFields, 
                 prevTemplate.customFields
             );
-            this.setState({allCustomFields: allCustomFields});
+            this.cursors.allCustomFields.set(allCustomFields);
             this.fetchTemplateAndSetState();
         }
         if (this.state.templateLoading && this.state.docError) {
@@ -176,7 +164,7 @@ var TemplateLayout = React.createClass({
                             onNameChange={this.handleLeadNameInputChange} 
                             recipient={this.state.recipient} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
-                            docs={this.state.docs} />
+                            docs={this.state.extensions.docs} />
                     </div>
                     <div className="col-sm-6 doc-form-div middle-div">
                         <DocForm    template={template}

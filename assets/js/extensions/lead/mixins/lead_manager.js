@@ -108,9 +108,7 @@ var LeadManager = {
     },
 
     _setStateFromDocs: function(docs, callback) {
-        this.cursors.extensions.set({
-            docs: docs
-        });
+        this.cursors.extensions.set('docs', docs);
         callback(null, docs);
     },
 
@@ -139,7 +137,7 @@ var LeadManager = {
                 docError: err.response.body
             });
         };
-        if (this.state.docUrl)
+        if (this.state.docUrl || this.currentTemplate().customFields)
             this.setLoading(false);
     },
 
@@ -151,7 +149,24 @@ var LeadManager = {
         var shouldSync = (!prevState.docUrl && this.state.docUrl &&
             this.state.syncRemote && _.any(this.state.extensions.leadPending));
         if (shouldSync) syncLeadAndSetState.call(this);
-        if (this.state.leadId != prevState.leadId) this._fetchLeadAndSetState(this._defaultCallback);
+
+        // New LeadID from Velocify lead search
+        if (this.state.leadId != prevState.leadId) {
+            this.cursors.allCustomFields.set({});
+            this._fetchLeadAndSetState(this._defaultCallback);   
+        };
+
+        // If New Lead Fetched From Lead Search, Set New CustomFields Without
+        // Fetching New Template
+        var lead = this.state.extensions.lead;
+        var prevLead = prevState.extensions.lead;
+        if (lead && prevLead && lead["LeadsID"] != prevLead["LeadsID"]) {
+            this.setCustomFields(this.currentTemplate(), function(err, template) {
+                this.cursors.templates.set(this.state.templateIndex, template);
+            }.bind(this))
+            
+        }
+
     },
 
     updateLeadPending: function(key, value) {

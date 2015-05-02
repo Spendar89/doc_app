@@ -415,31 +415,19 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
     handleTemplateInputChange: function(e) {
         var i = e.target.value;
-        //var template = this.state.templates[i];
-        //this.cursors.templates.set(i, template);
-        //template.index = i;
-        //this.cursors.template.set(this.cursors.templates.get(i));
         this.setState({
             templateIndex: i
         });
     },
 
     handleLeadEmailInputChange: function(e) {
-        var recipient = _.extend(this.state.recipient, {
-            email: e.target.value
-        });
-        this.setState({
-            recipient: recipient
-        });
+        var email = e.target.value;
+        this.cursors.recipient.set('email', email);
     },
 
     handleLeadNameInputChange: function(e) {
-        var recipient = _.extend(this.state.recipient, {
-            name: e.target.value
-        });
-        this.setState({
-            recipient: recipient
-        });
+        var name = e.target.value;
+        this.cursors.recipient.set('name', name);
     },
 
     handleSync: function(e) {
@@ -464,7 +452,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                 this.state.allCustomFields, 
                 prevTemplate.customFields
             );
-            this.setState({allCustomFields: allCustomFields});
+            this.cursors.allCustomFields.set(allCustomFields);
             this.fetchTemplateAndSetState();
         }
         if (this.state.templateLoading && this.state.docError) {
@@ -519,7 +507,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                             onNameChange: this.handleLeadNameInputChange, 
                             recipient: this.state.recipient}), 
                         React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
-                            docs: this.state.docs})
+                            docs: this.state.extensions.docs})
                     ), 
                     React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
                         React.createElement(DocForm, {template: template, 
@@ -1022,9 +1010,7 @@ var LeadManager = {
     },
 
     _setStateFromDocs: function(docs, callback) {
-        this.cursors.extensions.set({
-            docs: docs
-        });
+        this.cursors.extensions.set('docs', docs);
         callback(null, docs);
     },
 
@@ -1053,7 +1039,7 @@ var LeadManager = {
                 docError: err.response.body
             });
         };
-        if (this.state.docUrl)
+        if (this.state.docUrl || this.currentTemplate().customFields)
             this.setLoading(false);
     },
 
@@ -1065,7 +1051,24 @@ var LeadManager = {
         var shouldSync = (!prevState.docUrl && this.state.docUrl &&
             this.state.syncRemote && _.any(this.state.extensions.leadPending));
         if (shouldSync) syncLeadAndSetState.call(this);
-        if (this.state.leadId != prevState.leadId) this._fetchLeadAndSetState(this._defaultCallback);
+
+        // New LeadID from Velocify lead search
+        if (this.state.leadId != prevState.leadId) {
+            this.cursors.allCustomFields.set({});
+            this._fetchLeadAndSetState(this._defaultCallback);   
+        };
+
+        // If New Lead Fetched From Lead Search, Set New CustomFields Without
+        // Fetching New Template
+        var lead = this.state.extensions.lead;
+        var prevLead = prevState.extensions.lead;
+        if (lead && prevLead && lead["LeadsID"] != prevLead["LeadsID"]) {
+            this.setCustomFields(this.currentTemplate(), function(err, template) {
+                this.cursors.templates.set(this.state.templateIndex, template);
+            }.bind(this))
+            
+        }
+
     },
 
     updateLeadPending: function(key, value) {
@@ -1080,7 +1083,7 @@ module.exports = LeadManager;
 
 }).call(this,require('_process'))
 },{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1633,7 +1636,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
@@ -1837,7 +1840,7 @@ TemplateManager = {
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)
         this.cursors.templates.set(this.state.templateIndex, template)
-        callback(null, template);
+        if (callback) callback(null, template);
     },
 
     fetchTemplateAndSetState: function() {

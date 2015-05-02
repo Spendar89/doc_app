@@ -118,7 +118,7 @@ TemplateManager = {
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)
         this.cursors.templates.set(this.state.templateIndex, template)
-        callback(null, template);
+        if (callback) callback(null, template);
     },
 
     fetchTemplateAndSetState: function() {
