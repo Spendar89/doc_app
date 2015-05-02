@@ -911,90 +911,15 @@ module.exports = LeadsSearchResults;
 
 
 },{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js":[function(require,module,exports){
+(function (process){
 var request = require('superagent');
+var async = require('async');
 
-var setStateFromDocs = function(docs, callback) {
-    this.setState({
-        docs: docs
-    });
-    callback(null, docs);
-};
+var buildUrl = function(path) {
+        var apiHost = process && process.env['API_HOST'],
+            host = apiHost || ""; 
 
-var fetchLeadDocs = function(lead, callback) {
-    var leadId = lead["LeadsID"],
-        path = '/leads/' + leadId + '/docs',
-        campus = this.state.campus;
-
-    this.setLoading("Fetching Lead Docs");
-
-    request
-        .get(path)
-        .query({
-            campus: campus
-        })
-        .end(function(err, res) {
-            callback(err, res && res.body);
-        });
-};
-
-var fetchLeadAndSetState = function() {
-    if (!this.state.leadId) return this.fetchTemplateAndSetState();
-    async.waterfall([
-            fetchLead.bind(this),
-            setStateFromLead.bind(this),
-            fetchLeadDocs.bind(this),
-            setStateFromDocs.bind(this)
-        ],
-        function(err, data) {
-            if (err) {
-                this.setState({
-                    docError: err.response.body
-                });
-            };
-
-            this.state.docUrl
-                ? this.setLoading(false)
-                : this.fetchTemplateAndSetState();
-        }.bind(this));
-};
-
-var setStateFromLead = function(lead, callback) {
-    this.context.tree.update({
-        extensions: {
-            lead: {
-                $set: lead
-            },
-            leadPending: {
-                $set: {}
-            }
-        },
-        recipient: {
-            $set: {
-                email: lead["Email"],
-                name: lead["FName"] + " " + lead["LName"]
-            } 
-        }
-    });
-
-    if (callback)
-        callback(null, lead);
-};
-
-var fetchLead = function(callback) {
-    var leadId = this.state.leadId,
-        path = '/leads/' + leadId,
-        campus = this.state.campus;
-
-    this.setLoading("Fetching Lead");
-
-    request
-        .get(path)
-        .query({
-            campus: campus
-        })
-        .end(function(err, res) {
-            callback(err, res && res.body);
-        });
+        return host + path;
 };
 
 var syncLead = function(callback) {
@@ -1019,7 +944,7 @@ var syncLead = function(callback) {
 var syncLeadAndSetState = function() {
     async.series([
         syncLead.bind(this),
-        fetchLeadAndSetState.bind(this)
+        this._fetchLeadAndSetState
     ], function(err, data) {
         if (err) {
             this.setState({
@@ -1030,6 +955,91 @@ var syncLeadAndSetState = function() {
 };
 
 var LeadManager = {
+
+    _fetchLead: function(callback) {
+        var leadId = this.state.leadId,
+            path = '/leads/' + leadId,
+            url = buildUrl(path),
+            campus = this.state.campus;
+
+        if (!leadId) {
+            var err = {
+                message: "Cannot fetch leads without leadId", 
+                name: "state_error"
+            };
+            return callback(err);
+        };
+
+        this.setLoading("Fetching Lead");
+
+        request
+            .get(url)
+            .query({
+                campus: campus
+            })
+            .end(function(err, res) {
+                callback(err, res && res.body);
+            });
+    },
+
+    _setStateFromLead: function(lead, callback) {
+        this.context.tree.update({
+            extensions: {
+                lead: {
+                    $set: lead
+                },
+                leadPending: {
+                    $set: {}
+                }
+            },
+            recipient: {
+                $set: {
+                    email: lead["Email"],
+                    name: lead["FName"] + " " + lead["LName"]
+                }
+            }
+        });
+
+        if (callback)
+            callback(null, lead);
+    },
+
+    _fetchLeadDocs: function(lead, callback) {
+        var leadId = lead["LeadsID"],
+            path = '/leads/' + leadId + '/docs',
+            campus = this.state.campus;
+
+        this.setLoading("Fetching Lead Docs");
+
+        request
+            .get(path)
+            .query({
+                campus: campus
+            })
+            .end(function(err, res) {
+                callback(err, res && res.body);
+            });
+    },
+
+    _setStateFromDocs: function(docs, callback) {
+        this.cursors.extensions.set({
+            docs: docs
+        });
+        callback(null, docs);
+    },
+
+    _fetchLeadAndSetState: function(callback) {
+        return async.waterfall(
+            [
+                this._fetchLead,
+                this._setStateFromLead,
+                this._fetchLeadDocs,
+                this._setStateFromDocs
+            ],
+            callback
+        );
+    },
+
     getInitialState: function() {
         return {
             leadId: "1409446",
@@ -1037,15 +1047,25 @@ var LeadManager = {
         };
     },
 
+    _defaultCallback: function(err, data) {
+        if (err) {
+            this.setState({
+                docError: err.response.body
+            });
+        };
+        if (this.state.docUrl)
+            this.setLoading(false);
+    },
+
     componentWillMount: function() {
-        fetchLeadAndSetState.call(this);
+        this._fetchLeadAndSetState(this._defaultCallback);
     },
 
     componentDidUpdate: function(prevProps, prevState) {
         var shouldSync = (!prevState.docUrl && this.state.docUrl &&
             this.state.syncRemote && _.any(this.state.extensions.leadPending));
         if (shouldSync) syncLeadAndSetState.call(this);
-        if (this.state.leadId != prevState.leadId) fetchLeadAndSetState.call(this);
+        if (this.state.leadId != prevState.leadId) this._fetchLeadAndSetState(this._defaultCallback);
     },
 
     updateLeadPending: function(key, value) {
@@ -1058,8 +1078,9 @@ var LeadManager = {
 module.exports = LeadManager;
 
 
-},{"superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports={
+}).call(this,require('_process'))
+},{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
+module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1612,7 +1633,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports={
+module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
