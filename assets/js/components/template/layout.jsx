@@ -6,7 +6,7 @@ var TemplateBlock = require('./template_block.jsx'),
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
     LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
-    LeadManager = require('./../../extensions/lead/mixins/lead_manager.js'),
+    LeadManager = require('./../../extensions/lead/lead_mixin.js'),
     BranchMixin = require('baobab-react/mixins').branch;
 
 var TemplateLayout = React.createClass({

@@ -349,7 +349,7 @@ var TemplateBlock = require('./template_block.jsx'),
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
     LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
-    LeadManager = require('./../../extensions/lead/mixins/lead_manager.js'),
+    LeadManager = require('./../../extensions/lead/lead_mixin.js'),
     BranchMixin = require('baobab-react/mixins').branch;
 
 var TemplateLayout = React.createClass({displayName: "TemplateLayout",
@@ -543,7 +543,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 module.exports = TemplateLayout;
 
 
-},{"./../../extensions/lead/components/lead_data_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_data_block.jsx","./../../extensions/lead/components/lead_docs_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_docs_block.jsx","./../../extensions/lead/components/leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_block.jsx","./../../extensions/lead/mixins/lead_manager.js":"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js","./../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx","./recipient_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx","./template_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/template_block.jsx","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx":[function(require,module,exports){
+},{"./../../extensions/lead/components/lead_data_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_data_block.jsx","./../../extensions/lead/components/lead_docs_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/lead_docs_block.jsx","./../../extensions/lead/components/leads_search_block.jsx":"/Users/jakesendar/doc_app/assets/js/extensions/lead/components/leads_search_block.jsx","./../../extensions/lead/lead_mixin.js":"/Users/jakesendar/doc_app/assets/js/extensions/lead/lead_mixin.js","./../../mixins/template_manager.js":"/Users/jakesendar/doc_app/assets/js/mixins/template_manager.js","./doc_form.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/doc_form.jsx","./recipient_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx","./template_block.jsx":"/Users/jakesendar/doc_app/assets/js/components/template/template_block.jsx","baobab-react/mixins":"/Users/jakesendar/doc_app/node_modules/baobab-react/mixins.js"}],"/Users/jakesendar/doc_app/assets/js/components/template/recipient_block.jsx":[function(require,module,exports){
 var LeadInputs = React.createClass({displayName: "LeadInputs",
 
     render: function () {
@@ -898,139 +898,183 @@ this.props.onLeadsResult(lead);
 module.exports = LeadsSearchResults;
 
 
-},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/mixins/lead_manager.js":[function(require,module,exports){
+},{}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/lead_controller.js":[function(require,module,exports){
 (function (process){
 var request = require('superagent');
-var async = require('async');
+var campus = "Austin";
 
 var buildUrl = function(path) {
-        var apiHost = process && process.env['API_HOST'],
-            host = apiHost || ""; 
+    var apiHost = process && process.env['API_HOST'],
+        host = apiHost || "";
 
-        return host + path;
+    return host + path;
 };
 
-var syncLead = function(callback) {
-    var leadId = this.state.extensions.lead["LeadsID"],
-        lead = this.state.extensions.leadPending,
-        path = "/leads/" + leadId,
-        campus = this.state.campus;
+var LeadController = function(leadId, vId, campus, loaderFn) {
+    this.leadId = leadId;
+    this.vId = vId;
+    this.campus = campus;
+    this.loaderFn = loaderFn;
+}
 
-    this.setLoading("Syncing Lead Data");
+LeadController.prototype = {
+    updateLead: function(leadPending, callback) {
+        var path = "/leads/" + this.leadId,
+            url = buildUrl(path);
 
-    request
-        .put(path)
-        .send({
-            campus: campus,
-            lead: lead
-        })
-        .end(function(err, res) {
-            callback(err, res && res.body);
-        });
-};
+        this.loaderFn("Syncing Lead Data");
 
-var syncLeadAndSetState = function() {
-    async.series([
-        syncLead.bind(this),
-        this._fetchLeadAndSetState
-    ], function(err, data) {
-        if (err) {
-            this.setState({
-                docError: err.response.body
+        request
+            .put(url)
+            .send({
+                campus: this.campus,
+                lead: leadPending
             })
-        }
-    }.bind(this));
-};
+            .end(
+                function(err, res) {
+                    this.loaderFn(false);
+                    callback(err, res && res.body);
+                }.bind(this)
+            );
+    },
 
-var LeadManager = {
+    getLead: function(callback) {
+        var path = '/leads/' + this.vId,
+            url = buildUrl(path);
 
-    _fetchLead: function(callback) {
-        var leadId = this.state.leadId,
-            path = '/leads/' + leadId,
-            url = buildUrl(path),
-            campus = this.state.campus;
-
-        if (!leadId) {
+        if (!this.vId) {
             var err = {
-                message: "Cannot fetch leads without leadId", 
-                name: "state_error"
+                response: {
+                    body: {
+                        message: "Cannot fetch leads without leadId",
+                        name: "state_error"
+                    }
+                }
             };
             return callback(err);
         };
 
-        this.setLoading("Fetching Lead");
+        this.loaderFn("Fetching Lead");
+
+        request
+            .get(url)
+            .query({
+                campus: this.campus
+            })
+            .end(
+                function(err, res) {
+                    var body = res && res.body;
+                    this.leadId = body && body["LeadsID"];
+                    this.loaderFn(false);
+                    callback(err, body);
+                }.bind(this)
+            );
+    },
+
+    getLeadDocs: function(lead, callback) {
+        var leadId = lead["LeadsID"] || this.leadId,
+            path = '/leads/' + leadId + '/docs',
+            url = buildUrl(path);
+
+        this.loaderFn("Fetching Lead Docs");
 
         request
             .get(url)
             .query({
                 campus: campus
             })
-            .end(function(err, res) {
-                callback(err, res && res.body);
-            });
-    },
+            .end(
+                function(err, res) {
+                    var docs = res && res.body;
+                    this.loaderFn(false);
+                    callback(err, res && res.body);
+                }.bind(this)
+            );
+    }
+};
 
-    _setStateFromLead: function(lead, callback) {
-        this.context.tree.update({
-            extensions: {
-                lead: {
-                    $set: lead
-                },
-                leadPending: {
-                    $set: {}
-                }
-            },
-            recipient: {
-                $set: {
-                    email: lead["Email"],
-                    name: lead["FName"] + " " + lead["LName"]
-                }
-            }
-        });
+module.exports = LeadController;
 
-        if (callback)
-            callback(null, lead);
-    },
 
-    _fetchLeadDocs: function(lead, callback) {
-        var leadId = lead["LeadsID"],
-            path = '/leads/' + leadId + '/docs',
-            campus = this.state.campus;
+}).call(this,require('_process'))
+},{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/extensions/lead/lead_mixin.js":[function(require,module,exports){
+var async = require('async'),
+    LeadController = require('./lead_controller.js');
 
-        this.setLoading("Fetching Lead Docs");
+var setLeadController = function() {
+    var lead = this.state.extensions.lead,
+        leadId = lead && lead["LeadsID"],
+        vId = this.state.leadId,
+        campus = this.state.campus,
+        loaderFn = this.setLoading;
 
-        request
-            .get(path)
-            .query({
-                campus: campus
-            })
-            .end(function(err, res) {
-                callback(err, res && res.body);
-            });
-    },
+    this.leadController = new LeadController(leadId, vId, campus, loaderFn);
+    return this.leadController;
+};
 
-    _setStateFromDocs: function(docs, callback) {
-        this.cursors.extensions.set('docs', docs);
-        callback(null, docs);
-    },
+var LeadManager = {
 
     _fetchLeadAndSetState: function(callback) {
+        var leadController = setLeadController.call(this),
+            getLead = leadController.getLead.bind(leadController),
+            getLeadDocs = leadController.getLeadDocs.bind(leadController);
+
+        var setStateFromLead = function(lead, callback) {
+            this.context.tree.update({
+                extensions: {
+                    lead: {
+                        $set: lead
+                    },
+                    leadPending: {
+                        $set: {}
+                    }
+                },
+                recipient: {
+                    $set: {
+                        email: lead["Email"],
+                        name: lead["FName"] + " " + lead["LName"]
+                    }
+                }
+            });
+            if (callback)
+                callback(null, lead);
+        }.bind(this);
+
+        var setStateFromDocs = function(docs, callback) {
+            this.cursors.extensions.set('docs', docs);
+            callback(null, docs);
+        }.bind(this);
+
         return async.waterfall(
             [
-                this._fetchLead,
-                this._setStateFromLead,
-                this._fetchLeadDocs,
-                this._setStateFromDocs
+                getLead,
+                setStateFromLead,
+                getLeadDocs,
+                setStateFromDocs
             ],
             callback
         );
     },
 
-    getInitialState: function() {
-        return {
-            leadId: "1409446",
-            syncRemote: true
-        };
+    _syncLeadAndSetState: function() {
+        var leadId = this.state.extensions.lead["LeadsID"],
+            leadPending = this.state.extensions.leadPending,
+            leadController = setLeadController.call(this),
+            updateLead = _.partial(leadController.updateLead.bind(leadController), leadPending);
+
+        async.series(
+            [
+                updateLead,
+                this._fetchLeadAndSetState
+            ], 
+            function(err, data) {
+                if (err) {
+                    this.setState({
+                        docError: err.response.body
+                    });
+                };
+            }.bind(this)
+        );
     },
 
     _defaultCallback: function(err, data) {
@@ -1043,6 +1087,13 @@ var LeadManager = {
             this.setLoading(false);
     },
 
+    getInitialState: function() {
+        return {
+            leadId: "1409446",
+            syncRemote: true
+        };
+    },
+
     componentWillMount: function() {
         this._fetchLeadAndSetState(this._defaultCallback);
     },
@@ -1050,12 +1101,12 @@ var LeadManager = {
     componentDidUpdate: function(prevProps, prevState) {
         var shouldSync = (!prevState.docUrl && this.state.docUrl &&
             this.state.syncRemote && _.any(this.state.extensions.leadPending));
-        if (shouldSync) syncLeadAndSetState.call(this);
+        if (shouldSync) this._syncLeadAndSetState();
 
         // New LeadID from Velocify lead search
         if (this.state.leadId != prevState.leadId) {
             this.cursors.allCustomFields.set({});
-            this._fetchLeadAndSetState(this._defaultCallback);   
+            this._fetchLeadAndSetState(this._defaultCallback);
         };
 
         // If New Lead Fetched From Lead Search, Set New CustomFields Without
@@ -1065,13 +1116,12 @@ var LeadManager = {
         if (lead && prevLead && lead["LeadsID"] != prevLead["LeadsID"]) {
             this.setCustomFields(this.currentTemplate(), function(err, template) {
                 this.cursors.templates.set(this.state.templateIndex, template);
-            }.bind(this))
-            
+            }.bind(this));
         }
 
     },
 
-    updateLeadPending: function(key, value) {
+    setLeadPending: function(key, value) {
         if (_.has(this.state.extensions.lead, key)) {
             this.cursors.extensions.set(["leadPending", key], value);
         };
@@ -1081,9 +1131,8 @@ var LeadManager = {
 module.exports = LeadManager;
 
 
-}).call(this,require('_process'))
-},{"_process":"/usr/local/lib/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js","superagent":"/Users/jakesendar/doc_app/node_modules/superagent/lib/client.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+},{"./lead_controller.js":"/Users/jakesendar/doc_app/assets/js/extensions/lead/lead_controller.js","async":"/Users/jakesendar/doc_app/node_modules/async/lib/async.js"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json":[function(require,module,exports){
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "packages": {
         "Administrative Assistant - Morning": {
             "Morning": true,
@@ -1636,7 +1685,7 @@ module.exports = CustomMethods;
 
 
 },{"./custom_data.json":"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/custom_data.json"}],"/Users/jakesendar/doc_app/assets/js/lib/packages/ea_package/package_data.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "name": "EA Package",
 
     "templates": [
@@ -1741,7 +1790,7 @@ TemplateManager = {
         if (field.customMethod) field.customMethod(this);
 
         // TODO: Decouple lead logic from template logic.
-        this.updateLeadPending(fieldName, field.value);
+        this.setLeadPending(fieldName, field.value);
     },
 
     removeCustomField: function(fieldName) {

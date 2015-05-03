@@ -19,7 +19,7 @@ TemplateManager = {
         if (field.customMethod) field.customMethod(this);
 
         // TODO: Decouple lead logic from template logic.
-        this.updateLeadPending(fieldName, field.value);
+        this.setLeadPending(fieldName, field.value);
     },
 
     removeCustomField: function(fieldName) {
