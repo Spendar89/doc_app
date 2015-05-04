@@ -60,11 +60,11 @@ var LeadManager = {
         var leadId = this.state.extensions.lead["LeadsID"],
             leadPending = this.state.extensions.leadPending,
             leadController = setLeadController.call(this),
-            updateLead = _.partial(leadController.updateLead.bind(leadController), leadPending);
+            updateLead = leadController.updateLead.bind(leadController);
 
         async.series(
             [
-                updateLead,
+                _.partial(updateLead, leadPending),
                 this._fetchLeadAndSetState
             ], 
             function(err, data) {
