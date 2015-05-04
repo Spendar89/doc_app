@@ -19,7 +19,7 @@ TemplateManager = {
         if (field.customMethod) field.customMethod(this);
 
         // TODO: Decouple lead logic from template logic.
-        this.updateLeadPending(fieldName, field.value);
+        this.setLeadPending(fieldName, field.value);
     },
 
     removeCustomField: function(fieldName) {
@@ -111,14 +111,14 @@ TemplateManager = {
         });
     },
 
-    //componentWillMount: function() {
-        //this.fetchTemplateAndSetState();
-    //},
+    componentDidMount: function() {
+        this.fetchTemplateAndSetState();
+    },
 
     setStateFromTemplate: function(template, callback) {
         console.log("Setting template", template)
         this.cursors.templates.set(this.state.templateIndex, template)
-        callback(null, template);
+        if (callback) callback(null, template);
     },
 
     fetchTemplateAndSetState: function() {

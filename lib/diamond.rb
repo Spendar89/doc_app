@@ -26,7 +26,6 @@ class Diamond
         login_timeout: 10
       )
     rescue Exception => e
-      puts e.red
       @errors.push({
         message: "Unable to Connect to Diamond Database Server", 
         type: "Timeout Error"

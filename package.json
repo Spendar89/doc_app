@@ -2,16 +2,30 @@
   "name": "doc_app",
   "description": "Doc App",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spendar89/doc_app.git"
+  },
   "dependencies": {
     "async": "^0.9.0",
-    "baobab": "^1.0.2",
     "baobab-react": "^0.1.0",
-    "browserify": "^8.1.3",
     "lodash": "^3.2.0",
     "react": "^0.12.2",
     "react-router": "^0.12.0",
+    "superagent": "^1.2.0"
+  },
+  "devDependencies": {
+    "browserify": "^8.1.3",
+    "chai": "^2.3.0",
+    "mocha": "^2.2.4",
+    "nock": "^1.7.1",
     "reactify": "^1.0.0",
-    "superagent": "^1.2.0",
+    "rewire": "^2.3.3",
+    "should": "^6.0.1",
+    "supertest": "^0.15.0",
     "watchify": "^2.3.0"
+  },
+  "scripts": {
+    "test": "mocha --recursive assets/js/test"
   }
 }
