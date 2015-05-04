@@ -1,3 +1,4 @@
+require 'sinatra'
 require 'uri'
 require 'rubygems'
 require './lib/doc_maker'
