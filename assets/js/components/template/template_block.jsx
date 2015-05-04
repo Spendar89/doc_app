@@ -6,7 +6,7 @@ var TemplateInput = React.createClass({
 
     render: function () {
         return (
-            <div className="block-div col-sm-12">
+            <div className="block-div col-sm-12" id="templateBlock">
                 <div className="form-group">
                     <div className="block-header">
                         <h4 className="control-label">Switch Your Template: </h4>

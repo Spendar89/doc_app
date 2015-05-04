@@ -2,7 +2,7 @@ var LeadInputs = React.createClass({
 
     render: function () {
         return (
-            <div className="block-div col-sm-12">
+            <div className="block-div col-sm-12" id="recipientBlock">
                 <div className="form-group">
                     <div className="block-header">
                         <h4 className="control-label">Enter the Recipient Info: </h4>

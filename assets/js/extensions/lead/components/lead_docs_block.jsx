@@ -25,7 +25,7 @@ var LeadDocsBlock = React.createClass({
 
     render: function () {
         return (
-            <div className="block-div col-sm-12 with-table">
+            <div className="block-div col-sm-12 with-table" id="leadDocsBlock">
                 <div className="form-group">
                     <div className="block-header">
                         <h4 className="control-label">Saved Documents:</h4>

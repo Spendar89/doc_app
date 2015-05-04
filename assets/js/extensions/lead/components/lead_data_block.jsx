@@ -32,7 +32,7 @@ var LeadDataBlock = React.createClass({
 
     render: function () {
         return (
-            <div className="block-div col-sm-12 with-table">
+            <div className="block-div col-sm-12 with-table" id="leadDataBlock">
                 <div className="form-group">
                     <div className="block-header">
                         <h4 className="control-label">Lead Data</h4>

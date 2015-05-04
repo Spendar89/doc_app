@@ -548,7 +548,7 @@ var LeadInputs = React.createClass({displayName: "LeadInputs",
 
     render: function () {
         return (
-            React.createElement("div", {className: "block-div col-sm-12"}, 
+            React.createElement("div", {className: "block-div col-sm-12", id: "recipientBlock"}, 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("div", {className: "block-header"}, 
                         React.createElement("h4", {className: "control-label"}, "Enter the Recipient Info: ")
@@ -583,7 +583,7 @@ var TemplateInput = React.createClass({displayName: "TemplateInput",
 
     render: function () {
         return (
-            React.createElement("div", {className: "block-div col-sm-12"}, 
+            React.createElement("div", {className: "block-div col-sm-12", id: "templateBlock"}, 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("div", {className: "block-header"}, 
                         React.createElement("h4", {className: "control-label"}, "Switch Your Template: ")
@@ -645,7 +645,7 @@ var LeadDataBlock = React.createClass({displayName: "LeadDataBlock",
 
     render: function () {
         return (
-            React.createElement("div", {className: "block-div col-sm-12 with-table"}, 
+            React.createElement("div", {className: "block-div col-sm-12 with-table", id: "leadDataBlock"}, 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("div", {className: "block-header"}, 
                         React.createElement("h4", {className: "control-label"}, "Lead Data")
@@ -709,7 +709,7 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
 
     render: function () {
         return (
-            React.createElement("div", {className: "block-div col-sm-12 with-table"}, 
+            React.createElement("div", {className: "block-div col-sm-12 with-table", id: "leadDocsBlock"}, 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("div", {className: "block-header"}, 
                         React.createElement("h4", {className: "control-label"}, "Saved Documents:")
