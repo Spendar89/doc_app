@@ -398,7 +398,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
     },
 
-    handleFormError(error) {
+    handleFormError: function(error) {
         this.setState({
             docError: error,
             templateLoading: false
