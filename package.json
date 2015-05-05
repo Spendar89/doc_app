@@ -26,6 +26,9 @@
     "watchify": "^2.3.0"
   },
   "scripts": {
-    "test": "mocha --recursive assets/js/test"
+    "test": "mocha --recursive assets/js/test",
+    "watchSass": "sass --watch assets/scss/application.scss:public/css/application.css",
+    "watchJs": "watchify -t reactify assets/js/app.js -o public/js/bundle.js",
+    "watch": "npm run watchSass & npm run watchJs"
   }
 }

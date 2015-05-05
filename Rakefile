@@ -19,9 +19,17 @@ namespace :build do
   task :all => [:js, :css] do
   end
 
+  task :watchcss do
+    `compass watch`
+  end
+
+  task :watchjs do
+    `watchify -t reactify assets/js/app.js -o public/js/bundle.js`
+  end
+
   desc 'build and stick around and watch for changes'
   task :watch do
-    `watchify -t reactify assets/js/app.js -o public/js/bundle.js`
-    `bundle exec compass watch`
+    Rake::Task["build:watchjs"].execute
+    Rake::Task["build:watchcss"].execute
   end
 end

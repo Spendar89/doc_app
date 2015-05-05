@@ -80,6 +80,29 @@ var DocForm = React.createClass({
         };
     },
 
+    renderWelcome: function() {
+        var getStyle = function() {
+            return {
+                display: "block"
+            }
+        };
+        return (
+            <div className="welcome-div col-sm-10 col-sm-offset-2" style={getStyle()}>
+                <div className="welcome-inner">
+                    <div className="welcome-header">
+                        <h2>Add a Lead to Your Form:</h2>
+                    </div>
+                    <div className="welcome-body">
+                        <h4>Error Details:</h4>
+                        <p>Hey Dude SUp</p>
+                        <p>Nooothing You?</p>
+                    </div>
+                </div>
+            </div>
+        );
+
+    },
+
     renderDocError: function() {
         var docError = this.props.docError;
         if (!docError) return false;
@@ -96,7 +119,7 @@ var DocForm = React.createClass({
                     </div>
                 </div>
             </div>
-        )
+        );
     },
 
     renderSubmit: function() {

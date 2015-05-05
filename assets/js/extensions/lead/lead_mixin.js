@@ -12,7 +12,7 @@ var setLeadController = function() {
     return this.leadController;
 };
 
-var LeadManager = {
+var LeadMixin = {
 
     _fetchLeadAndSetState: function(callback) {
         var leadController = setLeadController.call(this),
@@ -128,4 +128,4 @@ var LeadManager = {
     }
 };
 
-module.exports = LeadManager;
+module.exports = LeadMixin;

@@ -32,7 +32,7 @@ class DocMaker
     template.custom_fields.each do |cf| 
       cf_hash[cf.name] = {name: cf.name, type: cf.type}
     end
-    {custom_fields: cf_hash, id: template.template_id, title: template.title}
+    {customFields: cf_hash, id: template.template_id, title: template.title}
   end
 
   # convenience method for optaining signature_request_id from @sent_signature

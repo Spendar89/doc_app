@@ -13,7 +13,7 @@ var LeadController = function(leadId, vId, campus, loaderFn) {
     this.vId = vId;
     this.campus = campus;
     this.loaderFn = loaderFn;
-}
+};
 
 LeadController.prototype = {
     updateLead: function(leadPending, callback) {

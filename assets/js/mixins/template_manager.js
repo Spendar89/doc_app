@@ -1,5 +1,16 @@
 var EA_PACKAGE_DATA = require('./../lib/packages/ea_package/package_data.json'),
-    EA_CUSTOM_METHODS = require('./../lib/packages/ea_package/custom_methods.js');
+    EA_CUSTOM_METHODS = require('./../lib/packages/ea_package/custom_methods.js'),
+    TemplateController = require('./../controllers/template_controller.js');
+
+var setTemplateController = function() {
+    var template = this.currentTemplate(), 
+        templateId = template && template.id, 
+        campus = this.state.campus,
+        loaderFn = this.setLoading;
+
+    this.templateController = new TemplateController(templateId, campus, loaderFn);
+    return this.templateController;
+};
 
 TemplateManager = {
 
@@ -90,27 +101,6 @@ TemplateManager = {
         return this.cursors.templates.get(i);
     },
 
-    fetchTemplate: function(callback) {
-        var self = this,
-            template = this.currentTemplate(),
-            campus = this.state.campus;
-        console.log("we got a template", template)
-
-        this.setLoading("Loading Template");
-
-        // Use cached customFIelds:
-        if (template.customFields) {
-            return callback(null, template);
-        };
-
-        return $.get('/templates/' + template.id, {
-            campus: campus
-        }, function(data) {
-            data.customFields = data.custom_fields;
-            return callback(null, data);
-        });
-    },
-
     componentDidMount: function() {
         this.fetchTemplateAndSetState();
     },
@@ -122,8 +112,21 @@ TemplateManager = {
     },
 
     fetchTemplateAndSetState: function() {
+        var getTemplate = function() {
+            var template = this.currentTemplate(),
+                templateController = setTemplateController.call(this);
+
+            if (template.customFields) {
+                return function(callback) {
+                    return callback(null, template)
+                }
+            } else {
+                return templateController.getTemplate.bind(templateController);
+            }
+        }.call(this);
+
         async.waterfall([
-            this.fetchTemplate,
+            getTemplate,
             this.setCustomFields,
             this.setStateFromTemplate
         ], function(err, data) {
