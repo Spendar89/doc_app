@@ -38,3 +38,5 @@ build/
 /log/
 /tmp/
 /.sass-cache/
+*.scssc
+*.map
