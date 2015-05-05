@@ -6,6 +6,22 @@ body {
 
 .template-layout {
   height: 100%; }
+<<<<<<< ours
+=======
+  .template-layout .welcome-div {
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgba(95, 95, 95, 0.95);
+    z-index: 10000;
+    color: white;
+    text-align: center; }
+    .template-layout .welcome-div .welcome-inner {
+      margin-top: 25%; }
+      .template-layout .welcome-div .welcome-inner .welcome-header {
+        text-align: center; }
+>>>>>>> theirs
 
 * {
   font-family: 'Roboto', sans-serif !important; }
@@ -109,6 +125,7 @@ td {
       padding-left: 15px !important; }
 
 #leadDocsBlock {
+<<<<<<< ours
   height: 50%; }
 
 #templateBlock {
@@ -118,6 +135,15 @@ td {
 #recipientBlock {
   /*height: 30%;*/
   /*min-height: 250px;*/ }
+=======
+  height: 39%; }
+
+#templateBlock {
+  height: 25%; }
+
+#recipientBlock {
+  height: 30%; }
+>>>>>>> theirs
 
 #leadDataBlock {
   height: 98%; }
@@ -148,9 +174,15 @@ td {
   width: 100%;
   position: absolute;
   overflow: hidden;
+<<<<<<< ours
   top: 7%;
   height: 93%; }
   .app-template-div .app-template-inner {
+=======
+  height: 100%; }
+  .app-template-div .app-template-inner {
+    padding-top: 5%;
+>>>>>>> theirs
     height: 100%; }
 
 .doc-form-div {

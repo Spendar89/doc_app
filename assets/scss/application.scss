@@ -7,6 +7,22 @@ body {
 }
 .template-layout {
     height: 100%;
+    .welcome-div {
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: rgba(95, 95, 95, 0.95);
+      z-index: 10000;
+      color: white;
+      text-align: center;
+      .welcome-inner {
+        margin-top: 25%;
+        .welcome-header {
+          text-align: center;
+        }
+      }
+    }
 }
 * {
     font-family: 'Roboto', sans-serif !important;
@@ -167,9 +183,9 @@ td {
     width: 100%;
     position: absolute;
     overflow: hidden;
-    top: 7%;
-    height: 93%;
+    height: 100%;
     .app-template-inner {
+        padding-top: 5%;
         height: 100%;
     }
 }
@@ -230,6 +246,7 @@ td {
                 }
             }
         }
+
     }
 }
 .page-header {

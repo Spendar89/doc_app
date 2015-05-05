@@ -499,10 +499,31 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         })
     },
 
+    renderWelcome: function() {
+        var getStyle = function() {
+            return {
+                display: "block"
+            }
+        };
+        return (
+            React.createElement("div", {className: "welcome-div col-sm-12", style: getStyle()}, 
+                React.createElement("div", {className: "welcome-inner"}, 
+                    React.createElement("div", {className: "welcome-header"}, 
+                        React.createElement("h1", null, "Add a Lead to Your Form:")
+                    ), 
+                    React.createElement("div", {className: "welcome-body"}
+                    )
+                )
+            )
+        );
+
+    },
+
     render: function() {
                 var template = this.state.templates[this.state.templateIndex]
         return (
             React.createElement("div", {className: "template-layout"}, 
+                this.renderWelcome(), 
                 React.createElement("nav", {className: "navbar navbar-default navbar-fixed-top"}, 
                     React.createElement("div", {className: "container-fluid"}, 
                         React.createElement("div", {className: "navbar-header"}, 

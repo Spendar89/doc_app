@@ -133,10 +133,31 @@ var TemplateLayout = React.createClass({
         })
     },
 
+    renderWelcome: function() {
+        var getStyle = function() {
+            return {
+                display: "block"
+            }
+        };
+        return (
+            <div className="welcome-div col-sm-12" style={getStyle()}>
+                <div className="welcome-inner">
+                    <div className="welcome-header">
+                        <h1>Add a Lead to Your Form:</h1>
+                    </div>
+                    <div className="welcome-body">
+                    </div>
+                </div>
+            </div>
+        );
+
+    },
+
     render: function() {
                 var template = this.state.templates[this.state.templateIndex]
         return (
             <div className="template-layout">
+                {this.renderWelcome()}
                 <nav className="navbar navbar-default navbar-fixed-top">
                     <div className="container-fluid">
                         <div className="navbar-header">
