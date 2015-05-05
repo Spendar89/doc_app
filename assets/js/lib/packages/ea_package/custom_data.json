@@ -4,11 +4,11 @@
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
+            "Weeks": 7,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -26,18 +26,19 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 4
         },
 
         "Administrative Assistant - Evening": {
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
-            "Weeks": 48,
+            "Weeks": 21,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 242,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -55,18 +56,19 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 9
         },
 
         "Business Accounting Specialist - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
+            "Weeks": 18,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -84,7 +86,8 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2015
+            "ReportYear": 2013,
+            "Credits": 2
         },
 
         "Business Accounting Specialist - Evening": {
@@ -95,7 +98,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -113,18 +116,19 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2015
+            "ReportYear": 2015,
+            "Credits": 3
         },
 
         "Medical Assistant - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
+            "Weeks": 28,
+            "Terms": 1,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -142,7 +146,8 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2015
+            "ReportYear": 2015,
+            "Credits": 3
         },
 
         "Medical Assistant - Evening": {
@@ -150,10 +155,10 @@
             "Afternoon": false,
             "Evening": true,
             "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
+            "Terms": 9,
+            "ClockHours": 542,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -171,18 +176,19 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 7
         },
 
         "Medical Billing and Coding Specialist - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
+            "Weeks": 28,
+            "Terms": 7,
+            "ClockHours": 42,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -200,7 +206,9 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 4
+
         },
 
         "Medical Billing and Coding Specialist - Evening": {
@@ -209,9 +217,9 @@
             "Evening": true,
             "Weeks": 48,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -238,9 +246,9 @@
             "Evening": false,
             "Weeks": 48,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -258,7 +266,8 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 4
         },
 
         "Medical Office Specialist - Evening": {
@@ -269,7 +278,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -287,7 +296,8 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2012
+            "ReportYear": 2012,
+            "Credits": 4
         },
 
         "Pharmacy Technician - Morning": {
@@ -298,7 +308,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -316,7 +326,8 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
         },
 
         "Pharmacy Technician - Evening": {
@@ -327,7 +338,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -345,18 +356,20 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "Cosmetology Operator - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
+            "Weeks": 28,
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -374,7 +387,9 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "Cosmetology Operator - Evening": {
@@ -385,7 +400,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -403,7 +418,9 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "HVAC - Morning": {
@@ -414,7 +431,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -432,7 +449,9 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 80,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "HVAC - Evening": {
@@ -443,7 +462,7 @@
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -461,7 +480,9 @@
             "NumberGradsPlaced": 1,
             "PlacementRate": 80,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 8
+
         }
     }
 }

@@ -25,7 +25,7 @@ var CustomMethods = {
                         startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
                         startField.disabled = false;
                         form.updateCustomField("StartDate", startField);
-                        form.updateLeadPending("ProgramNo", term["ProgramNo"]);
+                        form.setLeadPending("ProgramNo", term["ProgramNo"]);
                     }
                 );
 
@@ -72,7 +72,7 @@ var CustomMethods = {
         var gradField = _.extend(customFields["GradDate"], {});
 
         gradField.value = new Date(term["TermEndDate"]);
-        form.updateLeadPending("TermID", term["TermID"]);
+        form.setLeadPending("TermID", term["TermID"]);
         form.updateCustomField("GradDate", gradField);
     }
 

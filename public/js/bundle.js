@@ -1060,11 +1060,11 @@ var LeadManager = {
         var leadId = this.state.extensions.lead["LeadsID"],
             leadPending = this.state.extensions.leadPending,
             leadController = setLeadController.call(this),
-            updateLead = _.partial(leadController.updateLead.bind(leadController), leadPending);
+            updateLead = leadController.updateLead.bind(leadController);
 
         async.series(
             [
-                updateLead,
+                _.partial(updateLead, leadPending),
                 this._fetchLeadAndSetState
             ], 
             function(err, data) {
@@ -1138,11 +1138,11 @@ module.exports={
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
+            "Weeks": 7,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1160,18 +1160,19 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 4
         },
 
         "Administrative Assistant - Evening": {
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
-            "Weeks": 48,
+            "Weeks": 21,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 242,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1189,18 +1190,19 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 9
         },
 
         "Business Accounting Specialist - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
+            "Weeks": 18,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1218,7 +1220,8 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2015
+            "ReportYear": 2013,
+            "Credits": 2
         },
 
         "Business Accounting Specialist - Evening": {
@@ -1229,7 +1232,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1247,18 +1250,19 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2015
+            "ReportYear": 2015,
+            "Credits": 3
         },
 
         "Medical Assistant - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
+            "Weeks": 28,
+            "Terms": 1,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1276,7 +1280,8 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2015
+            "ReportYear": 2015,
+            "Credits": 3
         },
 
         "Medical Assistant - Evening": {
@@ -1284,10 +1289,10 @@ module.exports={
             "Afternoon": false,
             "Evening": true,
             "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
+            "Terms": 9,
+            "ClockHours": 542,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1305,18 +1310,19 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 7
         },
 
         "Medical Billing and Coding Specialist - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
+            "Weeks": 28,
+            "Terms": 7,
+            "ClockHours": 42,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1334,7 +1340,9 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 4
+
         },
 
         "Medical Billing and Coding Specialist - Evening": {
@@ -1343,9 +1351,9 @@ module.exports={
             "Evening": true,
             "Weeks": 48,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1372,9 +1380,9 @@ module.exports={
             "Evening": false,
             "Weeks": 48,
             "Terms": 8,
-            "ClockHours": 942,
+            "ClockHours": 142,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1392,7 +1400,8 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2013
+            "ReportYear": 2013,
+            "Credits": 4
         },
 
         "Medical Office Specialist - Evening": {
@@ -1403,7 +1412,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1421,7 +1430,8 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2012
+            "ReportYear": 2012,
+            "Credits": 4
         },
 
         "Pharmacy Technician - Morning": {
@@ -1432,7 +1442,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1450,7 +1460,8 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
         },
 
         "Pharmacy Technician - Evening": {
@@ -1461,7 +1472,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1479,18 +1490,20 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "Cosmetology Operator - Morning": {
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
-            "Weeks": 48,
+            "Weeks": 28,
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1508,7 +1521,9 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "Cosmetology Operator - Evening": {
@@ -1519,7 +1534,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1537,7 +1552,9 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 100,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "HVAC - Morning": {
@@ -1548,7 +1565,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1566,7 +1583,9 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 80,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 4
+
         },
 
         "HVAC - Evening": {
@@ -1577,7 +1596,7 @@ module.exports={
             "Terms": 8,
             "ClockHours": 942,
             "QuarterHours": 74.5,
-            "TotalMonths": 12,
+            "Months": 12,
             "RegFee": 20,
             "Tuition": 19925,
             "Textbook": 0,
@@ -1595,7 +1614,9 @@ module.exports={
             "NumberGradsPlaced": 1,
             "PlacementRate": 80,
             "ExamPassageRate": 90,
-            "ReportYear": 2014
+            "ReportYear": 2014,
+            "Credits": 8
+
         }
     }
 }
@@ -1628,7 +1649,7 @@ var CustomMethods = {
                         startField.options = _.keys(PROGRAM_DATA[program]["terms"]);
                         startField.disabled = false;
                         form.updateCustomField("StartDate", startField);
-                        form.updateLeadPending("ProgramNo", term["ProgramNo"]);
+                        form.setLeadPending("ProgramNo", term["ProgramNo"]);
                     }
                 );
 
@@ -1675,7 +1696,7 @@ var CustomMethods = {
         var gradField = _.extend(customFields["GradDate"], {});
 
         gradField.value = new Date(term["TermEndDate"]);
-        form.updateLeadPending("TermID", term["TermID"]);
+        form.setLeadPending("TermID", term["TermID"]);
         form.updateCustomField("GradDate", gradField);
     }
 
@@ -38479,6 +38500,7 @@ process.browser = true;
 process.env = {};
 process.argv = [];
 process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
