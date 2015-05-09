@@ -17,28 +17,47 @@ end
 
 post '/docs' do
   content_type :json
-  diamond = Diamond.new(params[:campus])
-  @document = Document.new(params[:custom_fields], params[:template_id])
-  @email = params[:email]
-  @name = params[:name]
-  @leads_id = params[:leads_id]
-  @title = "doc_#{params[:template_title]}_#{@leads_id}_#{Time.now.to_i}"
-  doc_maker = DocMaker.new(@document)
+
+  custom_fields, campus, template_id, 
+  email, name, leads_id, template_title = params[:custom_fields], 
+                                          params[:campus],
+                                          params[:template_id], 
+                                          params[:email], 
+                                          params[:name], 
+                                          params[:leads_id], 
+                                          params[:template_title]
+
+  diamond = Diamond.new(campus)
+  document = Document.new(custom_fields, template_id)
+  title = "doc_#{template_title}_#{leads_id}_#{Time.now.to_i}"
+  doc_maker = DocMaker.new(document)
+
   begin
-    doc_maker.request_signature(@email, @name, @title)
-    @doc_id = doc_maker.get_signature_request_id
-    if @doc_id
-      if !diamond.errors.any?
-        diamond.add_document_to_lead(@leads_id, @doc_id, @title)
+    doc_maker.request_signature(email, name, title)
+    doc_id = doc_maker.get_signature_request_id
+
+    if doc_id
+
+      unless diamond.errors.any?
+        diamond.add_document_to_lead(leads_id, doc_id, title) 
       end
-      return { signature_request_id: @doc_id, 
-        url: doc_maker.get_signing_url }.to_json
+
+      return  { signature_request_id: doc_id, 
+                url: doc_maker.get_signing_url 
+              }.to_json
+
     else
-      return {error: {message: "Could not generate Doc..."}}.to_json
+      return  {  
+        error: {  
+          message: "Could not generate Doc..."  
+        } 
+      }.to_json
     end
+
   rescue Exception => e
     error = {}
     api_error = JSON.parse(e.message.split("Message:")[-1])["error"]
+
     if api_error
       error[:message] = api_error["error_msg"]
       error[:type] = api_error["error_name"]
@@ -46,6 +65,7 @@ post '/docs' do
       error[:message] = "There was a problem generating your doc"
       error[:type] = "Unknown Error"
     end
+
     return error 404, error.to_json
   end
 end
@@ -61,6 +81,14 @@ get '/leads/:leads_id/docs/:doc_id' do
     diamond.destroy_document(@doc_id)
     return "That Document Has Been Deleted"
   end
+end
+
+delete '/leads/:leads_id/docs/:doc_id' do
+  content_type :json
+  id = params[:doc_id]
+  diamond
+    .destroy_document(id)
+    .to_json
 end
 
 get '/leads/:leads_id/docs' do

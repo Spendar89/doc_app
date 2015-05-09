@@ -54,6 +54,16 @@
             "SSN": "password"
         },
 
+        "optionalFields": [
+            "Address 2",
+            "City 2",
+            "State 2",
+            "Zip 2",
+            "PhoneOther",
+            "PhoneMobile"
+
+        ],
+
         "disabledFields": [
             "StartDate",
             "GradDate",

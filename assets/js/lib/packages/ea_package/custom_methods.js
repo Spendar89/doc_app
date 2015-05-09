@@ -12,7 +12,7 @@ var CustomMethods = {
         var startField = _.extend(customFields["StartDate"], {});
 
         $.get('/terms', {
-                campus: form.state.campus,
+                campus: form.props.query.campus,
                 program_description: program
             },
             function(data) {

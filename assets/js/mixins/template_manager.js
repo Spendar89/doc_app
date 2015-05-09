@@ -58,7 +58,9 @@ TemplateManager = {
             function(name, callback) {
                 var fieldValue,
                     field = template.customFields[name],
-                    header = config.headers[field.name];
+                    header = config.headers[field.name],
+                    isOptional = _.include(config.optionalFields, name), 
+                    isDisabled = _.include(config.disabledFields, name);
 
                 field.header = header;
 
@@ -79,13 +81,15 @@ TemplateManager = {
                 if (config.customTypes[name]) {
                     fields[name].type = config.customTypes[name]
                 };
-                if (_.include(config.disabledFields, name)) {
-                    fields[name].disabled = true;
-                };
+
+                if (isDisabled) fields[name].disabled = true;
+                
 
                 if (customMethods[name]) {
                     fields[name].customMethod = customMethods[name];
                 };
+
+                if (isOptional) fields[name].optional = true; 
 
                 callback(null);
             },
@@ -106,42 +110,71 @@ TemplateManager = {
     },
 
     setStateFromTemplate: function(template, callback) {
-        console.log("Setting template", template)
         this.cursors.templates.set(this.state.templateIndex, template)
         if (callback) callback(null, template);
     },
 
     fetchTemplateAndSetState: function() {
-        var getTemplate = function() {
+        var fetchTemplate = function() {
             var template = this.currentTemplate(),
-                templateController = setTemplateController.call(this);
+                controller = setTemplateController.call(this),
+                callback = function(cb) {
+                    return cb(null, template);
+                };
 
-            if (template.customFields) {
-                return function(callback) {
-                    return callback(null, template)
-                }
-            } else {
-                return templateController.getTemplate.bind(templateController);
-            }
+            return template.customFields
+                ? callback
+                : controller.getTemplate.bind(controller);
         }.call(this);
 
-        async.waterfall([
-            getTemplate,
-            this.setCustomFields,
-            this.setStateFromTemplate
-        ], function(err, data) {
-            if (err) {
-                this.setState({
-                    docError: err
-                });
-            } else {
-                this.setState({
-                    templateLoading: false,
-                    docUrl: false
-                });
-            };
-        }.bind(this));
+        async.waterfall(
+            [
+                fetchTemplate,
+                this.setCustomFields,
+                this.setStateFromTemplate
+            ],
+            this._handleLoading
+        );
+    },
+
+    _handleLoading: function(err, data) {
+        var isDone = this.state.docUrl || this.currentTemplate().customFields;
+        if (err) {
+            this.setState({
+                docError: err
+            });
+        }; 
+
+        if (isDone){
+            this.setState({
+                templateLoading: false,
+                docUrl: false
+            });
+        };
+        
+    },
+
+    _refreshCustomFields: function() {
+        var template = this.currentTemplate(),
+            templates = this.cursors.templates,
+            index = this.state.templateIndex;
+
+        if (!template.customFields) return false;
+
+        this.setCustomFields(
+            template, 
+            function(err, template) {
+                templates.set(index, template);
+            }
+        );
+    },
+
+    leadDidUpdate: function(lead) {
+        if (!lead) return false;
+        this._refreshCustomFields();
     }
+
+
 
 };
 

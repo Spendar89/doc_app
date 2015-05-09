@@ -33,9 +33,7 @@ var DocInput = React.createClass({
             var options = _.uniq(this.props.field.options.concat("Select One")).reverse()
             return (
                 <div className="select">
-                    <label className="form-label">
-                        {this.props.fieldName}
-                    </label>
+                    {this.renderLabel()}
                     <select className="doc-block-input form-control" 
                             disabled={this.props.field.disabled}
                             onChange={this.handleChange} value={this.props.field.value}>
@@ -46,9 +44,7 @@ var DocInput = React.createClass({
         } else if (this.props.field.type === "radio") {
             return (
                 <div className="radio-group col-sm-12">
-                    <label className="form-label">
-                        {this.props.fieldName}
-                    </label>
+                    {this.renderLabel()}
                     <div className="radio">
                         <label>
                             <input  disabled={this.props.field.disabled}
@@ -87,9 +83,7 @@ var DocInput = React.createClass({
         } else {
             return (
                 <div className="default-input">
-                    <label className="form-label">
-                        {this.props.fieldName}
-                    </label>
+                    {this.renderLabel()}
                     <input  disabled={this.props.field.disabled}
                             onChange={this.handleChange} 
                             value={this.props.field.value} 
@@ -100,6 +94,22 @@ var DocInput = React.createClass({
         }
     },
 
+    renderLabel: function() {
+        var name = this.props.fieldName,
+            className = "form-label";
+
+        if (this.props.field.optional) {
+            name += " (optional)";
+            className += " optional-label";
+        };
+
+        return (
+            <label className={className}>
+                {name}
+            </label>
+        ) 
+    },
+
     customMethodClass: function() {
         var customMethod = this.props.field.customMethod;
         return customMethod
@@ -108,7 +118,7 @@ var DocInput = React.createClass({
     },
 
     validationClass: function() {
-        return this.props.field.value == undefined
+        return !this.props.field.optional && this.props.field.value == undefined
             ? "invalid doc-input form-group"
             : "valid doc-input form-group";
     },

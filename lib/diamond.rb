@@ -12,7 +12,13 @@ class Diamond
   def campus_db_map
     {
       "Austin" => "825-Austin", 
-      "Brownsville" => "925-Brownsville"
+      "Brownsville" => "925-Brownsville",
+      "North" => "824-North",
+      "South" => "826-South",
+      "Harlingen" => "827-Harlingen",
+      "Pharr" => "829-Pharr",
+      "Corpus" => "830-Corpus",
+      "Brownsville" => "831-Brownsville"
     }
   end
 
@@ -79,7 +85,13 @@ class Diamond
   def destroy_document(document_id)
     @client.execute(
       "DELETE FROM [#{@db_name}].dbo.leadDocuments
-      WHERE DocumentID='#{document_id}"
+      WHERE DocumentID='#{document_id}'"
+    ).do
+  end
+
+  def destroy_all_documents
+    @client.execute(
+      "DELETE FROM [#{@db_name}].dbo.leadDocuments"
     ).do
   end
 

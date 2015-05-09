@@ -1,3 +1,5 @@
+var BranchMixin = require('baobab-react/mixins').branch;
+
 var TemplateBlock = require('./template_block.jsx'),
     RecipientBlock = require('./recipient_block.jsx'),
     DocForm = require('./doc_form.jsx'),
@@ -6,11 +8,15 @@ var TemplateBlock = require('./template_block.jsx'),
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
     LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
-    LeadManager = require('./../../extensions/lead/lead_mixin.js'),
-    BranchMixin = require('baobab-react/mixins').branch;
+    LeadsWelcomeOverlay = require('./../../extensions/lead/components/leads_welcome_overlay.jsx'),
+    LeadManager = require('./../../extensions/lead/lead_mixin.js');
 
 var TemplateLayout = React.createClass({
     mixins: [LeadManager, TemplateManager, BranchMixin],
+    contextTypes: {
+        router: React.PropTypes.func
+              
+    },
 
     cursors: {
         allCustomFields: ['allCustomFields'],
@@ -21,11 +27,12 @@ var TemplateLayout = React.createClass({
 
     getInitialState: function() {
         return {
-            campus: "Austin",
             templateLoading: "Downloading Package Data",
             templateIndex: 0,
             docUrl: false,
-            docError: false
+            docError: false,
+            isLeadsSearching: false,
+            leads: []
         }
     },
 
@@ -119,46 +126,57 @@ var TemplateLayout = React.createClass({
         }
     },
 
-    handleLeadsSearch: function(leads) {
-        this.setState({
-            leads: leads,
-            searching: false
-        });
+    handleLeadsSearch: function (phone, isEmail) {
+        var fetchLeads = function(phone, isEmail, callback) {
+            var url;
+            if (isEmail) {
+                url = '/leads?email='
+            } else {
+                url = '/leads?phone='
+            }
+            return $.get(url + phone, function (data) {
+                return callback(data)
+            });
+        };
+
+        //TODO: Move fetchLeads to leadsController...
+        console.log("searching for leads")
+        this.setState({isLeadsSearching: true, leads: []});
+        fetchLeads(phone, isEmail, function (data) {
+            //TODO: Move to cursor...
+            this.setState({
+                isLeadsSearching: false,
+                leads: data
+            });
+        }.bind(this)); 
     },
 
     handleLeadsResult: function(lead) {
+        var vId = lead.id;
+        var campus = lead["college/campus_of_interest"];
         this.setState({
-            leadId: lead.id,
-            campus: lead["college/campus_of_interest"]
+            leadsSearchInput: undefined,
+            leads: []
         })
+        window.location.href = '/#?campus=' + campus + '&vId=' + vId;
     },
 
-    renderWelcome: function() {
-        var getStyle = function() {
-            return {
-                display: "block"
-            }
-        };
-        return (
-            <div className="welcome-div col-sm-12" style={getStyle()}>
-                <div className="welcome-inner">
-                    <div className="welcome-header">
-                        <h1>Add a Lead to Your Form:</h1>
-                    </div>
-                    <div className="welcome-body">
-                    </div>
-                </div>
-            </div>
-        );
-
+    handleLeadsSearchInput: function(input) {
+        this.setState({leadsSearchInput: input})
     },
+
 
     render: function() {
-                var template = this.state.templates[this.state.templateIndex]
+        var template = this.state.templates[this.state.templateIndex]
         return (
             <div className="template-layout">
-                {this.renderWelcome()}
                 <nav className="navbar navbar-default navbar-fixed-top">
+                <LeadsWelcomeOverlay    leads={this.state.leads} 
+                                        leadsSearchInput={this.state.leadsSearchInput}
+                                        vId={this.props.query.vId}
+                                        isLeadsSearching={this.state.isLeadsSearching}
+                                        onLeadsResult={this.handleLeadsResult}
+                                        onLeadsSearch={this.handleLeadsSearch}/>
                     <div className="container-fluid">
                         <div className="navbar-header">
                             <a className="navbar-brand" href="#">
@@ -167,8 +185,13 @@ var TemplateLayout = React.createClass({
                             <h5 className="pull-left">SCI Document Manager</h5>
                         </div>
                         <div id="navbar" className="navbar-collapse collapse">
-                            <ul className="nav navbar-nav navbar-right">
-                                <LeadsSearchBlock onLeadsResult={this.handleLeadsResult} handleLeadsSearch={this.handleLeadsSearch}/>
+                            <ul className="nav navbar-nav navbar-right col-sm-6">
+                                <LeadsSearchBlock   leads={this.state.leads} 
+                                                    vId={this.props.query.vId}
+                                                    leadsSearchInput={this.state.leadsSearchInput}
+                                                    onLeadsSearchInput={this.handleLeadsSearchInput}
+                                                    onLeadsResult={this.handleLeadsResult} 
+                                                    onLeadsSearch={this.handleLeadsSearch}/>
                             </ul>
                         </div>
                     </div>
@@ -193,7 +216,7 @@ var TemplateLayout = React.createClass({
                             callCustomMethod={this.callCustomMethod}
                             updateCustomField={this.updateCustomField} 
                             removeCustomField={this.removeCustomField}
-                            campus={this.state.campus}
+                            campus={this.props.query.campus}
                             docUrl={this.state.docUrl}
                             templateLoading={this.state.templateLoading}
                             onLoading={this.handleFormSubmitLoading}

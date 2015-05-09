@@ -41,6 +41,7 @@ var DocForm = React.createClass({
     isValid: function() {
         if (this.props.templateLoading) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
+            if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
     },
@@ -137,9 +138,9 @@ var DocForm = React.createClass({
                     <h2 className="col-sm-6 doc-form-header">{this.props.template.title}</h2>
                     {this.renderSubmit()}
                 </div>
-                <div className="loader-div col-sm-4 col-sm-offset-4" style={this.searchingStyle()}>
-                    <div className="ajax-loader"></div>
-                    <div className="loader-text"><h3>{this.props.templateLoading}</h3></div>
+                <div className="loader-div" style={this.searchingStyle()}>
+                    <h3 className="loader-text">{this.props.templateLoading}</h3>
+                    <Spinner />
                 </div>
                 {this.renderDocError()}
                 <form className="doc-form col-sm-12">

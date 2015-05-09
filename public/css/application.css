@@ -1,4 +1,4 @@
-/*@import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);*/
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);
 body {
   background: #EEEEEE;
   /* font-size: 12px !important; */
@@ -6,22 +6,6 @@ body {
 
 .template-layout {
   height: 100%; }
-<<<<<<< ours
-=======
-  .template-layout .welcome-div {
-    height: 100%;
-    position: absolute;
-    left: 0;
-    top: 0;
-    background: rgba(95, 95, 95, 0.95);
-    z-index: 10000;
-    color: white;
-    text-align: center; }
-    .template-layout .welcome-div .welcome-inner {
-      margin-top: 25%; }
-      .template-layout .welcome-div .welcome-inner .welcome-header {
-        text-align: center; }
->>>>>>> theirs
 
 * {
   font-family: 'Roboto', sans-serif !important; }
@@ -50,11 +34,19 @@ td {
   border-top: none !important;
   border-bottom: none !important; }
 
-.lead-results-row {
-  cursor: pointer;
-  color: grey; }
-  .lead-results-row div {
-    overflow: hidden; }
+.lead-results-div {
+  list-style: none;
+  margin-top: 60px;
+  color: rgba(0, 0, 0, 0.54); }
+  .lead-results-div .lead-results-row {
+    font-size: 21px;
+    font-weight: lighter;
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.87); }
+    .lead-results-div .lead-results-row:hover {
+      color: rgba(0, 0, 0, 0.26); }
+    .lead-results-div .lead-results-row div {
+      overflow: hidden; }
 
 .left-div,
 .right-div {
@@ -125,7 +117,6 @@ td {
       padding-left: 15px !important; }
 
 #leadDocsBlock {
-<<<<<<< ours
   height: 50%; }
 
 #templateBlock {
@@ -135,33 +126,32 @@ td {
 #recipientBlock {
   /*height: 30%;*/
   /*min-height: 250px;*/ }
-=======
-  height: 39%; }
-
-#templateBlock {
-  height: 25%; }
-
-#recipientBlock {
-  height: 30%; }
->>>>>>> theirs
 
 #leadDataBlock {
   height: 98%; }
 
 .loader-div {
   position: absolute;
-  top: 160px; }
+  height: 100%;
+  width: 100%; }
   .loader-div .loader-text {
-    color: grey;
+    position: relative;
+    top: 35%;
+    color: rgba(0, 0, 0, 0.26);
     text-align: center; }
+  .loader-div .react-spinner {
+    height: 50px;
+    width: 50px;
+    top: 40%; }
+  .loader-div.welcome-loader-div .loader-text {
+    color: rgba(0, 0, 0, 0.54); }
+  .loader-div.welcome-loader-div .react-spinner {
+    height: 100px;
+    width: 100px;
+    top: 100px; }
 
-.ajax-loader {
-  background: url("/images/ajax-loader.gif");
-  height: 40px;
-  width: 40px;
-  background-size: cover;
-  margin-left: auto;
-  margin-right: auto; }
+.react-spinner .react-spinner_bar {
+  background-color: rgba(0, 0, 0, 0.54); }
 
 .error-div {
   position: absolute;
@@ -174,16 +164,18 @@ td {
   width: 100%;
   position: absolute;
   overflow: hidden;
-<<<<<<< ours
-  top: 7%;
-  height: 93%; }
-  .app-template-div .app-template-inner {
-=======
   height: 100%; }
   .app-template-div .app-template-inner {
     padding-top: 5%;
->>>>>>> theirs
     height: 100%; }
+
+.btn {
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden; }
 
 .doc-form-div {
   color: rgba(0, 0, 0, 0.87);
@@ -197,15 +189,6 @@ td {
       border-radius: 2px 2px 0px 0px;
       height: 10%;
       overflow: hidden; }
-      .doc-form-div .doc-form-inner-div .doc-form-header-div .btn {
-        border: none; }
-        .doc-form-div .doc-form-inner-div .doc-form-header-div .btn.btn-primary {
-          /* background: #6092D0; */
-          border-radius: 0;
-          box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          overflow: hidden; }
       .doc-form-div .doc-form-inner-div .doc-form-header-div.doc-error {
         background: #ffdfdf; }
     .doc-form-div .doc-form-inner-div .doc-form-header {
@@ -235,33 +218,64 @@ td {
   text-align: center; }
 
 .navbar-default {
+  max-height: 50px;
   background: #E0E0E0;
   border: none;
   border-bottom: 1pt solid rgba(103, 101, 101, 0.41);
   color: grey;
   min-height: 0 !important;
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.21); }
+  .navbar-default .leads-welcome-overlay-div {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    z-index: 1; }
+    .navbar-default .leads-welcome-overlay-div .leads-welcome-inner {
+      text-align: center;
+      margin-top: 10%; }
+      .navbar-default .leads-welcome-overlay-div .leads-welcome-inner .leads-welcome-header h1 {
+        font-size: 60px; }
   .navbar-default div {
-    height: 100%; }
-  .navbar-default .navbar-form {
-    margin: 4px;
-    box-sizing: border-box; }
-    .navbar-default .navbar-form .form-group input {
-      /* padding: 3px 6px 3px 6px; */
-      /* height: 100%; */
-      width: 300px;
-      color: rgba(0, 0, 0, 0.87);
+    /*height: 100%;*/ }
+  .navbar-default .navbar-right .leads-search-block {
+    padding-top: 8px;
+    z-index: 1; }
+    .navbar-default .navbar-right .leads-search-block .leads-default-search {
+      /*.btn {*/
+      /*border-radius: 0px;*/
+      /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
+      /*text-overflow: ellipsis;*/
+      /*white-space: nowrap;*/
+      /*overflow: hidden;*/
+      /*}*/ }
+      .navbar-default .navbar-right .leads-search-block .leads-default-search input {
+        color: rgba(0, 0, 0, 0.87);
+        margin-right: 15px; }
+    .navbar-default .navbar-right .leads-search-block .leads-welcome-search input {
+      margin-top: 15px;
+      height: 50px;
+      font-size: 18px;
       margin-right: 15px; }
-    .navbar-default .navbar-form .btn {
-      /* height: 100%; */
-      /* padding: 3px 6px 3px 6px; */
-      border-radius: 0px;
-      /* border: 2pt solid #ececec; */
-      /* color: rgba(0, 0, 0, 0.54); */
-      box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden; }
+    .navbar-default .navbar-right .leads-search-block .leads-welcome-search .btn {
+      margin-top: 15px;
+      height: 50px;
+      font-size: 18px;
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+      border-width: 0;
+      outline: none;
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+      color: #ecf0f1;
+      transition: background-color .3s;
+      /*width: 100%;*/ }
+      .navbar-default .navbar-right .leads-search-block .leads-welcome-search .btn.btn-default {
+        background-color: #3C86CF; }
+        .navbar-default .navbar-right .leads-search-block .leads-welcome-search .btn.btn-default:hover {
+          background-color: #2E669E; }
 
 .navbar-header {
   margin-top: 4px; }

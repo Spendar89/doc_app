@@ -1,21 +1,25 @@
 var async = require('async'),
     LeadController = require('./lead_controller.js');
 
-var setLeadController = function() {
+var setLeadController = function(vId, campus) {
     var lead = this.state.extensions.lead,
         leadId = lead && lead["LeadsID"],
-        vId = this.state.leadId,
-        campus = this.state.campus,
+        campus = campus,
         loaderFn = this.setLoading;
 
     this.leadController = new LeadController(leadId, vId, campus, loaderFn);
     return this.leadController;
 };
 
+var getLeadId = function(extensions) {
+    var lead = extensions.lead;
+    return lead && lead["LeadsID"];
+};
+
 var LeadMixin = {
 
-    _fetchLeadAndSetState: function(callback) {
-        var leadController = setLeadController.call(this),
+    _fetchLeadAndSetState: function(vId, campus, callback) {
+        var leadController = setLeadController.call(this, vId, campus),
             getLead = leadController.getLead.bind(leadController),
             getLeadDocs = leadController.getLeadDocs.bind(leadController);
 
@@ -36,6 +40,7 @@ var LeadMixin = {
                     }
                 }
             });
+
             if (callback)
                 callback(null, lead);
         }.bind(this);
@@ -58,14 +63,20 @@ var LeadMixin = {
 
     _syncLeadAndSetState: function() {
         var leadId = this.state.extensions.lead["LeadsID"],
+            vId = this.props.query.vId,
+            campus = this.props.query.campus,
             leadPending = this.state.extensions.leadPending,
-            leadController = setLeadController.call(this),
+            leadController = setLeadController.call(this, null, campus),
             updateLead = leadController.updateLead.bind(leadController);
 
         async.series(
             [
                 _.partial(updateLead, leadPending),
-                this._fetchLeadAndSetState
+                _.partial(
+                    this._fetchLeadAndSetState,
+                    vId,
+                    campus
+                )
             ], 
             function(err, data) {
                 if (err) {
@@ -77,49 +88,51 @@ var LeadMixin = {
         );
     },
 
-    _defaultCallback: function(err, data) {
-        if (err) {
-            this.setState({
-                docError: err.response.body
-            });
-        };
-        if (this.state.docUrl || this.currentTemplate().customFields)
-            this.setLoading(false);
-    },
-
     getInitialState: function() {
         return {
-            leadId: "1409446",
             syncRemote: true
         };
     },
 
-    componentWillMount: function() {
-        this._fetchLeadAndSetState(this._defaultCallback);
+    componentDidMount: function() {
+        if (this.props.query.vId) {
+            this._fetchLeadAndSetState(
+                this.props.query.vId, 
+                this.props.query.campus, 
+                this._handleLoading
+            );
+        };
+    },
+
+    componentWillReceiveProps: function(nextProps) {
+        var hasNewVid = this.props.query.vId != nextProps.query.vId;
+
+        if (hasNewVid) {
+            this.cursors.allCustomFields.set({});
+            this._fetchLeadAndSetState(
+                nextProps.query.vId, 
+                nextProps.query.campus, 
+                this._handleLoading
+            );
+        };
+
     },
 
     componentDidUpdate: function(prevProps, prevState) {
-        var shouldSync = (!prevState.docUrl && this.state.docUrl &&
-            this.state.syncRemote && _.any(this.state.extensions.leadPending));
-        if (shouldSync) this._syncLeadAndSetState();
+        var hasLeadPending = this.state.syncRemote && _.any(this.state.extensions.leadPending),
+            hasNewDocUrl = !prevState.docUrl && this.state.docUrl,
+            hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions);
 
-        // New LeadID from Velocify lead search
-        if (this.state.leadId != prevState.leadId) {
-            this.cursors.allCustomFields.set({});
-            this._fetchLeadAndSetState(this._defaultCallback);
+        if (hasNewDocUrl && hasLeadPending) {
+            this._syncLeadAndSetState();   
         };
 
-        // If New Lead Fetched From Lead Search, Set New CustomFields Without
-        // Fetching New Template
-        var lead = this.state.extensions.lead;
-        var prevLead = prevState.extensions.lead;
-        if (lead && prevLead && lead["LeadsID"] != prevLead["LeadsID"]) {
-            this.setCustomFields(this.currentTemplate(), function(err, template) {
-                this.cursors.templates.set(this.state.templateIndex, template);
-            }.bind(this));
-        }
-
+        if (hasChangedLead){
+            var lead = this.state.extensions.lead;
+            this.leadDidUpdate && this.leadDidUpdate(lead);
+        };
     },
+
 
     setLeadPending: function(key, value) {
         if (_.has(this.state.extensions.lead, key)) {
