@@ -19,10 +19,9 @@ var getLeadId = function(extensions) {
 var LeadMixin = {
 
     _fetchLeadAndSetState: function(vId, campus, callback) {
-        var leadController = setLeadController.call(this, vId, campus),
-            getLead = leadController.getLead.bind(leadController),
-            getLeadDocs = leadController.getLeadDocs.bind(leadController);
+        var leadController = setLeadController.call(this, vId, campus);
 
+        var getLead = leadController.getLead.bind(leadController);
         var setStateFromLead = function(lead, callback) {
             this.context.tree.update({
                 extensions: {
@@ -45,6 +44,7 @@ var LeadMixin = {
                 callback(null, lead);
         }.bind(this);
 
+        var getLeadDocs = leadController.getLeadDocs.bind(leadController);
         var setStateFromDocs = function(docs, callback) {
             this.cursors.extensions.set('docs', docs);
             callback(null, docs);
@@ -86,6 +86,17 @@ var LeadMixin = {
                 };
             }.bind(this)
         );
+    },
+
+    setLeadPending: function(key, value) {
+        var hasField =_.has(this.state.extensions.lead, key);
+
+        if (hasField) {
+            this.cursors.extensions.set([
+                "leadPending", 
+                key
+            ], value);
+        };
     },
 
     getInitialState: function() {
@@ -131,14 +142,8 @@ var LeadMixin = {
             var lead = this.state.extensions.lead;
             this.leadDidUpdate && this.leadDidUpdate(lead);
         };
-    },
-
-
-    setLeadPending: function(key, value) {
-        if (_.has(this.state.extensions.lead, key)) {
-            this.cursors.extensions.set(["leadPending", key], value);
-        };
     }
+
 };
 
 module.exports = LeadMixin;

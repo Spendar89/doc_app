@@ -1,4 +1,4 @@
-var TemplateInput = React.createClass({
+var TemplateBlock = React.createClass({
 
     renderTemplateOption: function(template, i) {
         return <option key={template.id} value={i}>{template.title}</option>
@@ -30,4 +30,4 @@ var TemplateInput = React.createClass({
     }
 });
 
-module.exports = TemplateInput;
+module.exports = TemplateBlock;

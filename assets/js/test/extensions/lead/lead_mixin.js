@@ -4,21 +4,21 @@ var should = require('should'),
     rewire = require('rewire');
 
 
-describe('LeadManager', function() {
-    var LeadManager;
+describe('LeadMixin', function() {
+    var LeadMixin;
 
     beforeEach(function() {
         process.env.API_HOST = 'http://test-host';
-        LeadManager = require('./../../../../extensions/lead/mixins/lead_manager.js');
-        LeadManager.state = LeadManager.state || {};
-        LeadManager.setLoading = function() {};
+        LeadMixin = require('./../../../../extensions/lead/lead_mixin.js');
+        LeadMixin.state = LeadMixin.state || {};
+        LeadMixin.setLoading = function() {};
     });
 
     describe("_fetchLeadAndSetState", function() {
-        var LeadManager, METHOD_NAMES, METHODS, FAKE_LEAD;
+        var LeadMixin, METHOD_NAMES, METHODS, FAKE_LEAD;
 
         before(function() {
-            LeadManager = rewire('./../../../../extensions/lead/mixins/lead_manager.js');
+            LeadMixin = rewire('./../../../../extensions/lead/lead_mixin.js');
 
             METHOD_NAMES = [
                 "_fetchLead",
@@ -30,7 +30,7 @@ describe('LeadManager', function() {
             METHODS = _.map(
                 METHOD_NAMES,
                 function(name) {
-                    return LeadManager[name];
+                    return LeadMixin[name];
                 }
             );
 
@@ -44,12 +44,12 @@ describe('LeadManager', function() {
             var waterfallStub = function() {
                     return arguments[0];
                 },
-                revert = LeadManager.__set__(
+                revert = LeadMixin.__set__(
                     'async.waterfall',
                     waterfallStub
                 );
 
-            LeadManager._fetchLeadAndSetState().should.eql(METHODS);
+            LeadMixin._fetchLeadAndSetState().should.eql(METHODS);
 
             revert();
         });
@@ -75,11 +75,11 @@ describe('LeadManager', function() {
             _.each(
                 METHOD_NAMES, 
                 function(name) {
-                    LeadManager[name] = fn;
+                    LeadMixin[name] = fn;
                 }
             );
 
-            LeadManager._fetchLeadAndSetState(
+            LeadMixin._fetchLeadAndSetState(
                 function(err, data) {
                     data.should.eql(FAKE_LEAD);
                     done();
@@ -100,17 +100,17 @@ describe('LeadManager', function() {
         };
 
         it("should return an error when state.leadId is undefined", function(done) {
-            LeadManager.state.leadId = undefined;
-            LeadManager._fetchLead(function(err, res) {
+            LeadMixin.state.leadId = undefined;
+            LeadMixin._fetchLead(function(err, res) {
                 err.should.eql(LEAD_ID_ERROR);
                 done();
             })
         });
 
         it("should make a valid ajax request when leadId and campus exist", function(done) {
-            LeadManager.state.leadId = "FakeLeadId";
-            LeadManager.state.campus = "FakeCampus";
-            LeadManager._fetchLead(function(err, res) {
+            LeadMixin.state.leadId = "FakeLeadId";
+            LeadMixin.state.campus = "FakeCampus";
+            LeadMixin._fetchLead(function(err, res) {
                 res.should.eql(true);
                 done();
             })

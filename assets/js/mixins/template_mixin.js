@@ -12,7 +12,7 @@ var setTemplateController = function() {
     return this.templateController;
 };
 
-TemplateManager = {
+TemplateMixin = {
 
     packageData: EA_PACKAGE_DATA,
     customMethods: EA_CUSTOM_METHODS,
@@ -45,6 +45,8 @@ TemplateManager = {
         //});
     },
 
+    // TODO: change lead var to extension, and add extension argument.
+    // This will support additional extensions such as programs.
     setCustomFields: function(template, callback) {
         var lead = this.state.extensions.lead || {},
             template = _.extend(template),
@@ -178,4 +180,4 @@ TemplateManager = {
 
 };
 
-module.exports = TemplateManager;
+module.exports = TemplateMixin;

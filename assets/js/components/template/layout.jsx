@@ -1,18 +1,23 @@
 var BranchMixin = require('baobab-react/mixins').branch;
 
+var SharedBlock = require('./../shared/shared_block.jsx');
+
 var TemplateBlock = require('./template_block.jsx'),
     RecipientBlock = require('./recipient_block.jsx'),
     DocForm = require('./doc_form.jsx'),
-    TemplateManager = require('./../../mixins/template_manager.js');
+    TemplateMixin = require('./../../mixins/template_mixin.js');
 
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
     LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
     LeadsWelcomeOverlay = require('./../../extensions/lead/components/leads_welcome_overlay.jsx'),
-    LeadManager = require('./../../extensions/lead/lead_mixin.js');
+    LeadMixin = require('./../../extensions/lead/lead_mixin.js');
+
+var ProgramMixin = require('./../../extensions/program/program_mixin.js'),
+    ProgramBlock = require('./../../extensions/program/components/program_block.jsx');
 
 var TemplateLayout = React.createClass({
-    mixins: [LeadManager, TemplateManager, BranchMixin],
+    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin],
     contextTypes: {
         router: React.PropTypes.func
               
@@ -107,7 +112,6 @@ var TemplateLayout = React.createClass({
         });
     },
 
-
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.templates[this.state.templateIndex];
         var prevTemplate = prevState.templates[prevState.templateIndex];
@@ -165,9 +169,29 @@ var TemplateLayout = React.createClass({
         this.setState({leadsSearchInput: input})
     },
 
+    handleProgramIndex: function(e) {
+        var index = e.target.value;
+        console.log("New Program Index", index);
+        this.cursors.extensions.set("programIndex", index);
+    },
+
+    handleProgramTermIndex: function(e) {
+        var index = e.target.value;
+        console.log("New Program Term Index", index);
+        this.cursors.extensions.set("programTermIndex", index);
+    },
+
 
     render: function() {
-        var template = this.state.templates[this.state.templateIndex]
+        var template = this.state.templates[this.state.templateIndex],
+            programBlock = <ProgramBlock  templateLoading={this.state.templateLoading} 
+                                          onProgramIndexChange={this.handleProgramIndex}
+                                          onProgramTermIndexChange={this.handleProgramTermIndex}
+                                          programIndex={this.state.extensions.programIndex} 
+                                          programTermIndex={this.state.extensions.programTermIndex} 
+                                          programs={this.state.extensions.programs} 
+                                          program={this.currentProgram()} />;
+
         return (
             <div className="template-layout">
                 <nav className="navbar navbar-default navbar-fixed-top">
@@ -198,6 +222,7 @@ var TemplateLayout = React.createClass({
                 </nav>
                 <div className="app-template-inner">
                     <div className="col-sm-3 left-div">
+                        <SharedBlock blockBody={programBlock} blockHeader={"This is the Program Header"} />
                         <TemplateBlock  packageName={this.packageData.name}
                             template={template}
                             templates={this.state.templates} 

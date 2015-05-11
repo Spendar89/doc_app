@@ -1,6 +1,6 @@
-{
-    "programs": {
-        "Administrative Assistant - Morning": {
+[
+    {
+            "Name": "Administrative Assistant - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -30,7 +30,8 @@
             "Credits": 4
         },
 
-        "Administrative Assistant - Evening": {
+        {
+            "Name": "Administrative Assistant - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -60,7 +61,8 @@
             "Credits": 9
         },
 
-        "Business Accounting Specialist - Morning": {
+        {
+            "Name": "Business Accounting Specialist - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -90,7 +92,8 @@
             "Credits": 2
         },
 
-        "Business Accounting Specialist - Evening": {
+        {
+            "Name": "Business Accounting Specialist - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -120,7 +123,8 @@
             "Credits": 3
         },
 
-        "Medical Assistant - Morning": {
+        {
+            "Name": "Medical Assistant - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -150,7 +154,8 @@
             "Credits": 3
         },
 
-        "Medical Assistant - Evening": {
+        {
+            "Name": "Medical Assistant - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -180,7 +185,8 @@
             "Credits": 7
         },
 
-        "Medical Billing and Coding Specialist - Morning": {
+        {
+            "Name": "Medical Billing and Coding Specialist - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -211,7 +217,8 @@
 
         },
 
-        "Medical Billing and Coding Specialist - Evening": {
+        {
+            "Name": "Medical Billing and Coding Specialist - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -240,7 +247,8 @@
             "ReportYear": 2014
         },
 
-        "Medical Office Specialist - Morning": {
+        {
+            "Name": "Medical Office Specialist - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -268,221 +276,5 @@
             "ExamPassageRate": 90,
             "ReportYear": 2013,
             "Credits": 4
-        },
-
-        "Medical Office Specialist - Evening": {
-            "Morning": false,
-            "Afternoon": false,
-            "Evening": true,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 28,
-            "JobOpenings": 5,
-            "NumberGrads": 10,
-            "CompletionRate": 54,
-            "AvgStartingSalary": 80000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 100,
-            "ExamPassageRate": 90,
-            "ReportYear": 2012,
-            "Credits": 4
-        },
-
-        "Pharmacy Technician - Morning": {
-            "Morning": true,
-            "Afternoon": false,
-            "Evening": false,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 28,
-            "JobOpenings": 5,
-            "NumberGrads": 10,
-            "CompletionRate": 54,
-            "AvgStartingSalary": 80000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 100,
-            "ExamPassageRate": 90,
-            "ReportYear": 2014,
-            "Credits": 4
-        },
-
-        "Pharmacy Technician - Evening": {
-            "Morning": false,
-            "Afternoon": false,
-            "Evening": true,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 28,
-            "JobOpenings": 5,
-            "NumberGrads": 10,
-            "CompletionRate": 54,
-            "AvgStartingSalary": 80000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 100,
-            "ExamPassageRate": 90,
-            "ReportYear": 2014,
-            "Credits": 4
-
-        },
-
-        "Cosmetology Operator - Morning": {
-            "Morning": true,
-            "Afternoon": false,
-            "Evening": false,
-            "Weeks": 28,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 28,
-            "JobOpenings": 59,
-            "NumberGrads": 80,
-            "CompletionRate": 54,
-            "AvgStartingSalary": 60000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 100,
-            "ExamPassageRate": 90,
-            "ReportYear": 2014,
-            "Credits": 4
-
-        },
-
-        "Cosmetology Operator - Evening": {
-            "Morning": false,
-            "Afternoon": false,
-            "Evening": true,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 28,
-            "JobOpenings": 5,
-            "NumberGrads": 10,
-            "CompletionRate": 54,
-            "AvgStartingSalary": 80000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 100,
-            "ExamPassageRate": 90,
-            "ReportYear": 2014,
-            "Credits": 4
-
-        },
-
-        "HVAC - Morning": {
-            "Morning": true,
-            "Afternoon": false,
-            "Evening": false,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 2,
-            "JobOpenings": 50,
-            "NumberGrads": 8,
-            "CompletionRate": 44,
-            "AvgStartingSalary": 80000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 80,
-            "ExamPassageRate": 90,
-            "ReportYear": 2014,
-            "Credits": 4
-
-        },
-
-        "HVAC - Evening": {
-            "Morning": false,
-            "Afternoon": false,
-            "Evening": true,
-            "Weeks": 48,
-            "Terms": 8,
-            "ClockHours": 942,
-            "QuarterHours": 74.5,
-            "Months": 12,
-            "RegFee": 20,
-            "Tuition": 19925,
-            "Textbook": 0,
-            "OtherFees": 0,
-            "Total": 19945,
-            "NumberEnrolled": 2,
-            "JobOpenings": 50,
-            "NumberGrads": 8,
-            "CompletionRate": 44,
-            "AvgStartingSalary": 80000,
-            "NumberGradsEmployed": 20,
-            "EmploymentRate": 20,
-            "StartingSalaryRangeLow": 5000,
-            "StartingSalaryRangeHigh": 80000,
-            "NumberGradsPlaced": 1,
-            "PlacementRate": 80,
-            "ExamPassageRate": 90,
-            "ReportYear": 2014,
-            "Credits": 8
-
         }
-    }
-}
+]

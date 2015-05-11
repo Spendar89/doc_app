@@ -1,4 +1,4 @@
-PROGRAM_DATA = require('./custom_data.json').packages;
+PROGRAM_DATA = require('./custom_data.json').programs;
 
 var CustomMethods = {
     "Program": function(form) {
