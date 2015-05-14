@@ -19,8 +19,8 @@ var EA_PACKAGE_DATA = require('./lib/packages/ea_package/package_data.json');
 var tree = new Baobab({
     package: EA_PACKAGE_DATA,
     allCustomFields: {},
-    recipient: {},
-    extensions: {}
+    extensions: {},
+    sources: {}
 })
 
 var Layout = React.createClass({

@@ -13,7 +13,7 @@ var LeadDataBlock = React.createClass({
         };
 
         return (
-            <tr className={getRowClasses()} key={key}>
+            <tr className={"col-sm-6 " + getRowClasses()} key={key}>
                 <td><label>{key}</label></td>
                 <td>{value}</td>
             </tr>
@@ -35,7 +35,7 @@ var LeadDataBlock = React.createClass({
             <div className="block-div col-sm-12 with-table" id="leadDataBlock">
                 <div className="form-group">
                     <div className="block-header">
-                        <h4 className="control-label">Lead Data</h4>
+                        <h4 className="control-label">Current Lead</h4>
                     </div>
                     <div className="block-body">
                         <div className="block-body-top">

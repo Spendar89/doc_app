@@ -24,6 +24,11 @@ var LeadMixin = {
         var getLead = leadController.getLead.bind(leadController);
         var setStateFromLead = function(lead, callback) {
             this.context.tree.update({
+                sources: {
+                    lead: {
+                        $set: lead
+                    }
+                },
                 extensions: {
                     lead: {
                         $set: lead
@@ -31,13 +36,15 @@ var LeadMixin = {
                     leadPending: {
                         $set: {}
                     }
-                },
-                recipient: {
-                    $set: {
-                        email: lead["Email"],
-                        name: lead["FName"] + " " + lead["LName"]
-                    }
                 }
+                //recipients: {
+                    //client:{
+                        //$set: {
+                            //email: lead["Email"],
+                            //name: lead["FName"] + " " + lead["LName"]
+                        //}
+                    //}
+                //}
             });
 
             if (callback)
@@ -129,10 +136,27 @@ var LeadMixin = {
 
     },
 
+    getRecipientIndex(role, template) {
+        var recipients = template && template.recipients,
+            recipientIndex = false;
+
+        recipients && _.each(recipients, function(r, i) {
+            if (r.role == role) recipientIndex = i;
+        });
+
+        return recipientIndex;
+    },
+
     componentDidUpdate: function(prevProps, prevState) {
+        var template = this.state.templates[this.state.templateIndex],
+            lead = this.state.extensions.lead,
+            recipientIndex = this.getRecipientIndex("Client", template),
+            leadRecipient = typeof recipientIndex == "number" && template.recipients[recipientIndex];
+
         var hasLeadPending = this.state.syncRemote && _.any(this.state.extensions.leadPending),
             hasNewDocUrl = !prevState.docUrl && this.state.docUrl,
-            hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions);
+            hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
+            hasLeadRecipient = leadRecipient && !leadRecipient.name && !leadRecipient.email && this.state.extensions.lead;
 
         if (hasNewDocUrl && hasLeadPending) {
             this._syncLeadAndSetState();   
@@ -140,8 +164,14 @@ var LeadMixin = {
 
         if (hasChangedLead){
             var lead = this.state.extensions.lead;
-            this.leadDidUpdate && this.leadDidUpdate(lead);
+            this.cursors.sources.set("lead", lead);
+            //this.leadDidUpdate && this.leadDidUpdate(lead);
         };
+
+        if (hasLeadRecipient) {
+            this.cursors.templates.set([this.state.templateIndex, "recipients", recipientIndex, "name"], lead["FName"] + " " + lead["LName"]);
+            this.cursors.templates.set([this.state.templateIndex, "recipients", recipientIndex, "email"], lead["Email"]);
+        }
     }
 
 };

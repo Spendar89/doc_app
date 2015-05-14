@@ -1,18 +1,15 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);
 
-$lightBlack: rgba(0, 0, 0, 0.26);
-$medBlack: rgba(0, 0, 0, 0.54);
-$black: rgba(0, 0, 0, 0.87);
-
-body {
+ body {
     background: #EEEEEE;
+    font-family: 'Roboto', sans-serif !important;
     /* font-size: 12px !important; */
     /* font-size: 100%; */
 }
 .template-layout {
     height: 100%;
 }
-* {
+.col-sm-3.left-div {
     font-family: 'Roboto', sans-serif !important;
 }
 label {
@@ -40,31 +37,28 @@ td {
     border-bottom: none !important;
 }
 .lead-results-div {
-  list-style: none;
-  margin-top: 60px;
-  color: $medBlack;
-  .lead-results-headers{
-  }
-  .lead-results-row {
-    font-size: 21px;
-    font-weight: lighter;
-    cursor: pointer;
-    color: $black;
-    &:hover {
-      color: rgba(0, 0, 0, 0.26);
+    list-style: none;
+    margin-top: 60px;
+    color: rgba(0, 0, 0, 0.54);
+    .lead-results-row {
+        font-size: 21px;
+        font-weight: lighter;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.87);
+        &:hover {
+            color: rgba(0, 0, 0, 0.26);
+        }
+        div {
+            overflow: hidden;
+        }
     }
-    div {
-      overflow: hidden;
-    }
-  }
-
 }
 .left-div,
 .right-div {
     color: rgba(0, 0, 0, 0.87);
-    height: 100%;
-    overflow: hidden;
-    top: 3px;
+    /* height: 100%; */
+    /* overflow: hidden; */
+    /* top: 3px; */
     /* overflow-y: scroll; */
 }
 .left-div a,
@@ -72,35 +66,38 @@ td {
     color: gray;
 }
 .middle-div {
-    background: white;
-    box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.73);
+    /* background: white; */
+    /* box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.73); */
     border-radius: 2px;
-    padding: 0px;
-    top: 5px;
-    height: 100%;
+    /* padding: 0px; */
+    /* top: 5px; */
+    /* height: 100%; */
     &.doc-error {
         border: 2pt solid #ffdfdf;
     }
 }
 .block-div {
     background: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    margin-top: 2px;
+    box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.2);
+    margin-top: 15px;
     border-radius: 2px;
-    padding: 0;
-    margin-bottom: 4%;
+    /* padding: 0; */
+    margin-bottom: 15px;
     overflow: hidden;
     font-size: 12px;
+    /*max-height: 300px;*/
+    box-sizing: border-box;
+    padding-bottom: 15px;
     .block-header {
         border-radius: 2px 2px 0px 0px;
         /* height: 35px; */
         /* color: white; */
         border-bottom: 1px solid #edecec;
         .control-label {
-            margin: 0;
+            /* margin: 0; */
             /* padding-bottom: 15px; */
             /* padding-top: 15px; */
-            padding: 15px;
+            /* padding: 15px; */
             color: rgba(0, 0, 0, 0.54);
             /* font-weight: 900; */
             /* font-size: 14px; */
@@ -110,84 +107,76 @@ td {
         }
     }
     .block-body {
-        padding: 15px 15px 0px 15px;
+        padding-top: 15px;
+        /* padding: 15px 15px 0px 15px; */
         /* font-size: 12px !important; */
-        overflow: scroll;
+        /* overflow: scroll; */
         /* height: 93%; */
-        position: relative;
-        overflow-x: hidden;
-        width: 100%;
+        /* position: relative; */
+        /* overflow-x: hidden; */
+        /* width: 100%; */
+        /* padding-bottom: 30px; */
     }
     &.with-table .block-body {
-        overflow-x: hidden;
-        padding: 0;
-        overflow: scroll;
-        height: 93%;
-        position: absolute;
-        overflow-x: hidden;
-        width: 100%;
+        /* overflow-x: hidden; */
+        /* padding: 0; */
+        /* overflow: scroll; */
+        /* height: 93%; */
+        /* position: absolute; */
+        /* overflow-x: hidden; */
+        /* width: 100%; */
         .block-body-top {
-            padding: 15px 15px 0px 15px;
+            /*padding: 15px 15px 0px 15px;*/
         }
         td {
-            padding-left: 15px !important;
+            /*padding-left: 15px !important;*/
         }
     }
 }
-
-
 #leadDocsBlock {
-  height: 50%;
+  max-height: 600px;
+    /* height: 33%; */
 }
-
 #templateBlock {
-  /*height: 20%;*/
-  /*min-height: 180px;*/
+    /*height: 20%;*/
+    /*min-height: 180px;*/
 }
-
 #recipientBlock {
-  /*height: 30%;*/
-  /*min-height: 250px;*/
+    /*height: 30%;*/
+    /*min-height: 250px;*/
 }
-
 #leadDataBlock {
-  height: 98%;
+    /* height: 33%; */
 }
-
-.loader-div { 
+.loader-div {
     position: absolute;
     height: 100%;
     width: 100%;
     .loader-text {
-      position: relative;
-      top: 35%;
-      color: $lightBlack; 
-      text-align: center;
+        position: relative;
+        top: 35%;
+        color: rgba(0, 0, 0, 0.26);
+        text-align: center;
     }
     .react-spinner {
-      height: 50px;
-      width: 50px;
-      top: 40%;
+        height: 50px;
+        width: 50px;
+        top: 40%;
     }
-
     &.welcome-loader-div {
-      .loader-text {
-        color: $medBlack;
-      }
-      .react-spinner {
-        height: 100px;
-        width: 100px;
-        top: 100px;
-      }
+        .loader-text {
+            color: rgba(0, 0, 0, 0.54);
+        }
+        .react-spinner {
+            height: 100px;
+            width: 100px;
+            top: 100px;
+        }
     }
 }
-
-.react-spinner {
-  .react-spinner_bar {
-    background-color: $medBlack; 
-  }
+.react-spinner .react-spinner_bar {
+    background-color: rgba(0, 0, 0, 0.54);
 }
-
 .error-div {
     position: absolute;
     top: 80px;
@@ -199,60 +188,63 @@ td {
     }
 }
 .app-template-div {
-    width: 100%;
-    position: absolute;
-    overflow: hidden;
-    height: 100%;
+    /* width: 100%; */
+    /* position: absolute; */
+    /* overflow: hidden; */
+    /* height: 100%; */
+    padding-bottom: 15px;
     .app-template-inner {
-        padding-top: 5%;
-        height: 100%;
+        padding-top: 65px;
+        /* height: 100%; */
     }
 }
-
 .btn {
-  border: none;
-  border-radius: 0;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+    border-radius: 0;
+    /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 .doc-form-div {
     color: rgba(0, 0, 0, 0.87);
-    height: 98%;
+    /* height: 98%; */
     .doc-form-inner-div {
         height: 100%;
+        margin-top: 15px;
+        min-height: 800px;
+        background: white;
+        box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.2);
+        border-radius: 2px;
         .doc-form-header-div {
             color: rgba(0, 0, 0, 0.54);
             padding: 15px;
             border-bottom: 1px solid #edecec;
             border-radius: 2px 2px 0px 0px;
-            height: 10%;
-            overflow: hidden;
+            /* overflow: hidden; */
             &.doc-error {
                 background: #ffdfdf;
             }
         }
         .doc-form-header {
-            /* padding: 0px; */
-            margin: 0px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
+            /* margin: 0px; */
+            /* padding: 15px; */
+            /*text-overflow: ellipsis;*/
+            /*white-space: nowrap;*/
+            /*overflow: hidden;*/
         }
         .doc-form {
-            border-top: none;
-            height: 93%;
-            padding: 15px;
-            padding-bottom: 0;
-            padding-top: 0;
+            /* border-top: none; */
+            /* height: 93%; */
+            /* padding: 15px; */
+            /* padding-bottom: 0; */
+            /* padding-top: 0; */
             label {
                 color: rgba(0, 0, 0, 0.54) !important;
                 font-weight: normal;
             }
             .doc-form-inputs {
-                height: 95%;
-                overflow: scroll;
+                /* height: 95%; */
+                /* overflow: scroll; */
             }
             .doc-input {
                 &.invalid input {
@@ -263,92 +255,107 @@ td {
                 }
             }
         }
-
+        .signatures-block {
+          color: rgba(0, 0, 0, 0.54);
+            .signatures-header {
+                text-align: center;
+                margin-top: 60px;
+            }
+            .signatures-body {
+              .form-group {
+                margin-top: 60px;
+              }
+            }
+            .btn {
+              color: rgba(0, 0, 0, 0.54);
+              padding: 20px 0px 20px 0px;
+              font-size: 18px;
+            }
+        }
     }
 }
 .page-header {
     text-align: center;
 }
 .navbar-default {
-      max-height: 50px;
-    .leads-welcome-overlay-div {
-      position: fixed;
-      left: 0;
-      top: 0;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 1;
-      .leads-welcome-inner {
-        text-align: center;
-        margin-top: 10%;
-        .leads-welcome-header {
-          h1 {
-            font-size: 60px;
-          }
-        }
-        .leads-welcome-body {
-          
-        }
-      }
-    }
-    background: #E0E0E0;
+    /* height: 50px; */
+    background: #EEEEEE;
+    /* border: none; */
+    /* border-bottom: 1pt solid rgba(147, 147, 147, 0.43); */
+    /* color: rgba(0, 0, 0, 0.87); */
+    /* min-height: 0 !important; */
+    /* box-shadow: 0 3px 7px rgba(66, 66, 66, 0.57); */
+    max-height: 50px;
+    /* background: #FFFFFF; */
     border: none;
-    border-bottom: 1pt solid rgba(103, 101, 101, 0.41);
+    border-bottom: 1pt solid rgba(0, 0, 0, 0.19);
     color: grey;
     min-height: 0 !important;
-    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.21);
+    /* box-shadow: 0 3px 7px rgba(0, 0, 0, 0.21); */
+    .leads-welcome-overlay-div {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 1;
+        .leads-welcome-inner {
+            text-align: center;
+            margin-top: 10%;
+            .leads-welcome-header h1 {
+                font-size: 60px;
+            }
+        }
+    }
     div {
         /*height: 100%;*/
     }
-    .navbar-right {
-      .leads-search-block {
+    .navbar-right .leads-search-block {
         padding-top: 8px;
         z-index: 1;
-        .leads-default-search{
+        .leads-default-search {
+            /*.btn {*/
+            /*border-radius: 0px;*/
+            /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
+            /*text-overflow: ellipsis;*/
+            /*white-space: nowrap;*/
+            /*overflow: hidden;*/
+            /*}*/
             input {
                 color: rgba(0, 0, 0, 0.87);
                 margin-right: 15px;
             }
-            /*.btn {*/
-                /*border-radius: 0px;*/
-                /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
-                /*text-overflow: ellipsis;*/
-                /*white-space: nowrap;*/
-                /*overflow: hidden;*/
-            /*}*/
         }
         .leads-welcome-search {
-          input {
-            margin-top:  15px;
-            height: 50px;
-            font-size: 18px;
-            margin-right: 15px;
-          }
-          .btn {
-            margin-top: 15px;
-            height: 50px;
-            font-size: 18px;
-            position: relative;
-            display: inline-block;
-            overflow: hidden;
-            border-width: 0;
-            outline: none;
-            border-radius: 2px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
-            color: #ecf0f1;
-            transition: background-color .3s;
-            &.btn-default {
-              background-color: #3C86CF;
-              &:hover {
-                background-color: #2E669E;
-              }
+            input {
+                margin-top: 15px;
+                height: 50px;
+                font-size: 18px;
+                margin-right: 15px;
             }
-            /*width: 100%;*/
-          }
+            .btn {
+                margin-top: 15px;
+                height: 50px;
+                font-size: 18px;
+                position: relative;
+                display: inline-block;
+                overflow: hidden;
+                border-width: 0;
+                outline: none;
+                border-radius: 2px;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+                color: #ecf0f1;
+                transition: background-color .3s;
+                /*width: 100%;*/
+                &.btn-default {
+                    background-color: #3C86CF;
+                    &:hover {
+                        background-color: #2E669E;
+                    }
+                }
+            }
         }
-      }
     }
-
 }
 .navbar-header {
     margin-top: 4px;
@@ -364,3 +371,6 @@ td {
         /* line-height: 30px; */
     }
 }
+/*# sourceMappingURL=application.css.map */
+
+/*# sourceMappingURL=application.css.map */

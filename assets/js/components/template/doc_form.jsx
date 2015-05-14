@@ -1,4 +1,5 @@
-var DocInput = require('./doc_input.jsx');
+var DocInput = require('./doc_input.jsx'),
+    SignaturesBlock = require('./signatures_block.jsx');
 
 var DocForm = React.createClass({
 
@@ -26,7 +27,7 @@ var DocForm = React.createClass({
 
     renderDocInputHeader: function (field) {
         if (field.header) {
-            return <h2 className="doc-input-header"><small>{field.header}</small></h2>
+            return <h2 className="doc-input-header col-sm-12"><small>{field.header}</small></h2>
         }
     },
 
@@ -40,26 +41,36 @@ var DocForm = React.createClass({
 
     isValid: function() {
         if (this.props.templateLoading) return false;
+        if (!this.props.isRecipientsValid()) return false;
         return _.every(this.props.customFields, function(field, fieldName) {
             if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
     },
 
-    handleSubmit: function (e) {
-        var lead = this.props.lead || {};
+    handleGenerate: function (e) {
         e.preventDefault();
+
+        var lead = this.props.lead || {},
+            recipients = _.map(this.props.template.recipients, function(r) {
+                r.email_address = r.email;
+                r = _.pick(r, ["email_address", "role", "name"]);
+                return r;
+            });
+
         this.props.onLoading();
+
         $.post("/docs", {
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
             template_title: this.props.template.title,
             leads_id: lead.LeadsID,
-            email: this.props.email,
-            name: this.props.name,
+            recipients: recipients,
             campus: this.props.campus
         }, function (data) {
-            this.props.onComplete(data)
+            var err = data.error,
+                signatures = data.signatures
+            this.props.onSignatures(err, signatures);
         }.bind(this));
     },
     
@@ -101,18 +112,23 @@ var DocForm = React.createClass({
     },
 
     renderSubmit: function() {
-        if (this.props.docUrl) {
+        var isValidRecipients = function() {
+            return _.every(this.props.recipients, function(r) {
+                return !_.isEmpty(r.email) && !_.isEmpty(r.name);
+            });
+        }.bind(this);
+
+        if (this._hasSignatures()) {
             return (
-                <a  className="btn btn-success btn col-sm-6" 
-                    href={this.props.docUrl} 
-                    target="blank">
-                    Click to Sign Doc
-                </a>
+                <button  className="btn-danger btn btn-block" 
+                         onClick={this.props.onRemoveSignatures} >
+                    Back
+                </button>
 
             )
         } else if (this.props.docError){
             return (
-                <button  className="btn-danger btn col-sm-6" 
+                <button  className="btn-danger btn btn-block" 
                     onClick={this.props.onDocError} >
                     Back to Form
                 </button>
@@ -122,21 +138,40 @@ var DocForm = React.createClass({
         } else {
             return  (
                 <input  disabled={!this.isValid()} 
-                        className="btn-primary btn col-sm-6" 
+                        className="btn-primary btn btn-block" 
                         type="submit" 
-                        value="Generate Doc for Signing" 
-                        onClick={this.handleSubmit} />
+                        value="Generate Doc" 
+                        onClick={this.handleGenerate} />
             ) 
+            
         }
         
     },
 
+    _hasSignatures: function() {
+        var recipients = this.props.recipients || [];
+        return recipients[0] && this.props.recipients[0].signatureId
+    },
+
     render: function() {
+        var renderSignaturesBlock = function() {
+            return (
+                <div className="signatures-block-div">
+                    <SignaturesBlock recipients={this.props.recipients} 
+                                     onSignature={this.props.onSignature} />
+                </div>
+            )
+        }.bind(this)
+
         return (
-            <div className="doc-form-inner-div">
+            <div className="doc-form-inner-div col-sm-12">
                 <div className="col-sm-12 doc-form-header-div">
-                    <h2 className="col-sm-6 doc-form-header">{this.props.template.title}</h2>
-                    {this.renderSubmit()}
+                    <h3 className="doc-form-header col-sm-6">
+                        {this.props.template.title}
+                    </h3>
+                    <h3 className="col-sm-6">
+                        {this.renderSubmit()}
+                    </h3>
                 </div>
                 <div className="loader-div" style={this.searchingStyle()}>
                     <h3 className="loader-text">{this.props.templateLoading}</h3>
@@ -144,8 +179,8 @@ var DocForm = React.createClass({
                 </div>
                 {this.renderDocError()}
                 <form className="doc-form col-sm-12">
-                    <div className="doc-form-inputs" style={this.formStyle()}>
-                        {this.renderDocInputs()}
+                    <div className="doc-form-inputs row" style={this.formStyle()}>
+                        {this._hasSignatures() ? renderSignaturesBlock() : this.renderDocInputs()}
                     </div>
                 </form>
             </div>

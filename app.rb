@@ -19,13 +19,16 @@ post '/docs' do
   content_type :json
 
   custom_fields, campus, template_id, 
-  email, name, leads_id, template_title = params[:custom_fields], 
+  recipients, leads_id, template_title = params[:custom_fields], 
                                           params[:campus],
                                           params[:template_id], 
-                                          params[:email], 
-                                          params[:name], 
+                                          params[:recipients], 
                                           params[:leads_id], 
                                           params[:template_title]
+
+  recipients = recipients.values.map do |r| 
+    r.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
+  end
 
   diamond = Diamond.new(campus)
   document = Document.new(custom_fields, template_id)
@@ -33,18 +36,21 @@ post '/docs' do
   doc_maker = DocMaker.new(document)
 
   begin
-    doc_maker.request_signature(email, name, title)
+    doc_maker.request_signature(recipients, title)
     doc_id = doc_maker.get_signature_request_id
+    signatures = doc_maker.get_signatures
 
-    if doc_id
+    if signatures
 
       unless diamond.errors.any?
         diamond.add_document_to_lead(leads_id, doc_id, title) 
       end
 
-      return  { signature_request_id: doc_id, 
-                url: doc_maker.get_signing_url 
-              }.to_json
+      #return  { signature_request_id: doc_id, 
+                #url: doc_maker.get_signing_url 
+              #}.to_json
+
+      return  { signatures: signatures }.to_json
 
     else
       return  {  
@@ -56,6 +62,7 @@ post '/docs' do
 
   rescue Exception => e
     error = {}
+    puts "heres the error: #{e}".red
     api_error = JSON.parse(e.message.split("Message:")[-1])["error"]
 
     if api_error
@@ -68,6 +75,15 @@ post '/docs' do
 
     return error 404, error.to_json
   end
+end
+
+get '/templates/:template_id/signatures/:signature_id' do
+  content_type :json
+
+  @dm = DocMaker.new
+  @dm.get_embedded_sign_url params[:signature_id]
+  sign_url = @dm.embedded_sign_url.sign_url
+  return sign_url.to_json
 end
 
 get '/leads/:leads_id/docs/:doc_id' do

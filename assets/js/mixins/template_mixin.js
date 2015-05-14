@@ -18,7 +18,6 @@ TemplateMixin = {
     customMethods: EA_CUSTOM_METHODS,
 
     updateCustomField: function(fieldName, field) {
-
         this.cursors.templates.set([
             this.state.templateIndex,
             "customFields",
@@ -40,16 +39,10 @@ TemplateMixin = {
 
         template.customFields = omitted;
         this.cursors.templates.set(this.state.templateIndex, template);
-        //this.setState({
-        //template: template
-        //});
     },
 
-    // TODO: change lead var to extension, and add extension argument.
-    // This will support additional extensions such as programs.
     setCustomFields: function(template, callback) {
-        var lead = this.state.extensions.lead || {},
-            template = _.extend(template),
+        var sources = this.state.sources,
             customFields = this.state.allCustomFields,
             config = this.packageData.config,
             customMethods = this.customMethods,
@@ -66,32 +59,23 @@ TemplateMixin = {
 
                 field.header = header;
 
-                // TODO: decouple lead logic from template.
-                if (customFields[name]) {
-                    fieldValue = customFields[name].value || lead[name];
+                if (customFields[name] && customFields[name].value) {
+                    fieldValue = customFields[name].value;
                 } else {
-                    fieldValue = lead[name];
+                    _.each(sources, function(source, key) {
+                        if (source && source[name]) {
+                            fieldValue = source[name]
+                        }
+                    });
                 };
 
                 fields[name] = _.extend(field, {
-                    value: fieldValue
+                    value: fieldValue,
+                    options: config.customOptions[name],
+                    type: config.customTypes[name] || field.type,
+                    disabled: isDisabled,
+                    optional: isOptional
                 });
-
-                if (config.customOptions[name]) {
-                    fields[name].options = config.customOptions[name];
-                };
-                if (config.customTypes[name]) {
-                    fields[name].type = config.customTypes[name]
-                };
-
-                if (isDisabled) fields[name].disabled = true;
-                
-
-                if (customMethods[name]) {
-                    fields[name].customMethod = customMethods[name];
-                };
-
-                if (isOptional) fields[name].optional = true; 
 
                 callback(null);
             },
@@ -112,7 +96,12 @@ TemplateMixin = {
     },
 
     setStateFromTemplate: function(template, callback) {
+        template.recipients = _.map(template.roles, function(r, i) {
+          return  {role: r, name: "", email: ""};
+        });
+
         this.cursors.templates.set(this.state.templateIndex, template)
+
         if (callback) callback(null, template);
     },
 
@@ -139,6 +128,47 @@ TemplateMixin = {
         );
     },
 
+    _setStateFromSignatures: function() {
+        //TODO: move handleDocSignatures
+    },
+
+    _fetchSignatures: function() {
+        //TODO: move post doc code from doc_form
+    },
+
+    fetchSignaturesAndSetState: function() {
+
+    },
+
+    toggleIsReady: function() {
+        var i = this.state.templateIndex,
+            isReady = this.state.templates[i].isReady;
+
+        this.cursors.templates.set([
+            i, "isReady"
+        ], !isReady);
+
+        this.setLoading(false);
+    },
+
+    handleRecipientChange: function(i, key, e) {
+        this.cursors.templates.set(
+            [
+                this.state.templateIndex,
+                "recipients", i, key
+            ],
+            e.target.value
+        );
+    },
+
+    isRecipientsValid: function() {
+        var template = this.currentTemplate(),
+            recipients = template.recipients;
+        return _.every(recipients, function(r) {
+           return r.email && r.name; 
+        });
+    },
+
     _handleLoading: function(err, data) {
         var isDone = this.state.docUrl || this.currentTemplate().customFields;
         if (err) {
@@ -153,7 +183,6 @@ TemplateMixin = {
                 docUrl: false
             });
         };
-        
     },
 
     _refreshCustomFields: function() {
@@ -171,13 +200,13 @@ TemplateMixin = {
         );
     },
 
-    leadDidUpdate: function(lead) {
-        if (!lead) return false;
-        this._refreshCustomFields();
+    componentDidUpdate: function(prevProps, prevState) {
+        window.testSources = this.state.sources;
+        if (this.state.sources != prevState.sources) {
+            console.log("new sources")
+            this._refreshCustomFields();
+        }
     }
-
-
-
 };
 
 module.exports = TemplateMixin;

@@ -124,8 +124,9 @@ var DocInput = React.createClass({
     },
 
     render: function() {
+        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ";
         return (
-            <div className={this.validationClass() + " " + this.customMethodClass()}>
+            <div className={this.validationClass() + gridClass + this.customMethodClass()}>
                 {this.renderInput()}
             </div>
         );

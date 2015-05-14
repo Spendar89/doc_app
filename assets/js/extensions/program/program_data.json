@@ -1,6 +1,6 @@
 [
     {
-            "Name": "Administrative Assistant - Morning",
+            "ProgramName": "Administrative Assistant - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -31,7 +31,7 @@
         },
 
         {
-            "Name": "Administrative Assistant - Evening",
+            "ProgramName": "Administrative Assistant - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -62,7 +62,7 @@
         },
 
         {
-            "Name": "Business Accounting Specialist - Morning",
+            "ProgramName": "Business Accounting Specialist - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -93,7 +93,7 @@
         },
 
         {
-            "Name": "Business Accounting Specialist - Evening",
+            "ProgramName": "Business Accounting Specialist - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -124,7 +124,7 @@
         },
 
         {
-            "Name": "Medical Assistant - Morning",
+            "ProgramName": "Medical Assistant - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -155,7 +155,7 @@
         },
 
         {
-            "Name": "Medical Assistant - Evening",
+            "ProgramName": "Medical Assistant - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -186,7 +186,7 @@
         },
 
         {
-            "Name": "Medical Billing and Coding Specialist - Morning",
+            "ProgramName": "Medical Billing and Coding Specialist - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,
@@ -218,7 +218,7 @@
         },
 
         {
-            "Name": "Medical Billing and Coding Specialist - Evening",
+            "ProgramName": "Medical Billing and Coding Specialist - Evening",
             "Morning": false,
             "Afternoon": false,
             "Evening": true,
@@ -248,7 +248,7 @@
         },
 
         {
-            "Name": "Medical Office Specialist - Morning",
+            "ProgramName": "Medical Office Specialist - Morning",
             "Morning": true,
             "Afternoon": false,
             "Evening": false,

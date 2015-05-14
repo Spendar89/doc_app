@@ -3,7 +3,7 @@ var BranchMixin = require('baobab-react/mixins').branch;
 var SharedBlock = require('./../shared/shared_block.jsx');
 
 var TemplateBlock = require('./template_block.jsx'),
-    RecipientBlock = require('./recipient_block.jsx'),
+    RecipientsBlock = require('./recipients_block.jsx'),
     DocForm = require('./doc_form.jsx'),
     TemplateMixin = require('./../../mixins/template_mixin.js');
 
@@ -18,16 +18,16 @@ var ProgramMixin = require('./../../extensions/program/program_mixin.js'),
 
 var TemplateLayout = React.createClass({
     mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin],
+
     contextTypes: {
         router: React.PropTypes.func
-              
     },
 
     cursors: {
         allCustomFields: ['allCustomFields'],
-        recipient: ['recipient'],
         templates: ['package', 'templates'], 
-        extensions: ['extensions']
+        extensions: ['extensions'],
+        sources: ['sources']
     },
 
     getInitialState: function() {
@@ -48,7 +48,6 @@ var TemplateLayout = React.createClass({
         });
     },
 
-
     callCustomMethod: function(customMethod) {
         customMethod(this);
     },
@@ -59,14 +58,6 @@ var TemplateLayout = React.createClass({
         });
     },
 
-    handleFormSuccess: function(data) {
-        this.setState({
-            docUrl: data.url,
-            templateLoading: false
-        });
-
-    },
-
     handleFormError: function(error) {
         this.setState({
             docError: error,
@@ -74,12 +65,35 @@ var TemplateLayout = React.createClass({
         });
     },
 
-    handleFormComplete: function(data) {
-        if (data.error) {
-            this.handleFormError(data.error);
+    handleDocSignatures: function(err, signatures) {
+        var templates = this.state.templates,
+            templateIndex = this.state.templateIndex,
+            recipients = templates[templateIndex].recipients;
+
+        if (err) {
+            this.handleFormError(err);
         } else {
-            this.handleFormSuccess(data);
-        }
+            _.each(recipients, function(r, i) {
+                var signature = _.select(signatures, function(s) {
+                   return s.email == r.email
+                });
+
+                var signatureId = signature[0] && signature[0].signature_id;
+
+                if (!signatureId) return false;
+
+                this.cursors.templates.set([
+                        templateIndex,
+                        "recipients",
+                        i,
+                        "signatureId"
+                    ],
+                    signatureId
+                );
+            }.bind(this));
+
+            this.setLoading(false);
+        };
     },
 
     handleTemplateInputChange: function(e) {
@@ -87,16 +101,6 @@ var TemplateLayout = React.createClass({
         this.setState({
             templateIndex: i
         });
-    },
-
-    handleLeadEmailInputChange: function(e) {
-        var email = e.target.value;
-        this.cursors.recipient.set('email', email);
-    },
-
-    handleLeadNameInputChange: function(e) {
-        var name = e.target.value;
-        this.cursors.recipient.set('name', name);
     },
 
     handleSync: function(e) {
@@ -144,7 +148,6 @@ var TemplateLayout = React.createClass({
         };
 
         //TODO: Move fetchLeads to leadsController...
-        console.log("searching for leads")
         this.setState({isLeadsSearching: true, leads: []});
         fetchLeads(phone, isEmail, function (data) {
             //TODO: Move to cursor...
@@ -169,29 +172,69 @@ var TemplateLayout = React.createClass({
         this.setState({leadsSearchInput: input})
     },
 
-    handleProgramIndex: function(e) {
+    handleProgramIndexChange: function(e) {
         var index = e.target.value;
-        console.log("New Program Index", index);
         this.cursors.extensions.set("programIndex", index);
     },
 
-    handleProgramTermIndex: function(e) {
+    handleProgramTermIndexChange: function(e) {
         var index = e.target.value;
-        console.log("New Program Term Index", index);
         this.cursors.extensions.set("programTermIndex", index);
+    },
+
+    fetchRecipientSignatureUrl: function(recipient, callback) {
+        var signatureId = recipient.signatureId,
+            templateId = this.currentTemplate().id;
+        $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {
+            callback(null, url);
+        })
+    },
+
+    handleRecipientSignature: function(recipient, i, e) {
+        e.preventDefault();
+        this.fetchRecipientSignatureUrl(recipient, function(err, url) {
+            HelloSign.init("716c4ee417732f70ed56e60c599cd7f3");
+
+            HelloSign.open({
+                url: url,
+                allowCancel: true,
+                skipDomainVerification: true,
+                messageListener: function(eventData) {
+                    console.log(eventData)
+                    //  do something
+                    //      
+                }
+            });
+
+            this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signatureUrl"], url)
+        }.bind(this));
+    },
+
+    handleRemoveRecipientSignatures: function(e) {
+        e.preventDefault();
+        _.each(this.state.templates[this.state.templateIndex].recipients, function(r, i) {
+           this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signatureId"], undefined) 
+        }.bind(this));
     },
 
 
     render: function() {
         var template = this.state.templates[this.state.templateIndex],
             programBlock = <ProgramBlock  templateLoading={this.state.templateLoading} 
-                                          onProgramIndexChange={this.handleProgramIndex}
-                                          onProgramTermIndexChange={this.handleProgramTermIndex}
+                                          onProgramIndexChange={this.handleProgramIndexChange}
+                                          onProgramTermIndexChange={this.handleProgramTermIndexChange}
                                           programIndex={this.state.extensions.programIndex} 
                                           programTermIndex={this.state.extensions.programTermIndex} 
-                                          programs={this.state.extensions.programs} 
-                                          program={this.currentProgram()} />;
-
+                                          programTerms={this.state.extensions.programTerms}
+                                          programs={this.state.extensions.programs} />,
+            templateBlock = <TemplateBlock  packageName={this.packageData.name}
+                                            template={template}
+                                            templates={this.state.templates} 
+                                            templateLoading={this.state.templateLoading}
+                                            onChange={this.handleTemplateInputChange} />,
+            recipientsBlock = <RecipientsBlock  onRecipientChange={this.handleRecipientChange} 
+                                                onSignature={this.handleRecipientSignature}
+                                                recipients={template.recipients} />;
         return (
             <div className="template-layout">
                 <nav className="navbar navbar-default navbar-fixed-top">
@@ -222,16 +265,10 @@ var TemplateLayout = React.createClass({
                 </nav>
                 <div className="app-template-inner">
                     <div className="col-sm-3 left-div">
-                        <SharedBlock blockBody={programBlock} blockHeader={"This is the Program Header"} />
-                        <TemplateBlock  packageName={this.packageData.name}
-                            template={template}
-                            templates={this.state.templates} 
-                            templateLoading={this.state.templateLoading}
-                            onChange={this.handleTemplateInputChange} 
-                            onSubmit={this.handleTemplateInputSubmit}/>
-                        <RecipientBlock onEmailChange={this.handleLeadEmailInputChange} 
-                            onNameChange={this.handleLeadNameInputChange} 
-                            recipient={this.state.recipient} />
+                        <SharedBlock blockBody={templateBlock} 
+                                     blockHeader={"Template"} />
+                        <SharedBlock blockBody={recipientsBlock} 
+                                     blockHeader={"Recipients"} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
                             docs={this.state.extensions.docs} />
                     </div>
@@ -241,18 +278,25 @@ var TemplateLayout = React.createClass({
                             callCustomMethod={this.callCustomMethod}
                             updateCustomField={this.updateCustomField} 
                             removeCustomField={this.removeCustomField}
+                            onSignature={this.handleRecipientSignature}
+                            onRemoveSignatures={this.handleRemoveRecipientSignatures}
                             campus={this.props.query.campus}
                             docUrl={this.state.docUrl}
                             templateLoading={this.state.templateLoading}
                             onLoading={this.handleFormSubmitLoading}
-                            onComplete={this.handleFormComplete}
+                            onSignatures={this.handleDocSignatures}
+                            onIsReady={this.toggleIsReady}
                             docError={this.state.docError}
                             onDocError={this.handleDocError}
-                            email={this.state.recipient.email}
-                            name={this.state.recipient.name}
+                            signatures={this.state.signatures}
+                            recipients={template.recipients}
+                            recipientsBlock={recipientsBlock}
+                            isRecipientsValid={this.isRecipientsValid}
                             lead={this.state.extensions.lead} />
                     </div>
                     <div className="col-sm-3 right-div">
+                        <SharedBlock blockBody={programBlock} 
+                                     blockHeader={"Current Program"} />
                         <LeadDataBlock  lead={this.state.extensions.lead} 
                             leadPending={this.state.extensions.leadPending} 
                             customFields={this.state.templates[this.state.templateIndex].customFields}

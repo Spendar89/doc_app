@@ -5,7 +5,10 @@
 
         {
             "id": "15d7739c06cbc00db4faf52213563823faf21419",
-            "title": "Primary Agreement"
+            "title": "Primary Agreement",
+            "config": {
+                "compact": true
+            }
         }, {
             "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
             "title": "Tour Acknowledgement"
@@ -17,6 +20,7 @@
 
     "config": {
         "customOptions": {
+            /*
             "Program": [
                 "Administrative Assistant - Morning",
                 "Administrative Assistant - Evening",
@@ -36,6 +40,7 @@
                 "HVAC - Evening"
             ],
             "StartDate": []
+            */
         },
 
         "customTypes": {
@@ -51,7 +56,9 @@
             "Months": "number",
             "ClockHours": "number",
             "DOB": "date",
-            "SSN": "password"
+            "SSN": "password",
+            "Evening": "checkbox",
+            "Morning": "checkbox"
         },
 
         "optionalFields": [
@@ -61,26 +68,17 @@
             "Zip 2",
             "PhoneOther",
             "PhoneMobile"
-
         ],
 
         "disabledFields": [
+            "Program",
             "StartDate",
-            "GradDate",
-            "Morning",
-            "Afternoon",
-            "Evening",
-            "Weeks",
-            "ClockHours",
-            "RegFee",
-            "Tuition",
-            "OtherFees",
-            "Total"
+            "GradDate"
         ],
 
         "headers": {
             "FName": "Enrollment Information",
-            "Program": "Program Information",
+            "ProgramName": "Program Information",
             "RegFee": "Fees",
             "Cash": "Method of Payment",
             "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
