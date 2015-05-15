@@ -1477,14 +1477,6 @@ var LeadMixin = {
                         $set: {}
                     }
                 }
-                //recipients: {
-                    //client:{
-                        //$set: {
-                            //email: lead["Email"],
-                            //name: lead["FName"] + " " + lead["LName"]
-                        //}
-                    //}
-                //}
             });
 
             if (callback)
@@ -1544,9 +1536,9 @@ var LeadMixin = {
             destroyLeadDoc = leadController.destroyLeadDoc.bind(leadController) 
 
         this.cursors.extensions.splice("docs", [docIndex, 1]);
+
         destroyLeadDoc(lead, doc, function(err, res) {
             if (err) {
-                console.log(err)
                 this.cursors.extensions.push("docs", doc);
             }
         }.bind(this));
