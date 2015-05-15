@@ -1,4 +1,4 @@
-var LeadsSearchBlock = React.createClass({
+var LeadsSearchInput = React.createClass({
     getInitialState: function () {
         return {
             isEmail: false,
@@ -33,15 +33,15 @@ var LeadsSearchBlock = React.createClass({
 
     render: function() {
         return (
-            <form className={this.props.className} role="search">
-                <div className="form-group col-sm-9">
+            <form className="leads-default-search row" role="search">
+                <div className="form-group col-sm-9 row">
                     <input  onChange={this.handleChange}  
                             type="text" 
                             value={this.props.input}
                             className="form-control" 
-                            placeholder="Search For Leads by Email or Phone Number"/>
+                            placeholder="Search by Email or Phone Number"/>
                 </div>
-                <button className="btn btn-default col-sm-3"
+                <button className="btn btn-default col-sm-3 pull-right"
                         disabled={!this.state.isValid}
                         onClick={this.handleClick} >
                     Search
@@ -53,4 +53,4 @@ var LeadsSearchBlock = React.createClass({
 
 });
 
-module.exports = LeadsSearchBlock;
+module.exports = LeadsSearchInput;

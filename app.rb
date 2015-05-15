@@ -20,20 +20,19 @@ post '/docs' do
 
   custom_fields, campus, template_id, 
   recipients, leads_id, template_title = params[:custom_fields], 
-                                          params[:campus],
-                                          params[:template_id], 
-                                          params[:recipients], 
-                                          params[:leads_id], 
-                                          params[:template_title]
+                                         params[:campus],
+                                         params[:template_id], 
+                                         params[:recipients], 
+                                         params[:leads_id], 
+                                         params[:template_title]
 
   recipients = recipients.values.map do |r| 
     r.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
   end
 
-  diamond = Diamond.new(campus)
   document = Document.new(custom_fields, template_id)
-  title = "doc_#{template_title}_#{leads_id}_#{Time.now.to_i}"
   doc_maker = DocMaker.new(document)
+  title = "doc_#{template_title}_#{leads_id || 'no_lead'}_#{Time.now.to_i}"
 
   begin
     doc_maker.request_signature(recipients, title)
@@ -42,13 +41,12 @@ post '/docs' do
 
     if signatures
 
-      unless diamond.errors.any?
-        diamond.add_document_to_lead(leads_id, doc_id, title) 
+      if campus && leads_id
+        diamond = Diamond.new(campus)
+        unless diamond.errors.any?
+          diamond.add_document_to_lead(leads_id, doc_id, title) 
+        end
       end
-
-      #return  { signature_request_id: doc_id, 
-                #url: doc_maker.get_signing_url 
-              #}.to_json
 
       return  { signatures: signatures }.to_json
 
@@ -101,7 +99,10 @@ end
 
 delete '/leads/:leads_id/docs/:doc_id' do
   content_type :json
+
   id = params[:doc_id]
+  diamond = Diamond.new params[:campus]
+
   diamond
     .destroy_document(id)
     .to_json

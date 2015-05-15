@@ -95,6 +95,34 @@ var LeadMixin = {
         );
     },
 
+    destroyLeadDoc: function(docIndex) {
+        var vId = this.props.query.vId,
+            campus = this.props.query.campus,
+            lead = this.state.extensions.lead,
+            doc = this.state.extensions.docs[docIndex],
+            leadController = this.leadController,
+            destroyLeadDoc = leadController.destroyLeadDoc.bind(leadController) 
+
+        this.cursors.extensions.splice("docs", [docIndex, 1]);
+        destroyLeadDoc(lead, doc, function(err, res) {
+            if (err) {
+                console.log(err)
+                this.cursors.extensions.push("docs", doc);
+            }
+        }.bind(this));
+    },
+
+    getRecipientIndex(role, template) {
+        var recipients = template && template.recipients,
+            recipientIndex = false;
+
+        recipients && _.each(recipients, function(r, i) {
+            if (r.role == role) recipientIndex = i;
+        });
+
+        return recipientIndex;
+    },
+
     setLeadPending: function(key, value) {
         var hasField =_.has(this.state.extensions.lead, key);
 
@@ -134,17 +162,6 @@ var LeadMixin = {
             );
         };
 
-    },
-
-    getRecipientIndex(role, template) {
-        var recipients = template && template.recipients,
-            recipientIndex = false;
-
-        recipients && _.each(recipients, function(r, i) {
-            if (r.role == role) recipientIndex = i;
-        });
-
-        return recipientIndex;
     },
 
     componentDidUpdate: function(prevProps, prevState) {

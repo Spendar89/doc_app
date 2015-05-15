@@ -10,6 +10,7 @@ var TemplateBlock = require('./template_block.jsx'),
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
     LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
+    LeadsSearchResults = require('./../../extensions/lead/components/leads_search_results.jsx'),
     LeadsWelcomeOverlay = require('./../../extensions/lead/components/leads_welcome_overlay.jsx'),
     LeadMixin = require('./../../extensions/lead/lead_mixin.js');
 
@@ -172,6 +173,12 @@ var TemplateLayout = React.createClass({
         this.setState({leadsSearchInput: input})
     },
 
+    handleLeadDocDestroy: function(i, e) {
+        e.preventDefault();
+        console.log("destorying lead doc", i)
+        this.destroyLeadDoc(i);
+    },
+
     handleProgramIndexChange: function(e) {
         var index = e.target.value;
         this.cursors.extensions.set("programIndex", index);
@@ -190,6 +197,13 @@ var TemplateLayout = React.createClass({
         })
     },
 
+    isTemplateSigned: function() {
+        var template = this.currentTemplate();
+        return _.every(template.recipients, function(r, i) {
+            return r.signed
+        });
+    },
+
     handleRecipientSignature: function(recipient, i, e) {
         e.preventDefault();
         this.fetchRecipientSignatureUrl(recipient, function(err, url) {
@@ -201,9 +215,9 @@ var TemplateLayout = React.createClass({
                 skipDomainVerification: true,
                 messageListener: function(eventData) {
                     console.log(eventData)
-                    //  do something
-                    //      
-                }
+                    var template = this.cursors.templates[this.state.templateIndex];
+                    this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signed"], true);
+                }.bind(this)
             });
 
             this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signatureUrl"], url)
@@ -219,31 +233,69 @@ var TemplateLayout = React.createClass({
 
 
     render: function() {
-        var template = this.state.templates[this.state.templateIndex],
-            programBlock = <ProgramBlock  templateLoading={this.state.templateLoading} 
-                                          onProgramIndexChange={this.handleProgramIndexChange}
-                                          onProgramTermIndexChange={this.handleProgramTermIndexChange}
-                                          programIndex={this.state.extensions.programIndex} 
-                                          programTermIndex={this.state.extensions.programTermIndex} 
-                                          programTerms={this.state.extensions.programTerms}
-                                          programs={this.state.extensions.programs} />,
-            templateBlock = <TemplateBlock  packageName={this.packageData.name}
-                                            template={template}
-                                            templates={this.state.templates} 
-                                            templateLoading={this.state.templateLoading}
-                                            onChange={this.handleTemplateInputChange} />,
-            recipientsBlock = <RecipientsBlock  onRecipientChange={this.handleRecipientChange} 
-                                                onSignature={this.handleRecipientSignature}
-                                                recipients={template.recipients} />;
+        var hasLead = true;
+        var template = this.state.templates[this.state.templateIndex];
+
+        var leadsWelcomeOverlay = <LeadsWelcomeOverlay    leads={this.state.leads} 
+                                                          leadsSearchInput={this.state.leadsSearchInput}
+                                                          vId={this.props.query.vId}
+                                                          isLeadsSearching={this.state.isLeadsSearching}
+                                                          onLeadsResult={this.handleLeadsResult}
+                                                          onLeadsSearch={this.handleLeadsSearch}/>;
+
+        var programBlock = <ProgramBlock  templateLoading={this.state.templateLoading} 
+            onProgramIndexChange={this.handleProgramIndexChange}
+            onProgramTermIndexChange={this.handleProgramTermIndexChange}
+            programIndex={this.state.extensions.programIndex} 
+            programTermIndex={this.state.extensions.programTermIndex} 
+            programTerms={this.state.extensions.programTerms}
+            programs={this.state.extensions.programs} />;
+
+        var templateBlock = <TemplateBlock  packageName={this.packageData.name}
+            template={template}
+            templates={this.state.templates} 
+            templateLoading={this.state.templateLoading}
+            onChange={this.handleTemplateInputChange} />;
+
+        var recipientsBlock = <RecipientsBlock  onRecipientChange={this.handleRecipientChange} 
+                                onSignature={this.handleRecipientSignature}
+                                recipients={template.recipients} />;
+
+
+            var renderLeadBlock = function() {
+                return (
+                    <div className="lead-block">
+                        <LeadsSearchBlock   leads={this.state.leads} 
+                                            vId={this.props.query.vId}
+                                            leadsSearchInput={this.state.leadsSearchInput}
+                                            onLeadsSearchInput={this.handleLeadsSearchInput}
+                                            onLeadsResult={this.handleLeadsResult} 
+                                            onLeadsSearch={this.handleLeadsSearch}/> 
+                    {
+                        this.state.isLeadsSearching || this.state.leads[0]
+                            ? (
+                                <LeadsSearchResults isLeadsSearching={this.state.isLeadsSearching} onLeadsResult={this.handleLeadsResult} leads={this.state.leads} />
+                                ) 
+                            : (
+                                <LeadDataBlock  lead={this.state.extensions.lead} 
+                                                leadPending={this.state.extensions.leadPending} 
+                                                customFields={this.state.templates[this.state.templateIndex].customFields}
+                                                syncRemote={this.state.syncRemote}
+                                                handleSync={this.handleSync} />
+
+                            )
+                    }
+                    </div>
+                );
+
+            }.bind(this)
+
+        
+
         return (
             <div className="template-layout">
                 <nav className="navbar navbar-default navbar-fixed-top">
-                <LeadsWelcomeOverlay    leads={this.state.leads} 
-                                        leadsSearchInput={this.state.leadsSearchInput}
-                                        vId={this.props.query.vId}
-                                        isLeadsSearching={this.state.isLeadsSearching}
-                                        onLeadsResult={this.handleLeadsResult}
-                                        onLeadsSearch={this.handleLeadsSearch}/>
+                    {/*leadsWelcomeOverlay*/}
                     <div className="container-fluid">
                         <div className="navbar-header">
                             <a className="navbar-brand" href="#">
@@ -253,12 +305,6 @@ var TemplateLayout = React.createClass({
                         </div>
                         <div id="navbar" className="navbar-collapse collapse">
                             <ul className="nav navbar-nav navbar-right col-sm-6">
-                                <LeadsSearchBlock   leads={this.state.leads} 
-                                                    vId={this.props.query.vId}
-                                                    leadsSearchInput={this.state.leadsSearchInput}
-                                                    onLeadsSearchInput={this.handleLeadsSearchInput}
-                                                    onLeadsResult={this.handleLeadsResult} 
-                                                    onLeadsSearch={this.handleLeadsSearch}/>
                             </ul>
                         </div>
                     </div>
@@ -270,7 +316,8 @@ var TemplateLayout = React.createClass({
                         <SharedBlock blockBody={recipientsBlock} 
                                      blockHeader={"Recipients"} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
-                            docs={this.state.extensions.docs} />
+                                        onDestroy={this.handleLeadDocDestroy}
+                                        docs={this.state.extensions.docs} />
                     </div>
                     <div className="col-sm-6 doc-form-div middle-div">
                         <DocForm    template={template}
@@ -297,11 +344,7 @@ var TemplateLayout = React.createClass({
                     <div className="col-sm-3 right-div">
                         <SharedBlock blockBody={programBlock} 
                                      blockHeader={"Current Program"} />
-                        <LeadDataBlock  lead={this.state.extensions.lead} 
-                            leadPending={this.state.extensions.leadPending} 
-                            customFields={this.state.templates[this.state.templateIndex].customFields}
-                            syncRemote={this.state.syncRemote}
-                            handleSync={this.handleSync} />
+                         <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
                     </div>
                 </div>
             </div>

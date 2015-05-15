@@ -12,6 +12,12 @@ var LeadDocsBlock = React.createClass({
                         {doc["Title"] || doc["DocumentID"]}
                     </a>
                 </td>
+                <td>
+                    <button className="btn btn-remove" 
+                            onClick={_.partial(this.props.onDestroy, i)}>
+                            <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                    </button>
+                </td>
             </tr>
         );
 

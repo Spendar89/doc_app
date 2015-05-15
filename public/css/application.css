@@ -28,6 +28,7 @@ input.form-control {
 
 table,
 tr {
+  padding: 0px !important;
   /* border-top: 2pt solid #ececec !important; */ }
 
 td {
@@ -35,19 +36,23 @@ td {
   border-top: none !important;
   border-bottom: none !important; }
 
-.lead-results-div {
+.lead-search-results-div ul {
   list-style: none;
-  margin-top: 60px;
   color: rgba(0, 0, 0, 0.54); }
-  .lead-results-div .lead-results-row {
-    font-size: 21px;
-    font-weight: lighter;
-    cursor: pointer;
-    color: rgba(0, 0, 0, 0.87); }
-    .lead-results-div .lead-results-row:hover {
-      color: rgba(0, 0, 0, 0.26); }
-    .lead-results-div .lead-results-row div {
-      overflow: hidden; }
+.lead-search-results-div .loader-div {
+  position: relative; }
+  .lead-search-results-div .loader-div .react-spinner {
+    height: 50px;
+    width: 50px;
+    margin-top: 30px; }
+.lead-search-results-div .lead-results-row {
+  font-weight: lighter;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.87); }
+  .lead-search-results-div .lead-results-row:hover {
+    color: rgba(0, 0, 0, 0.26); }
+  .lead-search-results-div .lead-results-row div {
+    overflow: hidden; }
 
 .left-div,
 .right-div {
@@ -183,6 +188,11 @@ td {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden; }
+  .btn.btn-remove {
+    background: transparent;
+    color: #d9534f;
+    border: none;
+    padding: 0px; }
 
 .doc-form-div {
   color: rgba(0, 0, 0, 0.87);
@@ -229,8 +239,10 @@ td {
       .doc-form-div .doc-form-inner-div .signatures-block .signatures-header {
         text-align: center;
         margin-top: 60px; }
-      .doc-form-div .doc-form-inner-div .signatures-block .signatures-body .form-group {
-        margin-top: 60px; }
+      .doc-form-div .doc-form-inner-div .signatures-block .signatures-body {
+        text-align: center; }
+        .doc-form-div .doc-form-inner-div .signatures-block .signatures-body .form-group {
+          margin-top: 60px; }
       .doc-form-div .doc-form-inner-div .signatures-block .btn {
         color: rgba(0, 0, 0, 0.54);
         padding: 20px 0px 20px 0px;

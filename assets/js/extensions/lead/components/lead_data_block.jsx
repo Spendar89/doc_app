@@ -32,32 +32,25 @@ var LeadDataBlock = React.createClass({
 
     render: function () {
         return (
-            <div className="block-div col-sm-12 with-table" id="leadDataBlock">
-                <div className="form-group">
-                    <div className="block-header">
-                        <h4 className="control-label">Current Lead</h4>
+            <div className="lead-data-block col-sm-12">
+                <div className="block-body-top row">
+                    <p>
+                        <i>This displays current data for the selected lead. Highlighted rows will be updated when synced.</i>
+                    </p>
+                    <div className="checkbox col-sm-12">
+                        <label>
+                            <input  type="checkbox" value={this.props.syncRemote} 
+                                checked={this.props.syncRemote} onChange={this.props.handleSync} />
+                            Sync Lead Data With Server
+                        </label>
                     </div>
-                    <div className="block-body">
-                        <div className="block-body-top">
-                            <p>
-                                <i>This displays current data for the selected lead. Highlighted rows will be updated when synced.</i>
-                            </p>
-                            <div className="checkbox">
-                                <label>
-                                    <input  type="checkbox" value={this.props.syncRemote} 
-                                            checked={this.props.syncRemote} onChange={this.props.handleSync} />
-                                    Sync Lead Data With Server
-                                </label>
-                            </div>
-                        </div>
-                        <div className="lead-table-div">
-                            <table className="table">
-                                <tbody>
-                                    {this.renderLeadDataRows()}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                </div>
+                <div className="lead-table-div row">
+                    <table className="table">
+                        <tbody>
+                            {this.renderLeadDataRows()}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         )

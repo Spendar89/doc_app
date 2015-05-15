@@ -5,10 +5,18 @@ var SignaturesBlock = React.createClass({
         return (
             <div className="col-sm-12 form-group" key={i}>
                 <div className="col-sm-12">
-                    <button className="btn-default btn btn-block"
-                            onClick={handleSignature}>
-                           {"Sign For " + recipient.role}
-                    </button>
+                    {
+                        !recipient.signed
+                            ? (
+                                <button className="btn-default btn btn-block"
+                                        onClick={handleSignature}>
+                                       {"Sign For " + recipient.role}
+                                </button>
+                            )
+                            : (
+                                <p> Document is Signed </p>
+                            )
+                    }
                 </div>
             </div>
 

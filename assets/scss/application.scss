@@ -29,6 +29,7 @@ input.form-control {
 }
 table,
 tr {
+  padding: 0px !important;
     /* border-top: 2pt solid #ececec !important; */
 }
 td {
@@ -36,12 +37,23 @@ td {
     border-top: none !important;
     border-bottom: none !important;
 }
-.lead-results-div {
-    list-style: none;
-    margin-top: 60px;
-    color: rgba(0, 0, 0, 0.54);
+.lead-search-results-div {
+    ul {
+      list-style: none;
+      color: rgba(0, 0, 0, 0.54);
+    }
+    .loader-div {
+      position: relative;
+      .loader-text {
+
+      }
+      .react-spinner {
+        height: 50px;
+        width: 50px;
+        margin-top: 30px;
+      }
+    }
     .lead-results-row {
-        font-size: 21px;
         font-weight: lighter;
         cursor: pointer;
         color: rgba(0, 0, 0, 0.87);
@@ -204,6 +216,12 @@ td {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    &.btn-remove {
+      background: transparent;
+      color: #d9534f;
+      border: none;
+      padding: 0px;
+    }
 }
 .doc-form-div {
     color: rgba(0, 0, 0, 0.87);
@@ -262,6 +280,7 @@ td {
                 margin-top: 60px;
             }
             .signatures-body {
+              text-align: center;
               .form-group {
                 margin-top: 60px;
               }

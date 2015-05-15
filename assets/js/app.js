@@ -6,7 +6,7 @@ Spinner = require('./../../public/vendor/react-spinner/index.jsx');
 
 var Baobab = require('baobab'),
     RootMixin = require('baobab-react/mixins').root,
-    Router = require('./../../public/vendor/react-router/build/umd/ReactRouter.js');
+    Router = require('react-router');
 
 var DefaultRoute = Router.DefaultRoute;
 var Link = Router.Link;

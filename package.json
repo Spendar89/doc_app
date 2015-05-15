@@ -8,9 +8,12 @@
   },
   "dependencies": {
     "async": "^0.9.0",
-    "baobab-react": "^0.1.0",
+    "baobab": "^1.1.0",
+    "baobab-react": "^0.1.1",
     "lodash": "^3.2.0",
-    "react": "^0.12.2",
+    "react": "^0.13.3",
+    "react-router": "^0.13.3",
+    "react-spinner": "^0.2.1",
     "superagent": "^1.2.0"
   },
   "devDependencies": {

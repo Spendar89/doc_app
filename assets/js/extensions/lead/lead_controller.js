@@ -1,5 +1,4 @@
 var request = require('superagent');
-var campus = "Austin";
 
 var buildUrl = function(path) {
     var apiHost = process && process.env['API_HOST'],
@@ -79,7 +78,7 @@ LeadController.prototype = {
         request
             .get(url)
             .query({
-                campus: campus
+                campus: this.campus
             })
             .end(
                 function(err, res) {
@@ -88,6 +87,23 @@ LeadController.prototype = {
                     callback(err, res && res.body);
                 }.bind(this)
             );
+    },
+
+    destroyLeadDoc: function(lead, doc, callback) {
+        var leadId = lead["LeadsID"] || this.leadId,
+            docId = doc["DocumentID"],
+            path = '/leads/' + leadId + '/docs/' + docId,
+            url = buildUrl(path);
+
+        request
+            .del(url)
+            .query({
+                campus: this.campus
+            })
+            .end(function(err, res) {
+                console.log("DESTROY LEAD DOC RES", res);
+                if (callback) callback(err, res);
+            })
     }
 };
 

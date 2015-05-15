@@ -48,7 +48,7 @@ var ProgramMixin = {
 
         //TODO: cache terms and go straight to callback
         $.get('/terms', {
-                campus: this.props.query.campus,
+                campus: this.props.query.campus || "Austin",
                 program_description: programDescription
             },
             function(terms) {
