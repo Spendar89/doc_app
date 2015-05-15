@@ -9,6 +9,7 @@ gem 'savon', '~> 2.8.0'
 gem 'tiny_tds'
 gem 'thin'
 gem 'rack-parser', :require => 'rack/parser'
+gem 'net-ldap'
 
 group :development do
   gem 'colorize'

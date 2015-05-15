@@ -5,11 +5,11 @@
 
         {
             "id": "15d7739c06cbc00db4faf52213563823faf21419",
-            "title": "Primary Agreement",
-            "config": {
-                "compact": true
-            }
+            "title": "Primary Agreement"
         }, {
+            "id": "8fae52e53fefe4661fa118a5efd9ea0605f929fc",
+            "title": "Primary Agreement (With Parent Guardian)"
+        },{
             "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
             "title": "Tour Acknowledgement"
         }, {
@@ -67,7 +67,8 @@
             "State 2",
             "Zip 2",
             "PhoneOther",
-            "PhoneMobile"
+            "PhoneMobile",
+            "OtherFees"
         ],
 
         "disabledFields": [

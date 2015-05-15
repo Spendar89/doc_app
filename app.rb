@@ -117,9 +117,9 @@ end
 
 get '/terms' do
   content_type :json
-  @diamond = Diamond.new(params[:campus])
+  d = Diamond.new(params[:campus])
   program_description = params[:program_description]
-  return @diamond.get_program_terms(program_description).to_json
+  return d.get_program_terms(program_description).to_json
 end
 
 get '/templates/:template_id' do

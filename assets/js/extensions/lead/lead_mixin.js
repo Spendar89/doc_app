@@ -159,7 +159,7 @@ var LeadMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.templates[this.state.templateIndex],
             lead = this.state.extensions.lead,
-            recipientIndex = this.getRecipientIndex("Client", template),
+            recipientIndex = this.getRecipientIndex("Lead", template),
             leadRecipient = typeof recipientIndex == "number" && template.recipients[recipientIndex];
 
         var hasLeadPending = this.state.syncRemote && _.any(this.state.extensions.leadPending),

@@ -1,6 +1,7 @@
 React = require('react');
 _ = require('lodash');
 async = require('async');
+$ = require('jquery');
 Spinner = require('./../../public/vendor/react-spinner/index.jsx');
 
 
