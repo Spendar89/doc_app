@@ -40,3 +40,6 @@ build/
 /.sass-cache/
 *.scssc
 *.map
+
+# Docker
+Dockerfile

@@ -1,5 +1,3 @@
-var DocOption = require('./doc_option.jsx');
-
 var DocInput = React.createClass({
 
     handleChange: function (e) {
@@ -11,21 +9,11 @@ var DocInput = React.createClass({
         } else {
             field.value = e.target.value;
         };
-        this.callCustomMethod();
         this.props.updateField(this.props.fieldName, field);
     },
 
-    callCustomMethod: function() {
-        var customMethod = this.props.field.customMethod;
-        if (customMethod)
-            this.props.callCustomMethod(customMethod)
-    },
-
-    renderDocOption: function(option, i) {
-        return <DocOption   key={i} 
-                            value={option} 
-                            handleChange={this.handleChange} 
-                            callCustomMethod={this.callCustomMethod} />
+    renderDocOption: function(value, i) {
+        return <option key={i} value={value}>value</option>
     },
 
     renderInput: function () {

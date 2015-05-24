@@ -43,7 +43,6 @@ TemplateController.prototype = {
     createTemplate: function(template, callback) {
 
     }
-
 };
 
 module.exports = TemplateController;

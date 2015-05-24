@@ -137,8 +137,16 @@ get '/leads' do
   else
     @lead_data = @v.get_leads_by_email(params[:email])
   end
+
   return [].to_json unless @lead_data
-  return @lead_data.map { |lead| @v.convert_lead(lead) }.to_json
+  
+  if @lead_data.is_a? Array
+    leads = @lead_data.map { |lead| @v.convert_lead(lead) }
+  else
+    leads = [@v.convert_lead(@lead_data)]
+  end
+
+  leads.to_json
 end
 
 get '/leads/:id' do
@@ -155,9 +163,20 @@ end
 put '/leads/:id' do
   content_type :json
   request.logger.info "Lead: #{params[:lead]}".yellow
-  if params[:lead]
+  lead = params[:lead]
+  v_id = params[:v_id]
+  if lead && v_id
+    @v = Velocify.new
+    email = lead[:email]
+    f_name = lead[:FName]
+    l_name = lead[:LName]
+    @v.update_lead_field(v_id, :email_1, email) if email
+    @v.update_lead_field(v_id, :first_name, f_name) if f_name
+    @v.update_lead_field(v_id, :last_name, l_name) if l_name
+  end
+
+  if lead 
     @diamond = Diamond.new(params[:campus])
-    lead = params[:lead]
     lead[:StatusCode] = "Pending FA"
     lead_data = @diamond.update_lead params[:id], lead
     request.logger.info "LEAD DATA: #{lead_data}".yellow

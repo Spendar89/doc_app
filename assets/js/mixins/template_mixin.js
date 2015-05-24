@@ -1,6 +1,7 @@
 var EA_PACKAGE_DATA = require('./../lib/packages/ea_package/package_data.json'),
     EA_CUSTOM_METHODS = require('./../lib/packages/ea_package/custom_methods.js'),
-    TemplateController = require('./../controllers/template_controller.js');
+    TemplateController = require('./../controllers/template_controller.js'),
+    RecipientsManager = require('./../lib/recipients_manager.js');
 
 var setTemplateController = function() {
     var template = this.currentTemplate(), 
@@ -95,17 +96,15 @@ TemplateMixin = {
         this.fetchTemplateAndSetState();
     },
 
-    setStateFromTemplate: function(template, callback) {
-        template.recipients = _.map(template.roles, function(r, i) {
-          return  {role: r, name: "", email: ""};
-        });
+    setStateFromTemplate: function(prevTemplate, template, callback) {
+        template.recipients = RecipientsManager.getRecipientsByTemplate(template, prevTemplate);
 
         this.cursors.templates.set(this.state.templateIndex, template)
 
-        if (callback) callback(null, template);
+        return callback && callback(null, template);
     },
 
-    fetchTemplateAndSetState: function() {
+    fetchTemplateAndSetState: function(prevTemplate) {
         var fetchTemplate = function() {
             var template = this.currentTemplate(),
                 controller = setTemplateController.call(this),
@@ -122,11 +121,22 @@ TemplateMixin = {
             [
                 fetchTemplate,
                 this.setCustomFields,
-                this.setStateFromTemplate
+                _.partial(this.setStateFromTemplate, prevTemplate)
             ],
             this._handleLoading
         );
     },
+
+    //sendRecipientAuthToken: function(recipient, callback) {
+        //var controller = setTemplateController.call(this);
+        //controller.sendRecipientAuthToken(recipient, callback);
+    //},
+
+    //fetchRecipientAuthStatus: function(recipient, callback) {
+        //var controller = setTemplateController.call(this);
+        //controller.fetchRecipientAuthStatus(recipient, callback);
+         //Do Something
+    //},
 
     _setStateFromSignatures: function() {
         //TODO: move handleDocSignatures
@@ -169,6 +179,7 @@ TemplateMixin = {
         });
     },
 
+
     _handleLoading: function(err, data) {
         var isDone = this.state.docUrl || this.currentTemplate().customFields;
         if (err) {
@@ -201,9 +212,19 @@ TemplateMixin = {
     },
 
     componentDidUpdate: function(prevProps, prevState) {
-        window.testSources = this.state.sources;
+        var template = this.state.templates[this.state.templateIndex],
+            prevTemplate = prevState.templates[prevState.templateIndex];
+
+        if (template && template.id != prevTemplate.id) {
+            var allCustomFields = _.extend(
+                this.state.allCustomFields, 
+                prevTemplate.customFields
+            );
+            this.cursors.allCustomFields.set(allCustomFields);
+            this.fetchTemplateAndSetState(prevTemplate);
+        }
+
         if (this.state.sources != prevState.sources) {
-            console.log("new sources")
             this._refreshCustomFields();
         }
     }

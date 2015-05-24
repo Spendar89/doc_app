@@ -1,9 +1,4 @@
-React = require('react');
-_ = require('lodash');
-async = require('async');
-$ = require('jquery');
-Spinner = require('./../../public/vendor/react-spinner/index.jsx');
-
+require('./lib/globals.js');
 
 var Baobab = require('baobab'),
     RootMixin = require('baobab-react/mixins').root,
@@ -26,9 +21,6 @@ var tree = new Baobab({
 
 var Layout = React.createClass({
     mixins: [RootMixin],
-
-
-
 
     render: function () {
         return (

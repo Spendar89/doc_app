@@ -34,11 +34,11 @@ var LeadDocsBlock = React.createClass({
             <div className="block-div col-sm-12 with-table" id="leadDocsBlock">
                 <div className="form-group">
                     <div className="block-header">
-                        <h4 className="control-label">Current Lead Documents:</h4>
+                        <h4 className="control-label">Saved Documents:</h4>
                     </div>
                     <div className="block-body">
                         <div className="block-body-top">
-                            <p><i>These are the saved documents for the current lead.  
+                            <p><i>These are the saved documents belonging to the current lead.  
                                     Click to view and/or download a pdf:</i></p>
                         </div>
                         <div className="lead-table-div">

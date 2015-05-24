@@ -10,6 +10,7 @@
     "async": "^0.9.0",
     "baobab": "^1.1.0",
     "baobab-react": "^0.1.1",
+    "envify": "^3.4.0",
     "jquery": "^2.1.4",
     "lodash": "^3.2.0",
     "react": "^0.13.3",
@@ -31,7 +32,11 @@
   "scripts": {
     "test": "mocha --recursive assets/js/test",
     "watchSass": "sass --watch assets/scss/application.scss:public/css/application.css",
-    "watchJs": "watchify -t reactify assets/js/app.js -o public/js/bundle.js",
-    "watch": "npm run watchSass & npm run watchJs"
+    "watchJs": "watchify -t reactify -t envify assets/js/app.js -o public/js/bundle.js",
+    "watch": "export NODE_ENV=development && npm run watchSass & npm run watchJs",
+    "buildJs": "source ~/.zshrc && browserify -t reactify -t envify assets/js/app.js -o public/js/bundle.js",
+    "buildSass": "sass assets/scss/application.scss:public/css/application.css",
+    "build": "npm run buildJs && npm run buildSass",
+    "docker": "export NODE_ENV=docker && npm run build && docker build -t spendar89/docapp . && docker push spendar89/docapp"
   }
 }

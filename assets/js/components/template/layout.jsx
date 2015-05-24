@@ -1,11 +1,14 @@
 var BranchMixin = require('baobab-react/mixins').branch;
 
-var SharedBlock = require('./../shared/shared_block.jsx');
+var SharedBlock = require('./../shared/shared_block.jsx'),
+    Navbar = require('./navbar.jsx');
 
 var TemplateBlock = require('./template_block.jsx'),
     RecipientsBlock = require('./recipients_block.jsx'),
     DocForm = require('./doc_form.jsx'),
-    TemplateMixin = require('./../../mixins/template_mixin.js');
+    HelpersMixin = require('./../../mixins/helpers_mixin.js'),
+    TemplateMixin = require('./../../mixins/template_mixin.js'),
+    RecipientsManager = require('./../../lib/recipients_manager.js');
 
 var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
@@ -18,7 +21,7 @@ var ProgramMixin = require('./../../extensions/program/program_mixin.js'),
     ProgramBlock = require('./../../extensions/program/components/program_block.jsx');
 
 var TemplateLayout = React.createClass({
-    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin],
+    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin, HelpersMixin],
 
     contextTypes: {
         router: React.PropTypes.func
@@ -47,10 +50,6 @@ var TemplateLayout = React.createClass({
         this.setState({
             templateLoading: text
         });
-    },
-
-    callCustomMethod: function(customMethod) {
-        customMethod(this);
     },
 
     handleDocError: function() {
@@ -118,21 +117,11 @@ var TemplateLayout = React.createClass({
     },
 
     componentDidUpdate: function(prevProps, prevState) {
-        var template = this.state.templates[this.state.templateIndex];
-        var prevTemplate = prevState.templates[prevState.templateIndex];
-        if (template && template.id != prevTemplate.id) {
-            var allCustomFields = _.extend(
-                this.state.allCustomFields, 
-                prevTemplate.customFields
-            );
-            this.cursors.allCustomFields.set(allCustomFields);
-            this.fetchTemplateAndSetState();
-        }
         if (this.state.templateLoading && this.state.docError) {
             this.setState({
                 templateLoading: false
             });
-        }
+        };
     },
 
     handleLeadsSearch: function (phone, isEmail) {
@@ -214,13 +203,43 @@ var TemplateLayout = React.createClass({
                 allowCancel: true,
                 skipDomainVerification: true,
                 messageListener: function(eventData) {
-                    console.log(eventData)
                     var template = this.cursors.templates[this.state.templateIndex];
                     this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signed"], true);
                 }.bind(this)
             });
 
             this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signatureUrl"], url)
+        }.bind(this));
+    },
+
+    handleRecipientAuthTokenSend: function(i, e) {
+        e.preventDefault();
+
+        var recipient = this.getRecipient(i);
+
+        RecipientsManager.sendRecipientAuthToken(recipient, function(err, res) {
+            var authError = err && err.message,
+                authId = res && res.authId;
+
+            this.setRecipient(i, "authError", authError);
+            this.setRecipient(i, "authId", authId);
+        }.bind(this));
+    },
+
+    handleRecipientAuthTokenChange: function(i, e) {
+        e.preventDefault();
+        console.log("entered auth token", e.target.value)
+        this.setRecipient(i, "authToken", e.target.value);
+    },
+
+    handleRecipientAuthTokenSubmit: function(i, e) {
+        e.preventDefault();
+
+        var recipient = this.getRecipient(i); 
+
+        RecipientsManager.fetchRecipientAuthStatus(recipient, function(err, res) {
+            if (err) return false;
+            this.setRecipient(i, "authorized", true)
         }.bind(this));
     },
 
@@ -258,8 +277,11 @@ var TemplateLayout = React.createClass({
             onChange={this.handleTemplateInputChange} />;
 
         var recipientsBlock = <RecipientsBlock  onRecipientChange={this.handleRecipientChange} 
-                                onSignature={this.handleRecipientSignature}
-                                recipients={template.recipients} />;
+                                                onSignature={this.handleRecipientSignature}
+                                                onAuthTokenSend={this.handleRecipientAuthTokenSend}
+                                                onAuthTokenChange={this.handleRecipientAuthTokenChange}
+                                                onAuthTokenSubmit={this.handleRecipientAuthTokenSubmit}
+                                                recipients={template.recipients} />;
 
 
             var renderLeadBlock = function() {
@@ -294,26 +316,13 @@ var TemplateLayout = React.createClass({
 
         return (
             <div className="template-layout">
-                <nav className="navbar navbar-default navbar-fixed-top">
-                    {/*leadsWelcomeOverlay*/}
-                    <div className="container-fluid">
-                        <div className="navbar-header">
-                            <a className="navbar-brand" href="#">
-                                <img alt="Brand" src="/images/sci-logo.png"/>
-                            </a>
-                            <h5 className="pull-left">SCI Document Manager</h5>
-                        </div>
-                        <div id="navbar" className="navbar-collapse collapse">
-                            <ul className="nav navbar-nav navbar-right col-sm-6">
-                            </ul>
-                        </div>
-                    </div>
-                </nav>
+                <Navbar />
                 <div className="app-template-inner">
                     <div className="col-sm-3 left-div">
                         <SharedBlock blockBody={templateBlock} 
                                      blockHeader={"Template"} />
                         <SharedBlock blockBody={recipientsBlock} 
+                                     blockDescription={"Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email."}
                                      blockHeader={"Recipients"} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
                                         onDestroy={this.handleLeadDocDestroy}
@@ -322,7 +331,6 @@ var TemplateLayout = React.createClass({
                     <div className="col-sm-6 doc-form-div middle-div">
                         <DocForm    template={template}
                             customFields={this.state.templates[this.state.templateIndex].customFields} 
-                            callCustomMethod={this.callCustomMethod}
                             updateCustomField={this.updateCustomField} 
                             removeCustomField={this.removeCustomField}
                             onSignature={this.handleRecipientSignature}

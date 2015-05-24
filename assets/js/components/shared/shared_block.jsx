@@ -9,6 +9,9 @@ var SharedBlock = React.createClass({
                             {this.props.blockHeader}
                         </h4>
                     </div>
+                    <div className="block-description">
+                        <i>{this.props.blockDescription}</i>
+                    </div>
                     <div className="block-body">
                         {this.props.blockBody}
                     </div>

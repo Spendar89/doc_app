@@ -1,5 +1,6 @@
 var async = require('async'),
-    LeadController = require('./lead_controller.js');
+    LeadController = require('./lead_controller.js'),
+    RecipientsManager = require('./../../lib/recipients_manager.js');
 
 var setLeadController = function(vId, campus) {
     var lead = this.state.extensions.lead,
@@ -104,17 +105,6 @@ var LeadMixin = {
         }.bind(this));
     },
 
-    getRecipientIndex(role, template) {
-        var recipients = template && template.recipients,
-            recipientIndex = false;
-
-        recipients && _.each(recipients, function(r, i) {
-            if (r.role == role) recipientIndex = i;
-        });
-
-        return recipientIndex;
-    },
-
     setLeadPending: function(key, value) {
         var hasField =_.has(this.state.extensions.lead, key);
 
@@ -159,13 +149,14 @@ var LeadMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.templates[this.state.templateIndex],
             lead = this.state.extensions.lead,
-            recipientIndex = this.getRecipientIndex("Lead", template),
-            leadRecipient = typeof recipientIndex == "number" && template.recipients[recipientIndex];
+            leadRecipientIndex = RecipientsManager.getIndexByTemplateAndRole(template, "Lead"),
+            leadRecipient = typeof leadRecipientIndex == "number" && template.recipients[leadRecipientIndex];
 
         var hasLeadPending = this.state.syncRemote && _.any(this.state.extensions.leadPending),
             hasNewDocUrl = !prevState.docUrl && this.state.docUrl,
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
-            hasLeadRecipient = leadRecipient && !leadRecipient.name && !leadRecipient.email && this.state.extensions.lead;
+            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
+
 
         if (hasNewDocUrl && hasLeadPending) {
             this._syncLeadAndSetState();   
@@ -174,15 +165,20 @@ var LeadMixin = {
         if (hasChangedLead){
             var lead = this.state.extensions.lead;
             this.cursors.sources.set("lead", lead);
-            //this.leadDidUpdate && this.leadDidUpdate(lead);
         };
 
         if (hasLeadRecipient) {
-            this.cursors.templates.set([this.state.templateIndex, "recipients", recipientIndex, "name"], lead["FName"] + " " + lead["LName"]);
-            this.cursors.templates.set([this.state.templateIndex, "recipients", recipientIndex, "email"], lead["Email"]);
-        }
-    }
+            var i = this.state.templateIndex,
+                name = lead["FName"] + " " + lead["LName"],
+                email = lead["Email"],
+                id =  lead["LeadsID"],
+                recipient = {"name": name, "email": email, "id": id};
 
+            RecipientsManager
+                .setRecipient
+                .call(this, leadRecipientIndex, recipient);
+        };
+    }
 };
 
 module.exports = LeadMixin;

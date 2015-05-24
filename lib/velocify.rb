@@ -1,4 +1,5 @@
 require 'savon'
+require 'date'
 
 class Velocify
   def initialize(username = ENV['VELOCIFY_USERNAME'], password = ENV['VELOCIFY_PASSWORD'])
@@ -41,24 +42,48 @@ class Velocify
     end
   end
 
+  def update_lead_field(lead_id, field_key, new_value)
+    return false unless new_value
+
+    @lead ||= get_lead_by_id lead_id
+    @field_ids ||= get_field_ids @lead
+
+    field_id = @field_ids[field_key]
+
+    request(:modify_lead_field, { 
+      lead_id: lead_id, 
+      field_id: field_id, 
+      new_value: new_value
+    })
+
+  end
+
+  def get_field_ids(data)
+      return unless data
+
+      fields = data[:fields][:field]
+
+      f = fields.map { |f| 
+        key = f[:@field_title].gsub(/\s+/, "_").downcase.to_sym 
+        { key => f[:@field_id] } 
+      }
+      .reduce(Hash.new, :merge)
+  end
+
   def convert_lead(data)
       return unless data
+      puts "DATA #{data}".blue
       fields = data[:fields][:field]
+
       f = fields.map { |f| 
-        #if f[:sdfgsdfg] 
-          {f[:@field_title].gsub(/\s+/, "_").downcase.to_sym => f[:@value] } 
-        #end
+        key = f[:@field_title].gsub(/\s+/, "_").downcase.to_sym 
+        { key => f[:@value] } 
       }
       .reduce(Hash.new, :merge)
       .merge({ id: data[:@id], 
                create_data: data[:@create_date] })
 
-      if (data[:agent])
-       f.merge(data[:agent])
-      else
-        f
-      end
-
+      data[:agent] ? f.merge(data[:agent]) : f
   end
 
 end

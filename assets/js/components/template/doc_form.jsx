@@ -17,7 +17,6 @@ var DocForm = React.createClass({
                         {this.renderDocInputHeader(field)}
                         <DocInput field={field} 
                                   updateField={this.props.updateCustomField} 
-                                  callCustomMethod={this.props.callCustomMethod}
                                   fieldName={fieldName} />
                     </div>
                 );

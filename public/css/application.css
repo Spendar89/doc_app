@@ -104,6 +104,8 @@ td {
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden; }
+  .block-div .block-description {
+    padding-top: 15px; }
   .block-div .block-body {
     padding-top: 15px;
     /* padding: 15px 15px 0px 15px; */
@@ -141,6 +143,11 @@ td {
 
 #leadDataBlock {
   /* height: 33%; */ }
+
+.auth-div button {
+  padding: 6px 0;
+  margin-top: 22px;
+  border-radius: 2px; }
 
 .loader-div {
   position: absolute;
