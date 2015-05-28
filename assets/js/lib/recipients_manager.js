@@ -23,10 +23,11 @@ var RecipientsManager = {
         ], recipient);
     },
 
-    getRecipient: function(i) {
-        var templateIndex = this.state.templateIndex;
-
-        return this.state.templates[templateIndex].recipients[i];
+    getRecipient: function(i, state) {
+        var state = state || this.state,
+            templateIndex = state.templateIndex,
+            recipients = state.templates[templateIndex].recipients;
+        return recipients && recipients[i] 
     },
 
     getRecipientsByTemplate: function(template, prevTemplate) {
@@ -54,6 +55,22 @@ var RecipientsManager = {
 
     fetchRecipientAuthStatus: function(recipient, callback) {
         RecipientsController.fetchRecipientAuthStatus(recipient, callback);
+    },
+
+    fetchRecipientSignature: function(recipient, template, callback) {
+        var signatureId = recipient.signatureId,
+            templateId = template.id;
+
+        $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {
+            HelloSign.init(HELLO_SIGN_CLIENT_ID);
+
+            HelloSign.open({
+                url: url,
+                allowCancel: true,
+                skipDomainVerification: true,
+                messageListener: callback
+            });
+        })
     },
 
 }

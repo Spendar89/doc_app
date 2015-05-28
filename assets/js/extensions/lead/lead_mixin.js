@@ -150,15 +150,18 @@ var LeadMixin = {
         var template = this.state.templates[this.state.templateIndex],
             lead = this.state.extensions.lead,
             leadRecipientIndex = RecipientsManager.getIndexByTemplateAndRole(template, "Lead"),
-            leadRecipient = typeof leadRecipientIndex == "number" && template.recipients[leadRecipientIndex];
+            leadRecipient = typeof leadRecipientIndex == "number" && this.getRecipient(leadRecipientIndex),
+            prevLeadRecipient = leadRecipient && this.getRecipient(leadRecipientIndex, prevState),
+            leadPending = _.any(this.state.extensions.leadPending);
 
-        var hasLeadPending = this.state.syncRemote && _.any(this.state.extensions.leadPending),
-            hasNewDocUrl = !prevState.docUrl && this.state.docUrl,
+        var hasLeadPending = this.state.syncRemote && leadPending, 
+            hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
             hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
 
 
-        if (hasNewDocUrl && hasLeadPending) {
+        if (hasNewDocId && hasLeadPending) {
+            console.log("synching lead!", leadPending) 
             this._syncLeadAndSetState();   
         };
 

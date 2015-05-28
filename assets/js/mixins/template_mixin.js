@@ -101,6 +101,8 @@ TemplateMixin = {
 
         this.cursors.templates.set(this.state.templateIndex, template)
 
+        this.handleRemoveRecipientSignatures();
+
         return callback && callback(null, template);
     },
 

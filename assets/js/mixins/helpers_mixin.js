@@ -4,9 +4,11 @@ var HelpersMixin = {
         this.cursors.templates.set( [templateIndex, "recipients", i, key], val);
     },
 
-    getRecipient: function(i) {
-        var templateIndex = this.state.templateIndex;
-        return this.state.templates[templateIndex].recipients[i];
+    getRecipient: function(i, state) {
+        var state = state || this.state,
+            templateIndex = state.templateIndex,
+            recipients = state.templates[templateIndex].recipients;
+        return recipients && recipients[i] 
     }
 
 }

@@ -14,7 +14,7 @@ var SignaturesBlock = React.createClass({
                                 </button>
                             )
                             : (
-                                <p> Document is Signed </p>
+                                <p> Signed by {recipient.role}</p>
                             )
                     }
                 </div>

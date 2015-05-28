@@ -12,16 +12,10 @@ class DocMaker
 
   # calls @client.send_signature_request_with_template method and sets 
   # @sent_signature to response object
-  def request_signature(recipients, title = "Default Title", subject = "Default Subject")
-    #client = { email_address: client[:email], name: client[:name], pin: "8888", role: "Client" }
-    #signers = [client]
-    #if agent
-      #agent = { email_address: agent[:email], name: agent[:name], role: "Agent" }
-      #signers.push(agent)
-    #end
+  def request_signature(recipients, title="Default Title", subject="Default Subject")
     @sent_signature ||= @client.create_embedded_signature_request_with_template(
       test_mode: 1, 
-      client_id: "716c4ee417732f70ed56e60c599cd7f3",
+      client_id: ENV['HELLO_SIGN_CLIENT_ID'],
       title: title,
       subject: subject,
       signers: recipients,

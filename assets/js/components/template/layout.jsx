@@ -178,7 +178,7 @@ var TemplateLayout = React.createClass({
         this.cursors.extensions.set("programTermIndex", index);
     },
 
-    fetchRecipientSignatureUrl: function(recipient, callback) {
+    fetchRecipientSignatureUrl: function(recipient, templateId, callback) {
         var signatureId = recipient.signatureId,
             templateId = this.currentTemplate().id;
         $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {
@@ -195,21 +195,17 @@ var TemplateLayout = React.createClass({
 
     handleRecipientSignature: function(recipient, i, e) {
         e.preventDefault();
-        this.fetchRecipientSignatureUrl(recipient, function(err, url) {
-            HelloSign.init("716c4ee417732f70ed56e60c599cd7f3");
 
-            HelloSign.open({
-                url: url,
-                allowCancel: true,
-                skipDomainVerification: true,
-                messageListener: function(eventData) {
-                    var template = this.cursors.templates[this.state.templateIndex];
-                    this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signed"], true);
-                }.bind(this)
-            });
+        var template = this.currentTemplate(),
+            callback = _.partial(this.handleRecipientSigned, i);
 
-            this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signatureUrl"], url)
-        }.bind(this));
+        RecipientsManager
+            .fetchRecipientSignature(recipient, template, callback);
+    },
+
+    handleRecipientSigned: function(i, eventData) {
+        console.log("Event Data", eventData);
+        this.setRecipient(i, "signed", true);
     },
 
     handleRecipientAuthTokenSend: function(i, e) {
@@ -244,9 +240,10 @@ var TemplateLayout = React.createClass({
     },
 
     handleRemoveRecipientSignatures: function(e) {
-        e.preventDefault();
-        _.each(this.state.templates[this.state.templateIndex].recipients, function(r, i) {
-           this.cursors.templates.set([this.state.templateIndex, "recipients", i, "signatureId"], undefined) 
+        if (e) e.preventDefault();
+        var template = this.currentTemplate();
+        _.each(template.recipients, function(r, i) {
+            this.setRecipient(i, "signatureId", undefined)
         }.bind(this));
     },
 

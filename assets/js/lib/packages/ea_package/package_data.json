@@ -4,43 +4,22 @@
     "templates": [
 
         {
-            "id": "15d7739c06cbc00db4faf52213563823faf21419",
+            "id": "721c8a1754463d5029504e8c169e1705cc344d98",
             "title": "Primary Agreement"
         }, {
-            "id": "8fae52e53fefe4661fa118a5efd9ea0605f929fc",
-            "title": "Primary Agreement (With Parent Guardian)"
+            "id": "e131ee507fc368fccbfeecf45e6d413b2db4f88b",
+            "title": "Primary Agreement (With Parent/Guardian)"
         },{
-            "id": "3ed91b9371cc41ef46e332da651b5609048c3a0a",
-            "title": "Tour Acknowledgement"
+            "id": "1281b2c8bcb9c84b3ac2f49b02f0546add2ba06c",
+            "title": "Tour Acknowledgement Catalog"
         }, {
-            "id": "a9bec35769d7b574c26eb21d2c296a8916b99f0c",
-            "title": "Clinical Laboratory Disclosure"
+            "id": "c13f4831fd61d50580c4c10d476df50e0973d780",
+            "title": "Clinical Laboratory Disclosure Statement"
         }
     ],
 
     "config": {
         "customOptions": {
-            /*
-            "Program": [
-                "Administrative Assistant - Morning",
-                "Administrative Assistant - Evening",
-                "Business Accounting Specialist - Morning",
-                "Business Accounting Specialist - Evening",
-                "Medical Assistant - Morning",
-                "Medical Assistant - Evening",
-                "Medical Billing and Coding Specialist - Morning",
-                "Medical Billing and Coding Specialist - Evening",
-                "Medical Office Specialist - Morning",
-                "Medical Office Specialist - Evening",
-                "Pharmacy Technician - Morning",
-                "Pharmacy Technician - Evening",
-                "Cosmetology Operator - Morning",
-                "Cosmetology Operator - Evening",
-                "HVAC - Morning",
-                "HVAC - Evening"
-            ],
-            "StartDate": []
-            */
         },
 
         "customTypes": {
@@ -55,7 +34,7 @@
             "Weeks": "number",
             "Months": "number",
             "ClockHours": "number",
-            "DOB": "date",
+            "Date of Birth": "date",
             "SSN": "password",
             "Evening": "checkbox",
             "Morning": "checkbox"
