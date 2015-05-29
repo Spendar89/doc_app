@@ -12,13 +12,13 @@ class Diamond
   def campus_db_map
     {
       "Austin" => "825-Austin", 
-      "Brownsville" => "925-Brownsville",
-      "North" => "824-North",
-      "South" => "826-South",
-      "Harlingen" => "827-Harlingen",
-      "Pharr" => "829-Pharr",
-      "Corpus" => "830-Corpus",
-      "Brownsville" => "831-Brownsville"
+      "Brownsville" => "831-Brown",
+      "San Antonio North" => "824-SAN",
+      "San Antonio South" => "826-SA",
+      "Harlingen" => "827-HAR",
+      "Pharr" => "829-PHAR",
+      "Corpus" => "830-CC1",
+      "Online" => "801-Online"
     }
   end
 
