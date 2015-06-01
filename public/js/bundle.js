@@ -532,9 +532,9 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         });
     },
 
-    handleFormError: function(error) {
+    handleFormError: function(err) {
         this.setState({
-            docError: error,
+            docError: err,
             templateLoading: false
         });
     },
@@ -644,7 +644,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
         var doc = this.state.extensions.docs[i];
 
-        if (doc && doc.signatures) {
+        if (doc && doc.signatures && this.isRecipientsValid()) {
             return this.handleDocSignatures(null, doc.signatures);
         };
 
@@ -816,6 +816,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                                      blockHeader: "Recipients"}), 
                         React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
                                         onClick: this.handleLeadDocClick, 
+                                        isRecipientsValid: this.isRecipientsValid, 
                                         docs: this.filterDocsByTemplate()})
                     ), 
                     React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
@@ -1122,6 +1123,23 @@ TemplateController.prototype = {
 
     },
 
+    getDocs: function(email, callback) {
+        var url = "/docs?email=" + email;
+        request
+            .get(url)
+            .query({
+                campus: this.campus
+            })
+            .end(
+                function(err, res) {
+                    var docs = res && res.body;
+                    this.loaderFn(false);
+                    callback(err, res && res.body);
+                }.bind(this)
+            );
+        
+    },
+
     createTemplate: function(template, callback) {
 
     }
@@ -1244,7 +1262,15 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
                         React.createElement("div", {className: "lead-table-div"}, 
                             React.createElement("table", {className: "table table-hover"}, 
                                 React.createElement("tbody", null, 
-                                    this.renderLeadDocs()
+                                    this.props.isRecipientsValid()
+                                        ? this.renderLeadDocs()
+                                        : (
+                                            React.createElement("h3", {className: "validation-error-header"}, 
+                                                "Please confirm recipient email" + ' ' + 
+                                                "addresses to access saved Documents"
+                                            )
+                                            )
+                                    
                                 )
                             )
                         )
@@ -1570,7 +1596,7 @@ LeadController.prototype = {
         var email = lead["Email"]
         var url = "/docs?email=" + email;
 
-        this.loaderFn("Fetching Lead Docs");
+        this.loaderFn("Fetching Saved Docs");
 
         request
             .get(url)
@@ -1655,18 +1681,10 @@ var LeadMixin = {
                 callback(null, lead);
         }.bind(this);
 
-        var getLeadDocs = leadController.getLeadDocs.bind(leadController);
-        var setStateFromDocs = function(docs, callback) {
-            this.cursors.extensions.set('docs', docs);
-            callback(null, docs);
-        }.bind(this);
-
         return async.waterfall(
             [
                 getLead,
-                setStateFromLead,
-                getLeadDocs,
-                setStateFromDocs
+                setStateFromLead
             ],
             callback
         );
@@ -1770,6 +1788,11 @@ var LeadMixin = {
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
             hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead,
             hasNewSavedDoc = this.state.savedDoc && this.state.savedDoc != prevState.savedDoc;
+
+            if (leadRecipient != prevLeadRecipient && leadRecipient.authorized) {
+                console.log("feetching new docs", leadRecipient)
+                this.fetchDocsAndSetState(leadRecipient.email)
+            } 
 
 
         if (hasNewDocId && hasLeadPending) {
@@ -3149,11 +3172,25 @@ TemplateMixin = {
             if (cf.name) docFields[cf.name] = cf["value"];   
         });
 
-        console.log("doc sigs", docSignatures);
-
         this.cursors.savedDoc.set(doc);
-
         this.cursors.sources.set("docFields", docFields)
+    },
+
+    fetchDocsAndSetState: function(email) {
+        var controller = setTemplateController.call(this);
+        async.waterfall(
+            [
+                _.partial(controller.getDocs.bind(controller), email),
+                this.setStateFromDocs
+            ],
+            this._handleLoading
+        );
+        
+    },
+    
+    setStateFromDocs: function(docs, callback) {
+        this.cursors.extensions.set('docs', docs);
+        callback(null)
     },
 
     //sendRecipientAuthToken: function(recipient, callback) {

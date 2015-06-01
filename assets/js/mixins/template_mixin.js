@@ -148,11 +148,25 @@ TemplateMixin = {
             if (cf.name) docFields[cf.name] = cf["value"];   
         });
 
-        console.log("doc sigs", docSignatures);
-
         this.cursors.savedDoc.set(doc);
-
         this.cursors.sources.set("docFields", docFields)
+    },
+
+    fetchDocsAndSetState: function(email) {
+        var controller = setTemplateController.call(this);
+        async.waterfall(
+            [
+                _.partial(controller.getDocs.bind(controller), email),
+                this.setStateFromDocs
+            ],
+            this._handleLoading
+        );
+        
+    },
+    
+    setStateFromDocs: function(docs, callback) {
+        this.cursors.extensions.set('docs', docs);
+        callback(null)
     },
 
     //sendRecipientAuthToken: function(recipient, callback) {

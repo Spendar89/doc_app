@@ -60,9 +60,9 @@ var TemplateLayout = React.createClass({
         });
     },
 
-    handleFormError: function(error) {
+    handleFormError: function(err) {
         this.setState({
-            docError: error,
+            docError: err,
             templateLoading: false
         });
     },
@@ -172,7 +172,7 @@ var TemplateLayout = React.createClass({
 
         var doc = this.state.extensions.docs[i];
 
-        if (doc && doc.signatures) {
+        if (doc && doc.signatures && this.isRecipientsValid()) {
             return this.handleDocSignatures(null, doc.signatures);
         };
 
@@ -344,6 +344,7 @@ var TemplateLayout = React.createClass({
                                      blockHeader={"Recipients"} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
                                         onClick={this.handleLeadDocClick}
+                                        isRecipientsValid={this.isRecipientsValid}
                                         docs={this.filterDocsByTemplate()} />
                     </div>
                     <div className="col-sm-6 doc-form-div middle-div">

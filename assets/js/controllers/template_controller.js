@@ -40,6 +40,23 @@ TemplateController.prototype = {
 
     },
 
+    getDocs: function(email, callback) {
+        var url = "/docs?email=" + email;
+        request
+            .get(url)
+            .query({
+                campus: this.campus
+            })
+            .end(
+                function(err, res) {
+                    var docs = res && res.body;
+                    this.loaderFn(false);
+                    callback(err, res && res.body);
+                }.bind(this)
+            );
+        
+    },
+
     createTemplate: function(template, callback) {
 
     }

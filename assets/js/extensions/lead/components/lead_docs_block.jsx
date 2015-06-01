@@ -46,7 +46,15 @@ var LeadDocsBlock = React.createClass({
                         <div className="lead-table-div">
                             <table className="table table-hover">
                                 <tbody>
-                                    {this.renderLeadDocs()}
+                                    {this.props.isRecipientsValid()
+                                        ? this.renderLeadDocs()
+                                        : (
+                                            <h3 className="validation-error-header">
+                                                Please confirm recipient email 
+                                                addresses to access saved Documents
+                                            </h3>
+                                            )
+                                    }
                                 </tbody>
                             </table>
                         </div>

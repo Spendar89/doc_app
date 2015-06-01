@@ -44,18 +44,10 @@ var LeadMixin = {
                 callback(null, lead);
         }.bind(this);
 
-        var getLeadDocs = leadController.getLeadDocs.bind(leadController);
-        var setStateFromDocs = function(docs, callback) {
-            this.cursors.extensions.set('docs', docs);
-            callback(null, docs);
-        }.bind(this);
-
         return async.waterfall(
             [
                 getLead,
-                setStateFromLead,
-                getLeadDocs,
-                setStateFromDocs
+                setStateFromLead
             ],
             callback
         );
@@ -159,6 +151,11 @@ var LeadMixin = {
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
             hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead,
             hasNewSavedDoc = this.state.savedDoc && this.state.savedDoc != prevState.savedDoc;
+
+            if (leadRecipient != prevLeadRecipient && leadRecipient.authorized) {
+                console.log("feetching new docs", leadRecipient)
+                this.fetchDocsAndSetState(leadRecipient.email)
+            } 
 
 
         if (hasNewDocId && hasLeadPending) {

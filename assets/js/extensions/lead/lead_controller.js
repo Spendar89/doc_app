@@ -76,7 +76,7 @@ LeadController.prototype = {
         var email = lead["Email"]
         var url = "/docs?email=" + email;
 
-        this.loaderFn("Fetching Lead Docs");
+        this.loaderFn("Fetching Saved Docs");
 
         request
             .get(url)
