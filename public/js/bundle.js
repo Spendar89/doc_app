@@ -17,7 +17,8 @@ var tree = new Baobab({
     package: EA_PACKAGE_DATA,
     allCustomFields: {},
     extensions: {},
-    sources: {}
+    sources: {},
+    savedDoc: {}
 })
 
 var Layout = React.createClass({displayName: "Layout",
@@ -246,10 +247,15 @@ var DocForm = React.createClass({displayName: "DocForm",
 
     _hasSignatures: function() {
         var recipients = this.props.recipients || [];
-        return recipients[0] && this.props.recipients[0].signatureId
+        return recipients[0] && this.props.recipients[0].signature
     },
 
     render: function() {
+        //if (this.props.savedDoc && this.props.savedDoc.signatures) {
+            //console.log("already has sigss!", this.props.savedDoc.signatures);
+            //return this.props.onSignatures(null, this.props.savedDoc.signatures)
+        //}
+
         var renderSignaturesBlock = function() {
             return (
                 React.createElement("div", {className: "signatures-block-div"}, 
@@ -451,7 +457,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         allCustomFields: ['allCustomFields'],
         templates: ['package', 'templates'], 
         extensions: ['extensions'],
-        sources: ['sources']
+        sources: ['sources'],
+        savedDoc: ['savedDoc']
     },
 
     getInitialState: function() {
@@ -495,20 +502,22 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         } else {
             _.each(recipients, function(r, i) {
                 var signature = _.select(signatures, function(s) {
-                   return s.email == r.email
+                   return s.signer_email_address == r.email && s.signer_name == r.name
                 });
 
                 var signatureId = signature[0] && signature[0].signature_id;
 
                 if (!signatureId) return false;
 
+                console.log("setting new signature!")
+
                 this.cursors.templates.set([
                         templateIndex,
                         "recipients",
                         i,
-                        "signatureId"
+                        "signature"
                     ],
-                    signatureId
+                    signature[0]
                 );
             }.bind(this));
 
@@ -582,10 +591,16 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         this.setState({leadsSearchInput: input})
     },
 
-    handleLeadDocDestroy: function(i, e) {
+    handleLeadDocClick: function(i, e) {
         e.preventDefault();
-        console.log("destorying lead doc", i)
-        this.destroyLeadDoc(i);
+
+        var doc = this.state.extensions.docs[i];
+
+        if (doc && doc.signatures) {
+            return this.handleDocSignatures(null, doc.signatures);
+        };
+
+        this.setCustomFieldsFromDoc(doc);
     },
 
     handleProgramIndexChange: function(e) {
@@ -599,7 +614,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
     },
 
     fetchRecipientSignatureUrl: function(recipient, templateId, callback) {
-        var signatureId = recipient.signatureId,
+        var signatureId = recipient.signature.signature_id,
             templateId = this.currentTemplate().id;
         $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {
             callback(null, url);
@@ -625,7 +640,14 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
     handleRecipientSigned: function(i, eventData) {
         console.log("Event Data", eventData);
-        this.setRecipient(i, "signed", true);
+        var templateIndex = this.state.templateIndex;
+        this.cursors.templates.set([
+            templateIndex, 
+            "recipients", 
+            i, 
+            "signature", 
+            "status_code"
+        ], "signed");
     },
 
     handleRecipientAuthTokenSend: function(i, e) {
@@ -663,7 +685,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         if (e) e.preventDefault();
         var template = this.currentTemplate();
         _.each(template.recipients, function(r, i) {
-            this.setRecipient(i, "signatureId", undefined)
+            this.setRecipient(i, "signature", undefined)
         }.bind(this));
     },
 
@@ -742,8 +764,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                                      blockDescription: "Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email.", 
                                      blockHeader: "Recipients"}), 
                         React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
-                                        onDestroy: this.handleLeadDocDestroy, 
-                                        docs: this.state.extensions.docs})
+                                        onClick: this.handleLeadDocClick, 
+                                        docs: this.filterDocsByTemplate()})
                     ), 
                     React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
                         React.createElement(DocForm, {template: template, 
@@ -764,6 +786,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                             recipients: template.recipients, 
                             recipientsBlock: recipientsBlock, 
                             isRecipientsValid: this.isRecipientsValid, 
+                            savedDoc: this.state.savedDoc, 
                             lead: this.state.extensions.lead})
                     ), 
                     React.createElement("div", {className: "col-sm-3 right-div"}, 
@@ -903,7 +926,7 @@ var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
             React.createElement("div", {className: "col-sm-12 form-group", key: i}, 
                 React.createElement("div", {className: "col-sm-12"}, 
                     
-                        !recipient.signed
+                        recipient.signature.status_code !== "signed"
                             ? (
                                 React.createElement("button", {className: "btn-default btn btn-block", 
                                         onClick: handleSignature}, 
@@ -1122,21 +1145,23 @@ module.exports = LeadDataBlock;
 var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
 
     renderLeadDocsRow: function(doc, i) {
-        var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
+        //var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
+        var url = '/docs/' + doc['signature_request_id'] + '?pdf=true'
         return (
             React.createElement("tr", {key: i}, 
                 React.createElement("td", null, 
                     i + 1
                 ), 
                 React.createElement("td", null, 
-                    React.createElement("a", {target: "_blank", href: url}, 
-                        doc["Title"] || doc["DocumentID"]
+                    React.createElement("a", {onClick: _.partial(this.props.onClick, i)}, 
+                        doc["title"]
                     )
                 ), 
                 React.createElement("td", null, 
-                    React.createElement("button", {className: "btn btn-remove", 
-                            onClick: _.partial(this.props.onDestroy, i)}, 
-                            React.createElement("span", {className: "glyphicon glyphicon-remove", "aria-hidden": "true"})
+                    React.createElement("a", {className: "btn btn-icon", 
+                       href: url, 
+                       target: "_blank"}, 
+                           React.createElement("span", {className: "glyphicon glyphicon-export", "aria-hidden": "true"})
                     )
                 )
             )
@@ -1484,9 +1509,12 @@ LeadController.prototype = {
     },
 
     getLeadDocs: function(lead, callback) {
-        var leadId = lead["LeadsID"] || this.leadId,
-            path = '/leads/' + leadId + '/docs',
-            url = buildUrl(path);
+        //var leadId = lead["LeadsID"] || this.leadId,
+            //path = '/leads/' + leadId + '/docs',
+            //url = buildUrl(path);
+        //
+        var email = lead["Email"]
+        var url = "/docs?email=" + email;
 
         this.loaderFn("Fetching Lead Docs");
 
@@ -1686,12 +1714,24 @@ var LeadMixin = {
         var hasLeadPending = this.state.syncRemote && leadPending, 
             hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
-            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
+            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead,
+            hasNewSavedDoc = this.state.savedDoc && this.state.savedDoc != prevState.savedDoc;
 
 
         if (hasNewDocId && hasLeadPending) {
             console.log("synching lead!", leadPending) 
             this._syncLeadAndSetState();   
+        };
+
+        if (hasNewSavedDoc) {
+            var savedDoc = this.state.savedDoc;
+            console.log("has new saved doc!", savedDoc);
+            var leadSignature = _.find(savedDoc["signatures"], function(s) {
+                return s["signer_email_address"] == leadRecipient.email;
+            });
+
+            var signatureId = leadSignature["signature_id"]
+            this.setRecipient(leadRecipientIndex, "signatureId", signatureId);
         };
 
         if (hasChangedLead){
@@ -2865,7 +2905,7 @@ var RecipientsManager = {
     },
 
     fetchRecipientSignature: function(recipient, template, callback) {
-        var signatureId = recipient.signatureId,
+        var signatureId = recipient.signature.signature_id,
             templateId = template.id;
 
         $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {
@@ -3010,6 +3050,8 @@ TemplateMixin = {
 
         this.handleRemoveRecipientSignatures();
 
+
+
         return callback && callback(null, template);
     },
 
@@ -3034,6 +3076,31 @@ TemplateMixin = {
             ],
             this._handleLoading
         );
+    },
+
+    filterDocsByTemplate: function() {
+        var template = this.currentTemplate();
+        return _.filter(this.state.extensions.docs, function(d) {
+            return d["title"] == template.title
+        })
+    },
+
+    setCustomFieldsFromDoc: function(doc) {
+        var docFields = {},
+            custom_fields = doc["custom_fields"],
+            docSignatures = doc["signatures"],
+            templateIndex = this.state.templateIndex;
+
+        _.each(custom_fields, function(cf) {
+            if (cf.name) docFields[cf.name] = cf["value"];   
+        });
+
+        console.log("doc sigs", docSignatures);
+
+
+        this.cursors.savedDoc.set(doc);
+
+        this.cursors.sources.set("docFields", docFields)
     },
 
     //sendRecipientAuthToken: function(recipient, callback) {
@@ -3122,20 +3189,23 @@ TemplateMixin = {
 
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.templates[this.state.templateIndex],
-            prevTemplate = prevState.templates[prevState.templateIndex];
+            prevTemplate = prevState.templates[prevState.templateIndex],
+            allCustomFields = this.state.allCustomFields,
+            prevAllCustomFields = prevState.allCustomFields;
 
         if (template && template.id != prevTemplate.id) {
             var allCustomFields = _.extend(
-                this.state.allCustomFields, 
-                prevTemplate.customFields
+                allCustomFields, 
+                prevAllCustomFields
             );
             this.cursors.allCustomFields.set(allCustomFields);
+            console.log("new all custom fields 1")
             this.fetchTemplateAndSetState(prevTemplate);
-        }
+        };
 
         if (this.state.sources != prevState.sources) {
             this._refreshCustomFields();
-        }
+        };
     }
 };
 

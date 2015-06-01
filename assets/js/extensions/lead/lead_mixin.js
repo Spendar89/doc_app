@@ -157,12 +157,24 @@ var LeadMixin = {
         var hasLeadPending = this.state.syncRemote && leadPending, 
             hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
-            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
+            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead,
+            hasNewSavedDoc = this.state.savedDoc && this.state.savedDoc != prevState.savedDoc;
 
 
         if (hasNewDocId && hasLeadPending) {
             console.log("synching lead!", leadPending) 
             this._syncLeadAndSetState();   
+        };
+
+        if (hasNewSavedDoc) {
+            var savedDoc = this.state.savedDoc;
+            console.log("has new saved doc!", savedDoc);
+            var leadSignature = _.find(savedDoc["signatures"], function(s) {
+                return s["signer_email_address"] == leadRecipient.email;
+            });
+
+            var signatureId = leadSignature["signature_id"]
+            this.setRecipient(leadRecipientIndex, "signatureId", signatureId);
         };
 
         if (hasChangedLead){

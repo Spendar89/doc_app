@@ -149,10 +149,15 @@ var DocForm = React.createClass({
 
     _hasSignatures: function() {
         var recipients = this.props.recipients || [];
-        return recipients[0] && this.props.recipients[0].signatureId
+        return recipients[0] && this.props.recipients[0].signature
     },
 
     render: function() {
+        //if (this.props.savedDoc && this.props.savedDoc.signatures) {
+            //console.log("already has sigss!", this.props.savedDoc.signatures);
+            //return this.props.onSignatures(null, this.props.savedDoc.signatures)
+        //}
+
         var renderSignaturesBlock = function() {
             return (
                 <div className="signatures-block-div">

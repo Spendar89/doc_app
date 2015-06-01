@@ -31,7 +31,8 @@ var TemplateLayout = React.createClass({
         allCustomFields: ['allCustomFields'],
         templates: ['package', 'templates'], 
         extensions: ['extensions'],
-        sources: ['sources']
+        sources: ['sources'],
+        savedDoc: ['savedDoc']
     },
 
     getInitialState: function() {
@@ -75,20 +76,22 @@ var TemplateLayout = React.createClass({
         } else {
             _.each(recipients, function(r, i) {
                 var signature = _.select(signatures, function(s) {
-                   return s.email == r.email
+                   return s.signer_email_address == r.email && s.signer_name == r.name
                 });
 
                 var signatureId = signature[0] && signature[0].signature_id;
 
                 if (!signatureId) return false;
 
+                console.log("setting new signature!")
+
                 this.cursors.templates.set([
                         templateIndex,
                         "recipients",
                         i,
-                        "signatureId"
+                        "signature"
                     ],
-                    signatureId
+                    signature[0]
                 );
             }.bind(this));
 
@@ -162,10 +165,16 @@ var TemplateLayout = React.createClass({
         this.setState({leadsSearchInput: input})
     },
 
-    handleLeadDocDestroy: function(i, e) {
+    handleLeadDocClick: function(i, e) {
         e.preventDefault();
-        console.log("destorying lead doc", i)
-        this.destroyLeadDoc(i);
+
+        var doc = this.state.extensions.docs[i];
+
+        if (doc && doc.signatures) {
+            return this.handleDocSignatures(null, doc.signatures);
+        };
+
+        this.setCustomFieldsFromDoc(doc);
     },
 
     handleProgramIndexChange: function(e) {
@@ -179,7 +188,7 @@ var TemplateLayout = React.createClass({
     },
 
     fetchRecipientSignatureUrl: function(recipient, templateId, callback) {
-        var signatureId = recipient.signatureId,
+        var signatureId = recipient.signature.signature_id,
             templateId = this.currentTemplate().id;
         $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {
             callback(null, url);
@@ -205,7 +214,14 @@ var TemplateLayout = React.createClass({
 
     handleRecipientSigned: function(i, eventData) {
         console.log("Event Data", eventData);
-        this.setRecipient(i, "signed", true);
+        var templateIndex = this.state.templateIndex;
+        this.cursors.templates.set([
+            templateIndex, 
+            "recipients", 
+            i, 
+            "signature", 
+            "status_code"
+        ], "signed");
     },
 
     handleRecipientAuthTokenSend: function(i, e) {
@@ -243,7 +259,7 @@ var TemplateLayout = React.createClass({
         if (e) e.preventDefault();
         var template = this.currentTemplate();
         _.each(template.recipients, function(r, i) {
-            this.setRecipient(i, "signatureId", undefined)
+            this.setRecipient(i, "signature", undefined)
         }.bind(this));
     },
 
@@ -322,8 +338,8 @@ var TemplateLayout = React.createClass({
                                      blockDescription={"Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email."}
                                      blockHeader={"Recipients"} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
-                                        onDestroy={this.handleLeadDocDestroy}
-                                        docs={this.state.extensions.docs} />
+                                        onClick={this.handleLeadDocClick}
+                                        docs={this.filterDocsByTemplate()} />
                     </div>
                     <div className="col-sm-6 doc-form-div middle-div">
                         <DocForm    template={template}
@@ -344,6 +360,7 @@ var TemplateLayout = React.createClass({
                             recipients={template.recipients}
                             recipientsBlock={recipientsBlock}
                             isRecipientsValid={this.isRecipientsValid}
+                            savedDoc={this.state.savedDoc}
                             lead={this.state.extensions.lead} />
                     </div>
                     <div className="col-sm-3 right-div">

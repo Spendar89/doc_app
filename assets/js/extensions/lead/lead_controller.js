@@ -69,9 +69,12 @@ LeadController.prototype = {
     },
 
     getLeadDocs: function(lead, callback) {
-        var leadId = lead["LeadsID"] || this.leadId,
-            path = '/leads/' + leadId + '/docs',
-            url = buildUrl(path);
+        //var leadId = lead["LeadsID"] || this.leadId,
+            //path = '/leads/' + leadId + '/docs',
+            //url = buildUrl(path);
+        //
+        var email = lead["Email"]
+        var url = "/docs?email=" + email;
 
         this.loaderFn("Fetching Lead Docs");
 

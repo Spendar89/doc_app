@@ -6,7 +6,7 @@ var SignaturesBlock = React.createClass({
             <div className="col-sm-12 form-group" key={i}>
                 <div className="col-sm-12">
                     {
-                        !recipient.signed
+                        recipient.signature.status_code !== "signed"
                             ? (
                                 <button className="btn-default btn btn-block"
                                         onClick={handleSignature}>

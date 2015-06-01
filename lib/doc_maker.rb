@@ -49,17 +49,29 @@ class DocMaker
     return false unless @sent_signature
     @sent_signature ? @sent_signature.signatures : false
     signatures = @sent_signature.signatures
-    return signatures.map {|sig| { signature_id: sig.signature_id, email: sig.signer_email_address  }}
+    return signatures.map(&:data)
+    #return signatures.map {|sig| { signature_id: sig.signature_id, email: sig.signer_email_address  }}
   end
 
   def get_signing_url
     @sent_signature ? @sent_signature.signing_url : false
   end
 
-  def self.download_doc(doc_id)
+  def self.download_doc(signature_request_id)
     client = HelloSign.client
-    client.signature_request_files({signature_request_id: doc_id})
+    client.signature_request_files({ signature_request_id: signature_request_id })
+  end
+
+  def self.get_signature_requests(email=false)
+    client = HelloSign.client
+    client.get_signature_requests
+  end
+
+  def self.get_signature_requests_by_email(email="jakesendar@gmail.com")
+    get_signature_requests
+      .select { |req|
+        req.signatures.any? { |s| s.signer_email_address === email }
+      }
+      .map &:data 
   end
 end
-
-

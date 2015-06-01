@@ -58,7 +58,7 @@ var RecipientsManager = {
     },
 
     fetchRecipientSignature: function(recipient, template, callback) {
-        var signatureId = recipient.signatureId,
+        var signatureId = recipient.signature.signature_id,
             templateId = template.id;
 
         $.get("/templates/" + templateId + "/signatures/" + signatureId, function(url) {

@@ -1,15 +1,13 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);
 body {
   background: #EEEEEE;
-  font-family: 'Roboto', sans-serif !important;
-  /* font-size: 12px !important; */
-  /* font-size: 100%; */ }
+  font-family: 'Roboto', sans-serif !important; }
+  body a {
+    cursor: pointer;
+    text-transform: none; }
 
 .template-layout {
   height: 100%; }
-
-.col-sm-3.left-div {
-  font-family: 'Roboto', sans-serif !important; }
 
 label {
   font-weight: normal;
@@ -65,6 +63,26 @@ td {
 .left-div a,
 .right-div a {
   color: gray; }
+
+.left-div {
+  position: fixed;
+  width: 400px;
+  z-index: 2;
+  top: 0;
+  height: 100%;
+  transition: -webkit-transform ease 250ms;
+  transition: transform ease 250ms;
+  background: #2d2d2d;
+  left: -400px; }
+  .left-div.visible {
+    transform: translate3d(400px, 0, 0); }
+  .left-div .block-div {
+    box-shadow: none;
+    background: transparent; }
+    .left-div .block-div * {
+      color: white !important; }
+    .left-div .block-div input, .left-div .block-div select {
+      color: rgba(0, 0, 0, 0.87) !important; }
 
 .middle-div {
   /* background: white; */
@@ -200,6 +218,11 @@ td {
     color: #d9534f;
     border: none;
     padding: 0px; }
+  .btn.btn-icon {
+    background: transparent;
+    color: #337ab7;
+    border: none;
+    padding: 0px; }
 
 .doc-form-div {
   color: rgba(0, 0, 0, 0.87);
@@ -268,6 +291,7 @@ td {
   /* box-shadow: 0 3px 7px rgba(66, 66, 66, 0.57); */
   max-height: 50px;
   /* background: #FFFFFF; */
+  z-index: 0;
   border: none;
   border-bottom: 1pt solid rgba(0, 0, 0, 0.19);
   color: grey;

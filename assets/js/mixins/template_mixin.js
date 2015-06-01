@@ -103,6 +103,8 @@ TemplateMixin = {
 
         this.handleRemoveRecipientSignatures();
 
+
+
         return callback && callback(null, template);
     },
 
@@ -127,6 +129,31 @@ TemplateMixin = {
             ],
             this._handleLoading
         );
+    },
+
+    filterDocsByTemplate: function() {
+        var template = this.currentTemplate();
+        return _.filter(this.state.extensions.docs, function(d) {
+            return d["title"] == template.title
+        })
+    },
+
+    setCustomFieldsFromDoc: function(doc) {
+        var docFields = {},
+            custom_fields = doc["custom_fields"],
+            docSignatures = doc["signatures"],
+            templateIndex = this.state.templateIndex;
+
+        _.each(custom_fields, function(cf) {
+            if (cf.name) docFields[cf.name] = cf["value"];   
+        });
+
+        console.log("doc sigs", docSignatures);
+
+
+        this.cursors.savedDoc.set(doc);
+
+        this.cursors.sources.set("docFields", docFields)
     },
 
     //sendRecipientAuthToken: function(recipient, callback) {
@@ -215,20 +242,23 @@ TemplateMixin = {
 
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.templates[this.state.templateIndex],
-            prevTemplate = prevState.templates[prevState.templateIndex];
+            prevTemplate = prevState.templates[prevState.templateIndex],
+            allCustomFields = this.state.allCustomFields,
+            prevAllCustomFields = prevState.allCustomFields;
 
         if (template && template.id != prevTemplate.id) {
             var allCustomFields = _.extend(
-                this.state.allCustomFields, 
-                prevTemplate.customFields
+                allCustomFields, 
+                prevAllCustomFields
             );
             this.cursors.allCustomFields.set(allCustomFields);
+            console.log("new all custom fields 1")
             this.fetchTemplateAndSetState(prevTemplate);
-        }
+        };
 
         if (this.state.sources != prevState.sources) {
             this._refreshCustomFields();
-        }
+        };
     }
 };
 

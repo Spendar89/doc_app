@@ -32,24 +32,15 @@ post '/docs' do
 
   document = Document.new(custom_fields, template_id)
   doc_maker = DocMaker.new(document)
-  title = "doc_#{template_title}_#{leads_id || 'no_lead'}_#{Time.now.to_i}"
+  #title = "doc_#{template_title}_#{leads_id || 'no_lead'}_#{Time.now.to_i}"
 
   begin
-    doc_maker.request_signature(recipients, title)
+    doc_maker.request_signature(recipients, template_title)
     doc_id = doc_maker.get_signature_request_id
     signatures = doc_maker.get_signatures
 
     if signatures
-
-      if campus && leads_id
-        diamond = Diamond.new(campus)
-        unless diamond.errors.any?
-          diamond.add_document_to_lead(leads_id, doc_id, title) 
-        end
-      end
-
       return  { signatures: signatures }.to_json
-
     else
       return  {  
         error: {  
@@ -113,6 +104,21 @@ get '/leads/:leads_id/docs' do
   diamond = Diamond.new(params[:campus])
   leads_id = params[:leads_id]
   return diamond.get_lead_documents(leads_id).to_json
+end
+
+get '/docs' do
+  content_type :json
+  email = params[:email]
+  docs = DocMaker.get_signature_requests_by_email email 
+  docs.to_json
+end
+
+get '/docs/:signature_request_id' do
+  if params[:pdf]
+    content_type :pdf
+    signature_request_id = params[:signature_request_id]
+    DocMaker.download_doc(signature_request_id)
+  end
 end
 
 get '/terms' do

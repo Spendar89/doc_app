@@ -1,22 +1,24 @@
 var LeadDocsBlock = React.createClass({
 
     renderLeadDocsRow: function(doc, i) {
-        var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
+        //var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
+        var url = '/docs/' + doc['signature_request_id'] + '?pdf=true'
         return (
             <tr key={i}>
                 <td>
                     {i + 1}
                 </td>
                 <td>
-                    <a target="_blank" href={url}>
-                        {doc["Title"] || doc["DocumentID"]}
+                    <a onClick={_.partial(this.props.onClick, i)} >
+                        {doc["title"]}
                     </a>
                 </td>
                 <td>
-                    <button className="btn btn-remove" 
-                            onClick={_.partial(this.props.onDestroy, i)}>
-                            <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                    </button>
+                    <a className="btn btn-icon" 
+                       href={url} 
+                       target="_blank">
+                           <span className="glyphicon glyphicon-export" aria-hidden="true"></span>
+                    </a>
                 </td>
             </tr>
         );
