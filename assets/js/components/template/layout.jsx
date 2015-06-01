@@ -42,7 +42,8 @@ var TemplateLayout = React.createClass({
             docUrl: false,
             docError: false,
             isLeadsSearching: false,
-            leads: []
+            leads: [],
+            validationErrors: []
         }
     },
 
@@ -102,7 +103,8 @@ var TemplateLayout = React.createClass({
     handleTemplateInputChange: function(e) {
         var i = e.target.value;
         this.setState({
-            templateIndex: i
+            templateIndex: i,
+            validationErrors: []
         });
     },
 
@@ -240,7 +242,6 @@ var TemplateLayout = React.createClass({
 
     handleRecipientAuthTokenChange: function(i, e) {
         e.preventDefault();
-        console.log("entered auth token", e.target.value)
         this.setRecipient(i, "authToken", e.target.value);
     },
 
@@ -261,6 +262,10 @@ var TemplateLayout = React.createClass({
         _.each(template.recipients, function(r, i) {
             this.setRecipient(i, "signature", undefined)
         }.bind(this));
+    },
+
+    handleValidationErrors: function(errs) {
+        this.setState({validationErrors: errs});
     },
 
 
@@ -361,6 +366,8 @@ var TemplateLayout = React.createClass({
                             recipientsBlock={recipientsBlock}
                             isRecipientsValid={this.isRecipientsValid}
                             savedDoc={this.state.savedDoc}
+                            onValidationErrors={this.handleValidationErrors}
+                            validationErrors={this.state.validationErrors}
                             lead={this.state.extensions.lead} />
                     </div>
                     <div className="col-sm-3 right-div">

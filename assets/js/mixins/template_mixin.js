@@ -150,7 +150,6 @@ TemplateMixin = {
 
         console.log("doc sigs", docSignatures);
 
-
         this.cursors.savedDoc.set(doc);
 
         this.cursors.sources.set("docFields", docFields)
@@ -204,7 +203,7 @@ TemplateMixin = {
         var template = this.currentTemplate(),
             recipients = template.recipients;
         return _.every(recipients, function(r) {
-           return r.email && r.name; 
+           return r.authorized;
         });
     },
 

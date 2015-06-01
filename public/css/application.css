@@ -6,6 +6,9 @@ body {
     cursor: pointer;
     text-transform: none; }
 
+.validation-error-header, .validation-error {
+  color: #d9534f; }
+
 .template-layout {
   height: 100%; }
 
@@ -176,6 +179,7 @@ td {
 .error-div {
   position: absolute;
   top: 80px;
+  padding-top: 60px;
   color: #d25a5a; }
   .error-div .error-details h4, .error-div .error-details p {
     margin: 0px; }

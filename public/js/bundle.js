@@ -136,18 +136,28 @@ var DocForm = React.createClass({displayName: "DocForm",
         });
     },
 
-    isValid: function() {
-        if (this.props.templateLoading) return false;
-        if (!this.props.isRecipientsValid()) return false;
-        return _.every(this.props.customFields, function(field, fieldName) {
+    validate: function(callback) {
+        var errs = [];
+        var validRecipients = this.props.isRecipientsValid();  
+        var validFields = _.every(this.props.customFields, function(field, fieldName) {
             if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
+
+        if (!validRecipients) {
+            errs.push("Recipients have not confirmed email address");
+        };
+
+        if (!validFields) {
+            errs.push("Required fields are still blank")
+        }
+
+        console.log("Errrs", errs)
+
+        return callback(errs);
     },
 
-    handleGenerate: function (e) {
-        e.preventDefault();
-
+    createDoc: function() {
         var lead = this.props.lead || {},
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
@@ -168,6 +178,19 @@ var DocForm = React.createClass({displayName: "DocForm",
             var err = data.error,
                 signatures = data.signatures
             this.props.onSignatures(err, signatures);
+        }.bind(this));
+    },
+
+    handleGenerate: function (e) {
+        e.preventDefault();
+
+        this.validate(function(errs) {
+            if(errs[0]) {
+                this.props.onValidationErrors(errs)
+            } else {
+                this.props.onValidationErrors([]);
+                this.createDoc();
+            };
         }.bind(this));
     },
     
@@ -193,7 +216,7 @@ var DocForm = React.createClass({displayName: "DocForm",
         var docError = this.props.docError;
         if (!docError) return false;
         return (
-            React.createElement("div", {className: "error-div col-sm-10 col-sm-offset-2", style: this.errorStyle()}, 
+            React.createElement("div", {className: "error-div col-sm-8 col-sm-offset-2", style: this.errorStyle()}, 
                 React.createElement("div", {className: "doc-error"}, 
                     React.createElement("div", {className: "doc-error-header"}, 
                         React.createElement("h2", null, "Uh Oh, Something Went Wrong...")
@@ -209,11 +232,9 @@ var DocForm = React.createClass({displayName: "DocForm",
     },
 
     renderSubmit: function() {
-        var isValidRecipients = function() {
-            return _.every(this.props.recipients, function(r) {
-                return !_.isEmpty(r.email) && !_.isEmpty(r.name);
-            });
-        }.bind(this);
+        var className= !this.props.validationErrors[0] 
+            ? "btn-primary btn btn-block"
+            : "btn-danger btn btn-block";
 
         if (this._hasSignatures()) {
             return (
@@ -234,8 +255,8 @@ var DocForm = React.createClass({displayName: "DocForm",
 
         } else {
             return  (
-                React.createElement("input", {disabled: !this.isValid(), 
-                        className: "btn-primary btn btn-block", 
+                React.createElement("input", {disabled: this.props.templateLoading, 
+                        className: className, 
                         type: "submit", 
                         value: "Generate Doc", 
                         onClick: this.handleGenerate})
@@ -256,6 +277,10 @@ var DocForm = React.createClass({displayName: "DocForm",
             //return this.props.onSignatures(null, this.props.savedDoc.signatures)
         //}
 
+        if (this.props.validationErrors[0]) {
+            console.log("ValidationErrors", this.props.validationErrors);
+        };
+
         var renderSignaturesBlock = function() {
             return (
                 React.createElement("div", {className: "signatures-block-div"}, 
@@ -268,12 +293,33 @@ var DocForm = React.createClass({displayName: "DocForm",
         return (
             React.createElement("div", {className: "doc-form-inner-div col-sm-12"}, 
                 React.createElement("div", {className: "col-sm-12 doc-form-header-div"}, 
-                    React.createElement("h3", {className: "doc-form-header col-sm-6"}, 
-                        this.props.template.title
-                    ), 
-                    React.createElement("h3", {className: "col-sm-6"}, 
-                        this.renderSubmit()
-                    )
+                    this.props.validationErrors[0]
+                        ? (
+                            React.createElement("div", null, 
+                                React.createElement("div", {className: "doc-form-header col-sm-8"}, 
+                                    React.createElement("h3", {className: "validation-error-header"}, "Validation Errors:"), 
+                                    _.map(this.props.validationErrors, function(e) {
+                                        return React.createElement("p", {className: "validation-error"}, "- ", e)
+                                        })
+                                ), 
+                                    React.createElement("h3", {className: "col-sm-4"}, 
+                                        this.renderSubmit()
+                                    )
+                            )
+                            
+                        )
+                            : (
+                                React.createElement("div", null, 
+                                    React.createElement("h3", {className: "doc-form-header col-sm-6"}, 
+                                        this.props.template.title
+                                    ), 
+                                    React.createElement("h3", {className: "col-sm-6"}, 
+                                        this.renderSubmit()
+                                    )
+                                )
+
+                            )
+                    
                 ), 
                 React.createElement("div", {className: "loader-div", style: this.searchingStyle()}, 
                     React.createElement("h3", {className: "loader-text"}, this.props.templateLoading), 
@@ -468,7 +514,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
             docUrl: false,
             docError: false,
             isLeadsSearching: false,
-            leads: []
+            leads: [],
+            validationErrors: []
         }
     },
 
@@ -528,7 +575,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
     handleTemplateInputChange: function(e) {
         var i = e.target.value;
         this.setState({
-            templateIndex: i
+            templateIndex: i,
+            validationErrors: []
         });
     },
 
@@ -666,7 +714,6 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
     handleRecipientAuthTokenChange: function(i, e) {
         e.preventDefault();
-        console.log("entered auth token", e.target.value)
         this.setRecipient(i, "authToken", e.target.value);
     },
 
@@ -687,6 +734,10 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         _.each(template.recipients, function(r, i) {
             this.setRecipient(i, "signature", undefined)
         }.bind(this));
+    },
+
+    handleValidationErrors: function(errs) {
+        this.setState({validationErrors: errs});
     },
 
 
@@ -787,6 +838,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                             recipientsBlock: recipientsBlock, 
                             isRecipientsValid: this.isRecipientsValid, 
                             savedDoc: this.state.savedDoc, 
+                            onValidationErrors: this.handleValidationErrors, 
+                            validationErrors: this.state.validationErrors, 
                             lead: this.state.extensions.lead})
                     ), 
                     React.createElement("div", {className: "col-sm-3 right-div"}, 
@@ -922,6 +975,7 @@ var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
 
     renderSignature(recipient, i) {
         var handleSignature = _.partial(this.props.onSignature, recipient, i);
+
         return (
             React.createElement("div", {className: "col-sm-12 form-group", key: i}, 
                 React.createElement("div", {className: "col-sm-12"}, 
@@ -3097,7 +3151,6 @@ TemplateMixin = {
 
         console.log("doc sigs", docSignatures);
 
-
         this.cursors.savedDoc.set(doc);
 
         this.cursors.sources.set("docFields", docFields)
@@ -3151,7 +3204,7 @@ TemplateMixin = {
         var template = this.currentTemplate(),
             recipients = template.recipients;
         return _.every(recipients, function(r) {
-           return r.email && r.name; 
+           return r.authorized;
         });
     },
 

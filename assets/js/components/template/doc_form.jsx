@@ -38,18 +38,28 @@ var DocForm = React.createClass({
         });
     },
 
-    isValid: function() {
-        if (this.props.templateLoading) return false;
-        if (!this.props.isRecipientsValid()) return false;
-        return _.every(this.props.customFields, function(field, fieldName) {
+    validate: function(callback) {
+        var errs = [];
+        var validRecipients = this.props.isRecipientsValid();  
+        var validFields = _.every(this.props.customFields, function(field, fieldName) {
             if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
+
+        if (!validRecipients) {
+            errs.push("Recipients have not confirmed email address");
+        };
+
+        if (!validFields) {
+            errs.push("Required fields are still blank")
+        }
+
+        console.log("Errrs", errs)
+
+        return callback(errs);
     },
 
-    handleGenerate: function (e) {
-        e.preventDefault();
-
+    createDoc: function() {
         var lead = this.props.lead || {},
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
@@ -70,6 +80,19 @@ var DocForm = React.createClass({
             var err = data.error,
                 signatures = data.signatures
             this.props.onSignatures(err, signatures);
+        }.bind(this));
+    },
+
+    handleGenerate: function (e) {
+        e.preventDefault();
+
+        this.validate(function(errs) {
+            if(errs[0]) {
+                this.props.onValidationErrors(errs)
+            } else {
+                this.props.onValidationErrors([]);
+                this.createDoc();
+            };
         }.bind(this));
     },
     
@@ -95,7 +118,7 @@ var DocForm = React.createClass({
         var docError = this.props.docError;
         if (!docError) return false;
         return (
-            <div className="error-div col-sm-10 col-sm-offset-2" style={this.errorStyle()}>
+            <div className="error-div col-sm-8 col-sm-offset-2" style={this.errorStyle()}>
                 <div className="doc-error">
                     <div className="doc-error-header">
                         <h2>Uh Oh, Something Went Wrong...</h2>
@@ -111,11 +134,9 @@ var DocForm = React.createClass({
     },
 
     renderSubmit: function() {
-        var isValidRecipients = function() {
-            return _.every(this.props.recipients, function(r) {
-                return !_.isEmpty(r.email) && !_.isEmpty(r.name);
-            });
-        }.bind(this);
+        var className= !this.props.validationErrors[0] 
+            ? "btn-primary btn btn-block"
+            : "btn-danger btn btn-block";
 
         if (this._hasSignatures()) {
             return (
@@ -136,8 +157,8 @@ var DocForm = React.createClass({
 
         } else {
             return  (
-                <input  disabled={!this.isValid()} 
-                        className="btn-primary btn btn-block" 
+                <input  disabled={this.props.templateLoading} 
+                        className={className}
                         type="submit" 
                         value="Generate Doc" 
                         onClick={this.handleGenerate} />
@@ -158,6 +179,10 @@ var DocForm = React.createClass({
             //return this.props.onSignatures(null, this.props.savedDoc.signatures)
         //}
 
+        if (this.props.validationErrors[0]) {
+            console.log("ValidationErrors", this.props.validationErrors);
+        };
+
         var renderSignaturesBlock = function() {
             return (
                 <div className="signatures-block-div">
@@ -170,12 +195,33 @@ var DocForm = React.createClass({
         return (
             <div className="doc-form-inner-div col-sm-12">
                 <div className="col-sm-12 doc-form-header-div">
-                    <h3 className="doc-form-header col-sm-6">
-                        {this.props.template.title}
-                    </h3>
-                    <h3 className="col-sm-6">
-                        {this.renderSubmit()}
-                    </h3>
+                    {this.props.validationErrors[0]
+                        ? (
+                            <div>
+                                <div className="doc-form-header col-sm-8">
+                                    <h3 className="validation-error-header">Validation Errors:</h3>
+                                    {_.map(this.props.validationErrors, function(e) {
+                                        return <p className="validation-error">- {e}</p>
+                                        })}
+                                </div>
+                                    <h3 className="col-sm-4">
+                                        {this.renderSubmit()}
+                                    </h3>
+                            </div>
+                            
+                        )
+                            : (
+                                <div>
+                                    <h3 className="doc-form-header col-sm-6">
+                                        {this.props.template.title}
+                                    </h3>
+                                    <h3 className="col-sm-6">
+                                        {this.renderSubmit()}
+                                    </h3>
+                                </div>
+
+                            )
+                    }
                 </div>
                 <div className="loader-div" style={this.searchingStyle()}>
                     <h3 className="loader-text">{this.props.templateLoading}</h3>

@@ -1,6 +1,7 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,300,500);
 
 $blue: #337ab7;
+$red: #d9534f;
 
  body {
     background: #EEEEEE;
@@ -9,6 +10,10 @@ $blue: #337ab7;
       cursor: pointer; 
       text-transform: none;
     }
+}
+
+.validation-error-header, .validation-error {
+  color: $red;
 }
 .template-layout {
     height: 100%;
@@ -206,6 +211,7 @@ td {
 .error-div {
     position: absolute;
     top: 80px;
+    padding-top: 60px;
     color: #d25a5a;
     .error-details {
         h4, p {

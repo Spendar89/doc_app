@@ -2,6 +2,7 @@ var SignaturesBlock = React.createClass({
 
     renderSignature(recipient, i) {
         var handleSignature = _.partial(this.props.onSignature, recipient, i);
+
         return (
             <div className="col-sm-12 form-group" key={i}>
                 <div className="col-sm-12">
