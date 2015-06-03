@@ -149,12 +149,10 @@ var LeadMixin = {
         var hasLeadPending = this.state.syncRemote && leadPending, 
             hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
-            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead,
-            hasNewSavedDoc = this.state.savedDoc && this.state.savedDoc != prevState.savedDoc;
+            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
 
             if (leadRecipient != prevLeadRecipient && leadRecipient.authorized) {
-                console.log("feetching new docs", leadRecipient)
-                this.fetchDocsAndSetState(leadRecipient.email)
+                //this.fetchDocsAndSetState(leadRecipient.email)
             } 
 
 
@@ -163,20 +161,11 @@ var LeadMixin = {
             this._syncLeadAndSetState();   
         };
 
-        if (hasNewSavedDoc) {
-            var savedDoc = this.state.savedDoc;
-            console.log("has new saved doc!", savedDoc);
-            var leadSignature = _.find(savedDoc["signatures"], function(s) {
-                return s["signer_email_address"] == leadRecipient.email;
-            });
-
-            var signatureId = leadSignature["signature_id"]
-            this.setRecipient(leadRecipientIndex, "signatureId", signatureId);
-        };
-
         if (hasChangedLead){
             var lead = this.state.extensions.lead;
             this.cursors.sources.set("lead", lead);
+            this.setState({docsEmail: lead["Email"]})
+            this.fetchDocsAndSetState(lead["Email"])
         };
 
         if (hasLeadRecipient) {

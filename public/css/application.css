@@ -6,6 +6,10 @@ body {
     cursor: pointer;
     text-transform: none; }
 
+.signature-icon {
+  color: #5cb85c;
+  margin-left: 15px; }
+
 .validation-error-header, .validation-error {
   color: #d9534f; }
 

@@ -42,6 +42,9 @@ TemplateController.prototype = {
 
     getDocs: function(email, callback) {
         var url = "/docs?email=" + email;
+
+        this.loaderFn("Loading Docs");
+
         request
             .get(url)
             .query({

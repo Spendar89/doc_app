@@ -99,6 +99,10 @@ TemplateMixin = {
     setStateFromTemplate: function(prevTemplate, template, callback) {
         template.recipients = RecipientsManager.getRecipientsByTemplate(template, prevTemplate);
 
+        _.each(template.recipients, function(r, i) {
+            r.signature = undefined;
+        });
+
         this.cursors.templates.set(this.state.templateIndex, template)
 
         this.handleRemoveRecipientSignatures();
@@ -148,7 +152,6 @@ TemplateMixin = {
             if (cf.name) docFields[cf.name] = cf["value"];   
         });
 
-        this.cursors.savedDoc.set(doc);
         this.cursors.sources.set("docFields", docFields)
     },
 
@@ -213,11 +216,15 @@ TemplateMixin = {
         );
     },
 
-    isRecipientsValid: function() {
-        var template = this.currentTemplate(),
+    isRecipientsValid: function(opts) {
+        var opts = opts || {},
+            template = this.currentTemplate(),
             recipients = template.recipients;
+
         return _.every(recipients, function(r) {
-           return r.authorized;
+            if (opts.auth) return r.authorized;
+
+            return !_.isEmpty(r.email) && !_.isEmpty(r.name)
         });
     },
 

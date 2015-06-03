@@ -38,28 +38,28 @@ var DocForm = React.createClass({
         });
     },
 
-    validate: function(callback) {
+    validateDoc: function(callback) {
         var errs = [];
+
         var validRecipients = this.props.isRecipientsValid();  
+
         var validFields = _.every(this.props.customFields, function(field, fieldName) {
             if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
 
         if (!validRecipients) {
-            errs.push("Recipients have not confirmed email address");
+            errs.push("Recipient fields are still blank")
         };
 
         if (!validFields) {
             errs.push("Required fields are still blank")
         }
 
-        console.log("Errrs", errs)
-
         return callback(errs);
     },
 
-    createDoc: function() {
+    generateDoc: function() {
         var lead = this.props.lead || {},
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
@@ -86,13 +86,9 @@ var DocForm = React.createClass({
     handleGenerate: function (e) {
         e.preventDefault();
 
-        this.validate(function(errs) {
-            if(errs[0]) {
-                this.props.onValidationErrors(errs)
-            } else {
-                this.props.onValidationErrors([]);
-                this.createDoc();
-            };
+        this.validateDoc(function(errs) {
+            this.props.onValidationErrors(errs);
+            if (!errs[0]) this.generateDoc();
         }.bind(this));
     },
     
@@ -140,7 +136,7 @@ var DocForm = React.createClass({
 
         if (this._hasSignatures()) {
             return (
-                <button  className="btn-danger btn btn-block" 
+                <button  className="btn-primary btn btn-block" 
                          onClick={this.props.onRemoveSignatures} >
                     Back
                 </button>

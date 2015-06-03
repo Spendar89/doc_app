@@ -1,17 +1,21 @@
 var LeadDocsBlock = React.createClass({
 
     renderLeadDocsRow: function(doc, i) {
-        //var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
-        var url = '/docs/' + doc['signature_request_id'] + '?pdf=true'
+        var url = '/docs/' + doc.signature_request_id + '?pdf=true',
+            signatures = doc.signatures,
+            signed = _.sum(signatures, function(s) {
+                return s.signed_at ? 1 : 0;
+            });
+
         return (
             <tr key={i}>
                 <td>
-                    {i + 1}
-                </td>
-                <td>
-                    <a onClick={_.partial(this.props.onClick, i)} >
+                    <a onClick={_.partial(this.props.onDocClick, i)} >
                         {doc["title"]}
                     </a>
+                </td>
+                <td>
+                    {signed}/{signatures.length}
                 </td>
                 <td>
                     <a className="btn btn-icon" 
@@ -27,7 +31,8 @@ var LeadDocsBlock = React.createClass({
 
     renderLeadDocs: function() {
         return _.map(this.props.docs, function(doc, i) {
-            return this.renderLeadDocsRow(doc, i)
+            if (doc["title"] !== this.props.template.title) return false;
+            return this.renderLeadDocsRow(doc, i);
         }.bind(this));
     },
 
@@ -43,18 +48,18 @@ var LeadDocsBlock = React.createClass({
                             <p><i>These are the saved documents belonging to the current lead.  
                                     Click to view and/or download a pdf:</i></p>
                         </div>
+                        <div className="docs-search-div row">
+                            <div className="col-sm-8">
+                                <input className="form-control" onChange={this.props.onDocsEmail} value={this.props.docsEmail} />
+                            </div>
+                            <div className="col-sm-4">
+                                <input className="btn btn-primary btn-block row" type="submit" value="search" onClick={this.props.onSearch} />
+                            </div>
+                        </div>
                         <div className="lead-table-div">
                             <table className="table table-hover">
                                 <tbody>
-                                    {this.props.isRecipientsValid()
-                                        ? this.renderLeadDocs()
-                                        : (
-                                            <h3 className="validation-error-header">
-                                                Please confirm recipient email 
-                                                addresses to access saved Documents
-                                            </h3>
-                                            )
-                                    }
+                                    {this.renderLeadDocs()}
                                 </tbody>
                             </table>
                         </div>

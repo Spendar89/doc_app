@@ -16,9 +16,8 @@ var tree = new Baobab({
     package: EA_PACKAGE_DATA,
     allCustomFields: {},
     extensions: {},
-    sources: {},
-    savedDoc: {}
-})
+    sources: {}
+});
 
 var Layout = React.createClass({
     mixins: [RootMixin],

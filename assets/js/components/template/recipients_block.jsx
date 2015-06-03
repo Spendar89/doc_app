@@ -42,7 +42,7 @@ var RecipientsBlock = React.createClass({
                         <div className="col-sm-5">
                             <div className="form-group">
                                 <label>{recipient.role} Name:</label>
-                                <input  disabled={recipient.authorized} 
+                                <input  disabled={recipient.signature || recipient.authorized} 
                                         className="form-control" 
                                         value={recipient.name} 
                                         onChange={_.partial(this.props.onRecipientChange, i, "name")} />
@@ -51,7 +51,7 @@ var RecipientsBlock = React.createClass({
                         <div className="col-sm-5">
                             <div className="form-group">
                                 <label> {recipient.role} Email: </label>
-                                <input  disabled={recipient.authorized} 
+                                <input  disabled={recipient.signature || recipient.authorized} 
                                         className="form-control" 
                                         value={recipient.email} 
                                         onChange={_.partial(this.props.onRecipientChange, i, "email")} />

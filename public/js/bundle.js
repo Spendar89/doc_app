@@ -17,9 +17,8 @@ var tree = new Baobab({
     package: EA_PACKAGE_DATA,
     allCustomFields: {},
     extensions: {},
-    sources: {},
-    savedDoc: {}
-})
+    sources: {}
+});
 
 var Layout = React.createClass({displayName: "Layout",
     mixins: [RootMixin],
@@ -136,28 +135,28 @@ var DocForm = React.createClass({displayName: "DocForm",
         });
     },
 
-    validate: function(callback) {
+    validateDoc: function(callback) {
         var errs = [];
+
         var validRecipients = this.props.isRecipientsValid();  
+
         var validFields = _.every(this.props.customFields, function(field, fieldName) {
             if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
 
         if (!validRecipients) {
-            errs.push("Recipients have not confirmed email address");
+            errs.push("Recipient fields are still blank")
         };
 
         if (!validFields) {
             errs.push("Required fields are still blank")
         }
 
-        console.log("Errrs", errs)
-
         return callback(errs);
     },
 
-    createDoc: function() {
+    generateDoc: function() {
         var lead = this.props.lead || {},
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
@@ -184,13 +183,9 @@ var DocForm = React.createClass({displayName: "DocForm",
     handleGenerate: function (e) {
         e.preventDefault();
 
-        this.validate(function(errs) {
-            if(errs[0]) {
-                this.props.onValidationErrors(errs)
-            } else {
-                this.props.onValidationErrors([]);
-                this.createDoc();
-            };
+        this.validateDoc(function(errs) {
+            this.props.onValidationErrors(errs);
+            if (!errs[0]) this.generateDoc();
         }.bind(this));
     },
     
@@ -238,7 +233,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 
         if (this._hasSignatures()) {
             return (
-                React.createElement("button", {className: "btn-danger btn btn-block", 
+                React.createElement("button", {className: "btn-primary btn btn-block", 
                          onClick: this.props.onRemoveSignatures}, 
                     "Back"
                 )
@@ -503,8 +498,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         allCustomFields: ['allCustomFields'],
         templates: ['package', 'templates'], 
         extensions: ['extensions'],
-        sources: ['sources'],
-        savedDoc: ['savedDoc']
+        sources: ['sources']
     },
 
     getInitialState: function() {
@@ -515,7 +509,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
             docError: false,
             isLeadsSearching: false,
             leads: [],
-            validationErrors: []
+            validationErrors: [],
+            docsEmail: ""
         }
     },
 
@@ -540,32 +535,45 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
     },
 
     handleDocSignatures: function(err, signatures) {
+        console.log("handling doc signatures")
         var templates = this.state.templates,
             templateIndex = this.state.templateIndex,
             recipients = templates[templateIndex].recipients;
+
+        console.log("reciiipients", recipients)
+        console.log("Sigs", signatures)
 
         if (err) {
             this.handleFormError(err);
         } else {
             _.each(recipients, function(r, i) {
-                var signature = _.select(signatures, function(s) {
-                   return s.signer_email_address == r.email && s.signer_name == r.name
-                });
+                //var signature = _.select(signatures, function(s) {
+                   //return s.signer_email_address == r.email && s.signer_name == r.name
+                //});
 
-                var signatureId = signature[0] && signature[0].signature_id;
+                var signature = signatures[i];
 
-                if (!signatureId) return false;
+
+                //var signatureId = signature[0] && signature[0].signature_id;
+
+                if (!signature || !signature.signature_id) return false;
+
+                this.setRecipient(i, "email", signature.signer_email_address);
+
+                this.setRecipient(i, "name", signature.signer_name);
+
+                this.setRecipient(i, "signature", signature)
 
                 console.log("setting new signature!")
 
-                this.cursors.templates.set([
-                        templateIndex,
-                        "recipients",
-                        i,
-                        "signature"
-                    ],
-                    signature[0]
-                );
+                //this.cursors.templates.set([
+                        //templateIndex,
+                        //"recipients",
+                        //i,
+                        //"signature"
+                    //],
+                    //signature[0]
+                //);
             }.bind(this));
 
             this.setLoading(false);
@@ -639,16 +647,22 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         this.setState({leadsSearchInput: input})
     },
 
-    handleLeadDocClick: function(i, e) {
+    handleDocsEmail: function(e) {
+        e.preventDefault();
+        this.setState({docsEmail: e.target.value})
+    },
+
+    handleDocClick: function(i, e) {
         e.preventDefault();
 
         var doc = this.state.extensions.docs[i];
+        console.log("Here is the doc", doc)
 
-        if (doc && doc.signatures && this.isRecipientsValid()) {
+        if (doc && doc.signatures) {
             return this.handleDocSignatures(null, doc.signatures);
         };
 
-        this.setCustomFieldsFromDoc(doc);
+        //this.setCustomFieldsFromDoc(doc);
     },
 
     handleProgramIndexChange: function(e) {
@@ -815,9 +829,13 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                                      blockDescription: "Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email.", 
                                      blockHeader: "Recipients"}), 
                         React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
-                                        onClick: this.handleLeadDocClick, 
+                                        onDocClick: this.handleDocClick, 
+                                        onSearch: this.fetchDocsAndSetState.bind(this, this.state.docsEmail), 
+                                        docsEmail: this.state.docsEmail, 
+                                        onDocsEmail: this.handleDocsEmail, 
                                         isRecipientsValid: this.isRecipientsValid, 
-                                        docs: this.filterDocsByTemplate()})
+                                        template: this.currentTemplate(), 
+                                        docs: this.state.extensions.docs})
                     ), 
                     React.createElement("div", {className: "col-sm-6 doc-form-div middle-div"}, 
                         React.createElement(DocForm, {template: template, 
@@ -838,7 +856,6 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                             recipients: template.recipients, 
                             recipientsBlock: recipientsBlock, 
                             isRecipientsValid: this.isRecipientsValid, 
-                            savedDoc: this.state.savedDoc, 
                             onValidationErrors: this.handleValidationErrors, 
                             validationErrors: this.state.validationErrors, 
                             lead: this.state.extensions.lead})
@@ -930,7 +947,7 @@ var RecipientsBlock = React.createClass({displayName: "RecipientsBlock",
                         React.createElement("div", {className: "col-sm-5"}, 
                             React.createElement("div", {className: "form-group"}, 
                                 React.createElement("label", null, recipient.role, " Name:"), 
-                                React.createElement("input", {disabled: recipient.authorized, 
+                                React.createElement("input", {disabled: recipient.signature || recipient.authorized, 
                                         className: "form-control", 
                                         value: recipient.name, 
                                         onChange: _.partial(this.props.onRecipientChange, i, "name")})
@@ -939,7 +956,7 @@ var RecipientsBlock = React.createClass({displayName: "RecipientsBlock",
                         React.createElement("div", {className: "col-sm-5"}, 
                             React.createElement("div", {className: "form-group"}, 
                                 React.createElement("label", null, " ", recipient.role, " Email: "), 
-                                React.createElement("input", {disabled: recipient.authorized, 
+                                React.createElement("input", {disabled: recipient.signature || recipient.authorized, 
                                         className: "form-control", 
                                         value: recipient.email, 
                                         onChange: _.partial(this.props.onRecipientChange, i, "email")})
@@ -975,21 +992,28 @@ module.exports = RecipientsBlock;
 var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
 
     renderSignature(recipient, i) {
+        if (!recipient.signature) return false;
         var handleSignature = _.partial(this.props.onSignature, recipient, i);
 
         return (
             React.createElement("div", {className: "col-sm-12 form-group", key: i}, 
-                React.createElement("div", {className: "col-sm-12"}, 
+                React.createElement("div", {className: "col-sm-7"}, 
+                    React.createElement("h3", null, recipient.role, ": ", recipient.email, " ")
+                ), 
+                React.createElement("div", {className: "col-sm-5"}, 
                     
                         recipient.signature.status_code !== "signed"
                             ? (
-                                React.createElement("button", {className: "btn-default btn btn-block", 
+                                React.createElement("button", {className: "btn-success btn btn-block", 
+                                        disabled: !recipient.authorized, 
                                         onClick: handleSignature}, 
-                                       "Sign For " + recipient.role
+                                    recipient.authorized ? "Click to Sign!" : "Waiting for Email Confirmation"
                                 )
                             )
                             : (
-                                React.createElement("p", null, " Signed by ", recipient.role)
+                                React.createElement("h3", {className: "col-sm-12"}, 
+                                    React.createElement("span", null, " Signed "), " ", React.createElement("span", {className: "signature-icon glyphicon glyphicon-ok"})
+                                )
                             )
                     
                 )
@@ -1002,7 +1026,8 @@ var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
         return (
             React.createElement("div", {className: "signatures-block col-sm-12"}, 
                 React.createElement("div", {className: "signatures-header col-sm-12"}, 
-                    React.createElement("h4", null, "Your Document is Ready to Sign")
+                    React.createElement("h2", null, "Your Document is Ready!"), 
+                    React.createElement("h4", null, React.createElement("i", null, "Confirm Your Email Address to Sign"))
                 ), 
                 React.createElement("div", {className: "signatures-body col-sm-12"}, 
                     _.map(this.props.recipients, this.renderSignature)
@@ -1125,6 +1150,9 @@ TemplateController.prototype = {
 
     getDocs: function(email, callback) {
         var url = "/docs?email=" + email;
+
+        this.loaderFn("Loading Docs");
+
         request
             .get(url)
             .query({
@@ -1217,17 +1245,21 @@ module.exports = LeadDataBlock;
 var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
 
     renderLeadDocsRow: function(doc, i) {
-        //var url = '/leads/' + this.props.lead["LeadsID"] + '/docs/' + doc["DocumentID"];
-        var url = '/docs/' + doc['signature_request_id'] + '?pdf=true'
+        var url = '/docs/' + doc.signature_request_id + '?pdf=true',
+            signatures = doc.signatures,
+            signed = _.sum(signatures, function(s) {
+                return s.signed_at ? 1 : 0;
+            });
+
         return (
             React.createElement("tr", {key: i}, 
                 React.createElement("td", null, 
-                    i + 1
-                ), 
-                React.createElement("td", null, 
-                    React.createElement("a", {onClick: _.partial(this.props.onClick, i)}, 
+                    React.createElement("a", {onClick: _.partial(this.props.onDocClick, i)}, 
                         doc["title"]
                     )
+                ), 
+                React.createElement("td", null, 
+                    signed, "/", signatures.length
                 ), 
                 React.createElement("td", null, 
                     React.createElement("a", {className: "btn btn-icon", 
@@ -1243,7 +1275,8 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
 
     renderLeadDocs: function() {
         return _.map(this.props.docs, function(doc, i) {
-            return this.renderLeadDocsRow(doc, i)
+            if (doc["title"] !== this.props.template.title) return false;
+            return this.renderLeadDocsRow(doc, i);
         }.bind(this));
     },
 
@@ -1259,18 +1292,18 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
                             React.createElement("p", null, React.createElement("i", null, "These are the saved documents belonging to the current lead." + ' ' +  
                                     "Click to view and/or download a pdf:"))
                         ), 
+                        React.createElement("div", {className: "docs-search-div row"}, 
+                            React.createElement("div", {className: "col-sm-8"}, 
+                                React.createElement("input", {className: "form-control", onChange: this.props.onDocsEmail, value: this.props.docsEmail})
+                            ), 
+                            React.createElement("div", {className: "col-sm-4"}, 
+                                React.createElement("input", {className: "btn btn-primary btn-block row", type: "submit", value: "search", onClick: this.props.onSearch})
+                            )
+                        ), 
                         React.createElement("div", {className: "lead-table-div"}, 
                             React.createElement("table", {className: "table table-hover"}, 
                                 React.createElement("tbody", null, 
-                                    this.props.isRecipientsValid()
-                                        ? this.renderLeadDocs()
-                                        : (
-                                            React.createElement("h3", {className: "validation-error-header"}, 
-                                                "Please confirm recipient email" + ' ' + 
-                                                "addresses to access saved Documents"
-                                            )
-                                            )
-                                    
+                                    this.renderLeadDocs()
                                 )
                             )
                         )
@@ -1786,12 +1819,10 @@ var LeadMixin = {
         var hasLeadPending = this.state.syncRemote && leadPending, 
             hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
-            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead,
-            hasNewSavedDoc = this.state.savedDoc && this.state.savedDoc != prevState.savedDoc;
+            hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
 
             if (leadRecipient != prevLeadRecipient && leadRecipient.authorized) {
-                console.log("feetching new docs", leadRecipient)
-                this.fetchDocsAndSetState(leadRecipient.email)
+                //this.fetchDocsAndSetState(leadRecipient.email)
             } 
 
 
@@ -1800,20 +1831,11 @@ var LeadMixin = {
             this._syncLeadAndSetState();   
         };
 
-        if (hasNewSavedDoc) {
-            var savedDoc = this.state.savedDoc;
-            console.log("has new saved doc!", savedDoc);
-            var leadSignature = _.find(savedDoc["signatures"], function(s) {
-                return s["signer_email_address"] == leadRecipient.email;
-            });
-
-            var signatureId = leadSignature["signature_id"]
-            this.setRecipient(leadRecipientIndex, "signatureId", signatureId);
-        };
-
         if (hasChangedLead){
             var lead = this.state.extensions.lead;
             this.cursors.sources.set("lead", lead);
+            this.setState({docsEmail: lead["Email"]})
+            this.fetchDocsAndSetState(lead["Email"])
         };
 
         if (hasLeadRecipient) {
@@ -3123,6 +3145,10 @@ TemplateMixin = {
     setStateFromTemplate: function(prevTemplate, template, callback) {
         template.recipients = RecipientsManager.getRecipientsByTemplate(template, prevTemplate);
 
+        _.each(template.recipients, function(r, i) {
+            r.signature = undefined;
+        });
+
         this.cursors.templates.set(this.state.templateIndex, template)
 
         this.handleRemoveRecipientSignatures();
@@ -3172,7 +3198,6 @@ TemplateMixin = {
             if (cf.name) docFields[cf.name] = cf["value"];   
         });
 
-        this.cursors.savedDoc.set(doc);
         this.cursors.sources.set("docFields", docFields)
     },
 
@@ -3237,11 +3262,15 @@ TemplateMixin = {
         );
     },
 
-    isRecipientsValid: function() {
-        var template = this.currentTemplate(),
+    isRecipientsValid: function(opts) {
+        var opts = opts || {},
+            template = this.currentTemplate(),
             recipients = template.recipients;
+
         return _.every(recipients, function(r) {
-           return r.authorized;
+            if (opts.auth) return r.authorized;
+
+            return !_.isEmpty(r.email) && !_.isEmpty(r.name)
         });
     },
 

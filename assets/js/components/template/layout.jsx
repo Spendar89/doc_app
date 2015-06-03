@@ -31,8 +31,7 @@ var TemplateLayout = React.createClass({
         allCustomFields: ['allCustomFields'],
         templates: ['package', 'templates'], 
         extensions: ['extensions'],
-        sources: ['sources'],
-        savedDoc: ['savedDoc']
+        sources: ['sources']
     },
 
     getInitialState: function() {
@@ -43,7 +42,8 @@ var TemplateLayout = React.createClass({
             docError: false,
             isLeadsSearching: false,
             leads: [],
-            validationErrors: []
+            validationErrors: [],
+            docsEmail: ""
         }
     },
 
@@ -68,32 +68,45 @@ var TemplateLayout = React.createClass({
     },
 
     handleDocSignatures: function(err, signatures) {
+        console.log("handling doc signatures")
         var templates = this.state.templates,
             templateIndex = this.state.templateIndex,
             recipients = templates[templateIndex].recipients;
+
+        console.log("reciiipients", recipients)
+        console.log("Sigs", signatures)
 
         if (err) {
             this.handleFormError(err);
         } else {
             _.each(recipients, function(r, i) {
-                var signature = _.select(signatures, function(s) {
-                   return s.signer_email_address == r.email && s.signer_name == r.name
-                });
+                //var signature = _.select(signatures, function(s) {
+                   //return s.signer_email_address == r.email && s.signer_name == r.name
+                //});
 
-                var signatureId = signature[0] && signature[0].signature_id;
+                var signature = signatures[i];
 
-                if (!signatureId) return false;
+
+                //var signatureId = signature[0] && signature[0].signature_id;
+
+                if (!signature || !signature.signature_id) return false;
+
+                this.setRecipient(i, "email", signature.signer_email_address);
+
+                this.setRecipient(i, "name", signature.signer_name);
+
+                this.setRecipient(i, "signature", signature)
 
                 console.log("setting new signature!")
 
-                this.cursors.templates.set([
-                        templateIndex,
-                        "recipients",
-                        i,
-                        "signature"
-                    ],
-                    signature[0]
-                );
+                //this.cursors.templates.set([
+                        //templateIndex,
+                        //"recipients",
+                        //i,
+                        //"signature"
+                    //],
+                    //signature[0]
+                //);
             }.bind(this));
 
             this.setLoading(false);
@@ -167,16 +180,22 @@ var TemplateLayout = React.createClass({
         this.setState({leadsSearchInput: input})
     },
 
-    handleLeadDocClick: function(i, e) {
+    handleDocsEmail: function(e) {
+        e.preventDefault();
+        this.setState({docsEmail: e.target.value})
+    },
+
+    handleDocClick: function(i, e) {
         e.preventDefault();
 
         var doc = this.state.extensions.docs[i];
+        console.log("Here is the doc", doc)
 
-        if (doc && doc.signatures && this.isRecipientsValid()) {
+        if (doc && doc.signatures) {
             return this.handleDocSignatures(null, doc.signatures);
         };
 
-        this.setCustomFieldsFromDoc(doc);
+        //this.setCustomFieldsFromDoc(doc);
     },
 
     handleProgramIndexChange: function(e) {
@@ -343,9 +362,13 @@ var TemplateLayout = React.createClass({
                                      blockDescription={"Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email."}
                                      blockHeader={"Recipients"} />
                         <LeadDocsBlock  lead={this.state.extensions.lead} 
-                                        onClick={this.handleLeadDocClick}
+                                        onDocClick={this.handleDocClick}
+                                        onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}
+                                        docsEmail={this.state.docsEmail}
+                                        onDocsEmail={this.handleDocsEmail}
                                         isRecipientsValid={this.isRecipientsValid}
-                                        docs={this.filterDocsByTemplate()} />
+                                        template={this.currentTemplate()}
+                                        docs={this.state.extensions.docs} />
                     </div>
                     <div className="col-sm-6 doc-form-div middle-div">
                         <DocForm    template={template}
@@ -366,7 +389,6 @@ var TemplateLayout = React.createClass({
                             recipients={template.recipients}
                             recipientsBlock={recipientsBlock}
                             isRecipientsValid={this.isRecipientsValid}
-                            savedDoc={this.state.savedDoc}
                             onValidationErrors={this.handleValidationErrors}
                             validationErrors={this.state.validationErrors}
                             lead={this.state.extensions.lead} />
