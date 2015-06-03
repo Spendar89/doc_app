@@ -45,7 +45,8 @@ TemplateMixin = {
     setCustomFields: function(template, callback) {
         var sources = this.state.sources,
             customFields = this.state.allCustomFields,
-            config = this.packageData.config,
+            templateConfig = this.currentTemplate().config,
+            config = _.merge(this.packageData.config, templateConfig),
             customMethods = this.customMethods,
             fields = {};
 
@@ -55,8 +56,17 @@ TemplateMixin = {
                 var fieldValue,
                     field = template.customFields[name],
                     header = config.headers[field.name],
-                    isOptional = _.include(config.optionalFields, name), 
-                    isDisabled = _.include(config.disabledFields, name);
+                    disabledFields = config.disabledFields,
+                    optionalFields = config.optionalFields;
+
+                var isOptional = _.any(optionalFields, function(fieldName) {
+                    if (fieldName[0] === "*") {
+                        return name.match(fieldName.substring(1))
+                    };
+                    return name === fieldName;
+                });
+
+                var isDisabled = _.include(disabledFields, name);
 
                 field.header = header;
 

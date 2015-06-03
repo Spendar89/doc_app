@@ -9,18 +9,86 @@
         }, {
             "id": "e131ee507fc368fccbfeecf45e6d413b2db4f88b",
             "title": "Primary Agreement (With Parent/Guardian)"
-        },{
+        }, {
             "id": "1281b2c8bcb9c84b3ac2f49b02f0546add2ba06c",
             "title": "Tour Acknowledgement Catalog"
         }, {
             "id": "c13f4831fd61d50580c4c10d476df50e0973d780",
             "title": "Clinical Laboratory Disclosure Statement"
+        }, {
+            "id": "24f0904e451092c67e750b789510f8e152350919",
+            "title": "Communication Authorization"
+        }, {
+            "id": "55bf6a3ee35e473dfac3b0e383f8bd6d9895891f",
+            "title": "Record of Previous Education and Training",
+            "config": {
+                "headers": {
+                    "Name and Location - College": "Post-Secondary Education",
+                    "Name and Location - College 2": "Post-Secondary Education",
+                    "Name and Location - Technical": "Post-Secondary Education",
+                    "Name and Location - Technical 2": "Post-Secondary Education",
+                    "Name and Location - Other": "Post-Secondary Education",
+                    "Name and Location - Other 2": "Post-Secondary Education",
+                    "Yes - College": "Graduated?",
+                    "Yes - College 2": "Graduated?",
+                    "Yes - Technical": "Graduated?",
+                    "Yes - Technical 2": "Graduated?",
+                    "Yes - Other": "Graduated?",
+                    "Yes - Other 2": "Graduated?",
+                    "Month From - College": "Dates Attended",
+                    "Month From - College 2": "Dates Attended",
+                    "Month From - Technical": "Dates Attended",
+                    "Month From - Technical 2": "Dates Attended",
+                    "Month From - Other": "Dates Attended",
+                    "Month From - Other 2": "Dates Attended",
+                    "Entrance Test Score": "Entrance Test (School Offical)",
+                    "Subject 1": "School Evaluation of Previous Education and Training (School Official)",
+                    "Original Program Length (Hrs)": "Credit/Price Adjustments (School Official)",
+                    "I certify that all information provided by the student has been evaluated and that the student will not receive credit": "Statement (School Official)",
+                    "School Official Name": "Additional Information (School Official)",
+                    "I Will Receive Credit": "I have discussed the above evaluation of my previous education and training with the authorized school official and acknowledge that:"
+                }
+            }
+        }, {
+            "id": "c550d6268b8550190a80947bdeb6ffc15133be4c",
+            "title": "SCI Disclosure Statement"
+        }, {
+            "id": "7ba538b68020dbbe97f3c8aa135a6d93eb70af57",
+            "title": "Acknowledgements - Student"
+        }, {
+            "id": "be8a7215d6b82612e6eab0c47d126cb3632b8dac",
+            "title": "Externship Disclosure"
+        }, {
+            "id": "85de91148d095a62c3cc48addc68ea90ad78638b",
+            "title": "Talent Release"
+        }, {
+            "id": "b82e55d72972a17a295870b0317597e049de355f",
+            "title": "Prospective and Current Student Notification"
+        }, {
+            "id": "eed5def472c00779ef41a1b46d56489723fc27eb",
+            "title": "Federal Demographic Information Request",
+            "config": {
+                "headers": {
+                    "Hispanic/Latino": "Individuals are asked to designate ethnicity as:",
+                    "American Indian or Alaska Native": "Then select one or more of the racial groups:"
+                }
+            }
+        }, {
+            "id": "09265a65ecc3128b33119a75122b1ce447dea8fd",
+            "title": "Insurance Waiver"
+        }, {
+            "id": "79020eb3984dc35d756c0ef856e538901782dcaa",
+            "title": "Insurance Waiver (With Parent/Guardian)",
+            "config": {
+                "headers": {
+                    "Name (Parent/Guardian)": "Parent/Guardian Information"
+                }
+            }
         }
     ],
 
     "config": {
-        "customOptions": {
-        },
+        "customOptions": {},
 
         "customTypes": {
             "Date": "date",
@@ -47,7 +115,10 @@
             "Zip 2",
             "PhoneOther",
             "PhoneMobile",
-            "OtherFees"
+            "OtherFees",
+            "*- College",
+            "*- Technical",
+            "*- Other"
         ],
 
         "disabledFields": [
@@ -65,6 +136,10 @@
             "ReportYear": "Program Data",
             "High School Diploma": "Secondary Education",
             "Previous Training": "Additional Information"
+
+
+
+
         }
     }
 }
