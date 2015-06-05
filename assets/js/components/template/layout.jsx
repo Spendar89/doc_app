@@ -272,6 +272,28 @@ var TemplateLayout = React.createClass({
         this.setState({validationErrors: errs});
     },
 
+    handleCacheState: function(e) {
+        if (e) e.preventDefault();
+        var leadId = this.state.extensions.lead["LeadsID"];
+        $.post("/leads/" + leadId + "/cache_state", {state: this.state}, function(data) {
+            console.log("Cache res", data)
+        })
+
+    },
+
+    handleFetchCachedState: function(e) {
+        if (e) e.preventDefault();
+        //var leadId = this.state.extensions.lead["LeadsID"];
+        var leadId = "54067";
+        $.get("/leads/" + leadId + "/cache", function(data) {
+            console.log("Cached!!");
+            window.d = data;
+            //var data = JSON.parse(data)
+            this.replaceState(data)
+        }.bind(this))
+
+    },
+
 
     render: function() {
         var hasLead = true;
@@ -376,7 +398,7 @@ var TemplateLayout = React.createClass({
                             recipientsBlock={recipientsBlock}
                             isRecipientsValid={this.isRecipientsValid}
                             onValidationErrors={this.handleValidationErrors}
-                            validationErrors={this.state.validationErrors}
+                            validationErrors={this.state.validationErrors || []}
                             lead={this.state.extensions.lead} />
                     </div>
                     <div className="col-sm-3 right-div">

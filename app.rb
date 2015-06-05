@@ -53,7 +53,7 @@ post '/docs' do
 
   begin
 
-    if email
+    if email == 'true'
       doc_maker.create_email_signature_request recipients
     else
       doc_maker.create_embedded_signature_request recipients
