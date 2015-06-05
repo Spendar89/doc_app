@@ -59,7 +59,7 @@ var DocForm = React.createClass({
         return callback(errs);
     },
 
-    generateDoc: function() {
+    generateDoc: function(email) {
         var lead = this.props.lead || {},
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
@@ -70,6 +70,7 @@ var DocForm = React.createClass({
         this.props.onLoading();
 
         $.post("/docs", {
+            email: email,
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
             template_title: this.props.template.title,
@@ -78,17 +79,26 @@ var DocForm = React.createClass({
             campus: this.props.campus
         }, function (data) {
             var err = data.error,
-                signatures = data.signatures
-            this.props.onSignatures(err, signatures);
+                doc = data.doc;
+
+            this.props.onDoc(err, doc);
         }.bind(this));
     },
 
-    handleGenerate: function (e) {
+    sendSignatureRequestReminder: function(recipient, callback, e) {
+        e.preventDefault();
+
+        var signatureRequestId = recipient.signature.signatureRequestId;
+
+        $.post("/signature_requests/"+ signatureRequestId +"/remind", recipient, callback)
+    },
+
+    handleGenerate: function (email, e) {
         e.preventDefault();
 
         this.validateDoc(function(errs) {
             this.props.onValidationErrors(errs);
-            if (!errs[0]) this.generateDoc();
+            if (!errs[0]) this.generateDoc(email);
         }.bind(this));
     },
     
@@ -153,11 +163,22 @@ var DocForm = React.createClass({
 
         } else {
             return  (
-                <input  disabled={this.props.templateLoading} 
-                        className={className}
-                        type="submit" 
-                        value="Generate Doc" 
-                        onClick={this.handleGenerate} />
+                <div className="generate-btn-div">
+                    <div className="col-sm-6">
+                        <input  disabled={this.props.templateLoading} 
+                                className={className} 
+                                type="submit" 
+                                value="Sign by Email" 
+                                onClick={this.handleGenerate.bind(this, true)} />
+                    </div>
+                    <div className="col-sm-6">
+                        <input  disabled={this.props.templateLoading} 
+                                className={className}
+                                type="submit" 
+                                value="Sign in Person" 
+                                onClick={this.handleGenerate.bind(this, false)} />
+                    </div>
+                </div>
             ) 
             
         }
@@ -183,6 +204,7 @@ var DocForm = React.createClass({
             return (
                 <div className="signatures-block-div">
                     <SignaturesBlock recipients={this.props.recipients} 
+                                     onSignatureRequestReminder={this.sendSignatureRequestReminder}
                                      onSignature={this.props.onSignature} />
                 </div>
             )
@@ -194,13 +216,13 @@ var DocForm = React.createClass({
                     {this.props.validationErrors[0]
                         ? (
                             <div>
-                                <div className="doc-form-header col-sm-8">
+                                <div className="doc-form-header col-sm-6">
                                     <h3 className="validation-error-header">Validation Errors:</h3>
                                     {_.map(this.props.validationErrors, function(e) {
                                         return <p className="validation-error">- {e}</p>
                                         })}
                                 </div>
-                                    <h3 className="col-sm-4">
+                                    <h3 className="col-sm-6">
                                         {this.renderSubmit()}
                                     </h3>
                             </div>

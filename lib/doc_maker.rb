@@ -2,7 +2,7 @@ require './config/hello_sign'
 require './lib/diamond'
 
 class DocMaker
-  attr_accessor :document, :sent_signature, :client, :embedded_sign_url
+  attr_accessor :document, :sent_signature_request, :client, :embedded_sign_url
 
   # initialize with custom_fields hash and template_id
   def initialize(document = false)
@@ -11,14 +11,25 @@ class DocMaker
   end
 
   # calls @client.send_signature_request_with_template method and sets 
-  # @sent_signature to response object
-  def request_signature(recipients, title="Default Title", subject="Default Subject")
-    @sent_signature ||= @client.create_embedded_signature_request_with_template(
+  # @sent_signature_request to response object
+  def create_embedded_signature_request(recipients) 
+    @sent_signature_request ||= @client.create_embedded_signature_request_with_template(
       test_mode: 1, 
       client_id: ENV['HELLO_SIGN_CLIENT_ID'],
-      title: title,
-      subject: subject,
       signers: recipients,
+      title: @document.title,
+      subject: @document.subject,
+      template_id: @document.template_id,
+      custom_fields: @document.custom_fields
+    )
+  end
+
+  def create_email_signature_request(recipients)
+    @sent_signature_request ||= @client.send_signature_request_with_template(
+      test_mode: 1, 
+      signers: recipients,
+      title: @document.title,
+      subject: @document.subject,
       template_id: @document.template_id,
       custom_fields: @document.custom_fields
     )
@@ -36,9 +47,9 @@ class DocMaker
     {customFields: cf_hash, id: template.template_id, title: template.title, roles: roles}
   end
 
-  # convenience method for optaining signature_request_id from @sent_signature
+  # convenience method for optaining signature_request_id from @sent_signature_request
   def get_signature_request_id
-    @sent_signature ? @sent_signature.signature_request_id : false
+    @sent_signature_request ? @sent_signature_request.signature_request_id : false
   end
 
   def get_embedded_sign_url(signature_id)
@@ -46,15 +57,13 @@ class DocMaker
   end
 
   def get_signatures
-    return false unless @sent_signature
-    @sent_signature ? @sent_signature.signatures : false
-    signatures = @sent_signature.signatures
+    return false unless @sent_signature_request
+    signatures = @sent_signature_request.signatures
     return signatures.map(&:data)
-    #return signatures.map {|sig| { signature_id: sig.signature_id, email: sig.signer_email_address  }}
   end
 
   def get_signing_url
-    @sent_signature ? @sent_signature.signing_url : false
+    @sent_signature_request ? @sent_signature_request.signing_url : false
   end
 
   def self.download_doc(signature_request_id)
@@ -73,5 +82,10 @@ class DocMaker
         req.signatures.any? { |s| s.signer_email_address === email }
       }
       .map &:data 
+  end
+
+  def self.remind_signers(signature_request_id, email)
+    client = HelloSign.client
+    client.remind_signature_request signature_request_id: signature_request_id, email_address: email
   end
 end

@@ -156,7 +156,7 @@ var DocForm = React.createClass({displayName: "DocForm",
         return callback(errs);
     },
 
-    generateDoc: function() {
+    generateDoc: function(email) {
         var lead = this.props.lead || {},
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
@@ -167,6 +167,7 @@ var DocForm = React.createClass({displayName: "DocForm",
         this.props.onLoading();
 
         $.post("/docs", {
+            email: email,
             custom_fields: this.transformCustomFields(), 
             template_id: this.props.template.id,
             template_title: this.props.template.title,
@@ -175,17 +176,26 @@ var DocForm = React.createClass({displayName: "DocForm",
             campus: this.props.campus
         }, function (data) {
             var err = data.error,
-                signatures = data.signatures
-            this.props.onSignatures(err, signatures);
+                doc = data.doc;
+
+            this.props.onDoc(err, doc);
         }.bind(this));
     },
 
-    handleGenerate: function (e) {
+    sendSignatureRequestReminder: function(recipient, callback, e) {
+        e.preventDefault();
+
+        var signatureRequestId = recipient.signature.signatureRequestId;
+
+        $.post("/signature_requests/"+ signatureRequestId +"/remind", recipient, callback)
+    },
+
+    handleGenerate: function (email, e) {
         e.preventDefault();
 
         this.validateDoc(function(errs) {
             this.props.onValidationErrors(errs);
-            if (!errs[0]) this.generateDoc();
+            if (!errs[0]) this.generateDoc(email);
         }.bind(this));
     },
     
@@ -250,11 +260,22 @@ var DocForm = React.createClass({displayName: "DocForm",
 
         } else {
             return  (
-                React.createElement("input", {disabled: this.props.templateLoading, 
-                        className: className, 
-                        type: "submit", 
-                        value: "Generate Doc", 
-                        onClick: this.handleGenerate})
+                React.createElement("div", {className: "generate-btn-div"}, 
+                    React.createElement("div", {className: "col-sm-6"}, 
+                        React.createElement("input", {disabled: this.props.templateLoading, 
+                                className: className, 
+                                type: "submit", 
+                                value: "Sign by Email", 
+                                onClick: this.handleGenerate.bind(this, true)})
+                    ), 
+                    React.createElement("div", {className: "col-sm-6"}, 
+                        React.createElement("input", {disabled: this.props.templateLoading, 
+                                className: className, 
+                                type: "submit", 
+                                value: "Sign in Person", 
+                                onClick: this.handleGenerate.bind(this, false)})
+                    )
+                )
             ) 
             
         }
@@ -280,6 +301,7 @@ var DocForm = React.createClass({displayName: "DocForm",
             return (
                 React.createElement("div", {className: "signatures-block-div"}, 
                     React.createElement(SignaturesBlock, {recipients: this.props.recipients, 
+                                     onSignatureRequestReminder: this.sendSignatureRequestReminder, 
                                      onSignature: this.props.onSignature})
                 )
             )
@@ -291,13 +313,13 @@ var DocForm = React.createClass({displayName: "DocForm",
                     this.props.validationErrors[0]
                         ? (
                             React.createElement("div", null, 
-                                React.createElement("div", {className: "doc-form-header col-sm-8"}, 
+                                React.createElement("div", {className: "doc-form-header col-sm-6"}, 
                                     React.createElement("h3", {className: "validation-error-header"}, "Validation Errors:"), 
                                     _.map(this.props.validationErrors, function(e) {
                                         return React.createElement("p", {className: "validation-error"}, "- ", e)
                                         })
                                 ), 
-                                    React.createElement("h3", {className: "col-sm-4"}, 
+                                    React.createElement("h3", {className: "col-sm-6"}, 
                                         this.renderSubmit()
                                     )
                             )
@@ -534,50 +556,26 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         });
     },
 
-    handleDocSignatures: function(err, signatures) {
-        console.log("handling doc signatures")
+    handleDocSignatures: function(signatures, type, signatureRequestId) {
         var templates = this.state.templates,
             templateIndex = this.state.templateIndex,
             recipients = templates[templateIndex].recipients;
 
-        console.log("reciiipients", recipients)
-        console.log("Sigs", signatures)
+        _.each(recipients, function(r, i) {
+            var signature = signatures[i];
 
-        if (err) {
-            this.handleFormError(err);
-        } else {
-            _.each(recipients, function(r, i) {
-                //var signature = _.select(signatures, function(s) {
-                   //return s.signer_email_address == r.email && s.signer_name == r.name
-                //});
+            if (!signature || !signature.signature_id) return false;
 
-                var signature = signatures[i];
+            signature.type = type;
+            signature.signatureRequestId = signatureRequestId;
 
+            this.setRecipient(i, "email", signature.signer_email_address);
+            this.setRecipient(i, "name", signature.signer_name);
+            this.setRecipient(i, "signature", signature)
 
-                //var signatureId = signature[0] && signature[0].signature_id;
+        }.bind(this));
 
-                if (!signature || !signature.signature_id) return false;
-
-                this.setRecipient(i, "email", signature.signer_email_address);
-
-                this.setRecipient(i, "name", signature.signer_name);
-
-                this.setRecipient(i, "signature", signature)
-
-                console.log("setting new signature!")
-
-                //this.cursors.templates.set([
-                        //templateIndex,
-                        //"recipients",
-                        //i,
-                        //"signature"
-                    //],
-                    //signature[0]
-                //);
-            }.bind(this));
-
-            this.setLoading(false);
-        };
+        this.setLoading(false);
     },
 
     handleTemplateInputChange: function(e) {
@@ -656,13 +654,22 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         e.preventDefault();
 
         var doc = this.state.extensions.docs[i];
-        console.log("Here is the doc", doc)
-
-        if (doc && doc.signatures) {
-            return this.handleDocSignatures(null, doc.signatures);
-        };
+        this.handleDoc(null, doc);
 
         //this.setCustomFieldsFromDoc(doc);
+    },
+
+    handleDoc: function(err, doc) {
+        console.log("Here is the doc", doc)
+
+        if (err) {
+            this.handleFormError(err);
+        } else {
+            var type = doc.signing_url ? "email" : "embed",
+                signatureRequestId = doc.signature_request_id;
+
+            this.handleDocSignatures(doc.signatures, type, signatureRequestId);
+        }
     },
 
     handleProgramIndexChange: function(e) {
@@ -843,12 +850,13 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                             updateCustomField: this.updateCustomField, 
                             removeCustomField: this.removeCustomField, 
                             onSignature: this.handleRecipientSignature, 
+                            onSignatureReminder: this.handleRecipientSignatureReminder, 
                             onRemoveSignatures: this.handleRemoveRecipientSignatures, 
                             campus: this.props.query.campus, 
                             docUrl: this.state.docUrl, 
                             templateLoading: this.state.templateLoading, 
                             onLoading: this.handleFormSubmitLoading, 
-                            onSignatures: this.handleDocSignatures, 
+                            onDoc: this.handleDoc, 
                             onIsReady: this.toggleIsReady, 
                             docError: this.state.docError, 
                             onDocError: this.handleDocError, 
@@ -991,27 +999,64 @@ module.exports = RecipientsBlock;
 },{}],8:[function(require,module,exports){
 var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
 
+    getInitialState: function() {
+        return {
+            remindersSent: []
+        }
+
+    },
+
     renderSignature(recipient, i) {
         if (!recipient.signature) return false;
-        var handleSignature = _.partial(this.props.onSignature, recipient, i);
+        var handleSignature = _.partial(this.props.onSignature, recipient, i),
+            handleSignatureRequestReminder = _.partial(this.props.onSignatureRequestReminder, recipient, function() {
+                var remindersSent =  this.state.remindersSent.concat([recipient.email]);
+                this.setState({ remindersSent: remindersSent });
+            }.bind(this)),
+            authorized = true || recipient.authorized,
+            reminderSent = _.include(this.state.remindersSent, recipient.email) ;
 
         return (
             React.createElement("div", {className: "col-sm-12 form-group", key: i}, 
-                React.createElement("div", {className: "col-sm-7"}, 
-                    React.createElement("h3", null, recipient.role, ": ", recipient.email, " ")
+                React.createElement("div", {className: "col-sm-8 row"}, 
+                    React.createElement("div", {className: "col-sm-5"}, 
+                        React.createElement("label", {className: "signature-info-cell pull-left padded"}, "Role"), 
+                        React.createElement("div", {className: "signature-info-cell pull-left padded"}, recipient.role)
+                    ), 
+                    React.createElement("div", {className: "col-sm-7"}, 
+                        React.createElement("label", {className: "signature-info-cell pull-left padded"}, "Email"), 
+                        React.createElement("div", {className: "signature-info-cell pull-left padded"}, recipient.email)
+                    )
                 ), 
-                React.createElement("div", {className: "col-sm-5"}, 
+                React.createElement("div", {className: "col-sm-4"}, 
                     
                         recipient.signature.status_code !== "signed"
                             ? (
-                                React.createElement("button", {className: "btn-success btn btn-block", 
-                                        disabled: !recipient.authorized, 
-                                        onClick: handleSignature}, 
-                                    recipient.authorized ? "Click to Sign!" : "Waiting for Email Confirmation"
-                                )
+                                recipient.signature.type === "email" 
+                                    ? (
+                                        React.createElement("div", {className: "col-sm-12 btn-div"}, 
+                                            React.createElement("button", {className: "btn-success btn btn-block", 
+                                                onClick: handleSignatureRequestReminder}, 
+                                                 reminderSent
+                                                    ? "Reminder Sent" 
+                                                    : "Send Reminder Email"
+                                                
+                                            )
+                                        )
+                                    )
+                                        : (
+                                        React.createElement("div", {className: "col-sm-12 btn-div"}, 
+                                            React.createElement("button", {className: "btn-success btn btn-block", 
+                                                disabled: !authorized, 
+                                                onClick: handleSignature}, 
+                                                authorized ? "Click to Sign!" : "Waiting for Email Confirmation"
+                                            )
+                                        )
+
+                                        )
                             )
                             : (
-                                React.createElement("h3", {className: "col-sm-12"}, 
+                                React.createElement("div", {className: "col-sm-12 signed-div"}, 
                                     React.createElement("span", null, " Signed "), " ", React.createElement("span", {className: "signature-icon glyphicon glyphicon-ok"})
                                 )
                             )
@@ -1023,13 +1068,15 @@ var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
     },
 
     render: function () {
+        var r = this.props.recipients[0],
+            type = r && r.signature.type;
         return (
-            React.createElement("div", {className: "signatures-block col-sm-12"}, 
-                React.createElement("div", {className: "signatures-header col-sm-12"}, 
+            React.createElement("div", {className: "signatures-block"}, 
+                React.createElement("div", {className: "signatures-header row"}, 
                     React.createElement("h2", null, "Your Document is Ready!"), 
-                    React.createElement("h4", null, React.createElement("i", null, "Confirm Your Email Address to Sign"))
+                    React.createElement("h4", null, React.createElement("i", null, "Signature Type: ", type))
                 ), 
-                React.createElement("div", {className: "signatures-body col-sm-12"}, 
+                React.createElement("div", {className: "signatures-body row"}, 
                     _.map(this.props.recipients, this.renderSignature)
                 )
             )
@@ -1817,7 +1864,7 @@ var LeadMixin = {
             leadPending = _.any(this.state.extensions.leadPending);
 
         var hasLeadPending = this.state.syncRemote && leadPending, 
-            hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
+            hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId, 
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
             hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
 
@@ -3094,7 +3141,8 @@ var RecipientsManager = {
                 messageListener: callback
             });
         })
-    },
+    }
+
 
 }
 

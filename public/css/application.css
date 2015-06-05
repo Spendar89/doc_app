@@ -6,6 +6,10 @@ body {
     cursor: pointer;
     text-transform: none; }
 
+.padded {
+  padding-right: 15px;
+  padding-left: 15px; }
+
 .signature-icon {
   color: #5cb85c;
   margin-left: 15px; }
@@ -160,16 +164,20 @@ td {
 .loader-div {
   position: absolute;
   height: 100%;
-  width: 100%; }
+  width: 100%;
+  top: 300px;
+  left: 0; }
   .loader-div .loader-text {
     position: relative;
-    top: 35%;
+    width: 100%;
+    float: left;
     color: rgba(0, 0, 0, 0.26);
-    text-align: center; }
+    text-align: center;
+    margin-top: 45px; }
   .loader-div .react-spinner {
     height: 50px;
     width: 50px;
-    top: 40%; }
+    top: 0; }
   .loader-div.welcome-loader-div .loader-text {
     color: rgba(0, 0, 0, 0.54); }
   .loader-div.welcome-loader-div .react-spinner {
@@ -201,9 +209,10 @@ td {
 .btn {
   border-radius: 0;
   /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden; }
+  /*text-overflow: ellipsis;*/
+  /*white-space: nowrap;*/
+  /*overflow: hidden;*/
+  white-space: initial; }
   .btn.btn-remove {
     background: transparent;
     color: #d9534f;
@@ -255,19 +264,19 @@ td {
         border-color: #ffcfcf !important; }
       .doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {
         color: #2e6da4; }
-    .doc-form-div .doc-form-inner-div .signatures-block {
-      color: rgba(0, 0, 0, 0.54); }
-      .doc-form-div .doc-form-inner-div .signatures-block .signatures-header {
-        text-align: center;
-        margin-top: 60px; }
-      .doc-form-div .doc-form-inner-div .signatures-block .signatures-body {
-        text-align: center; }
-        .doc-form-div .doc-form-inner-div .signatures-block .signatures-body .form-group {
-          margin-top: 60px; }
-      .doc-form-div .doc-form-inner-div .signatures-block .btn {
-        color: rgba(0, 0, 0, 0.54);
-        padding: 20px 0px 20px 0px;
-        font-size: 18px; }
+    .doc-form-div .doc-form-inner-div .signatures-block .signatures-header {
+      color: rgba(0, 0, 0, 0.54);
+      text-align: center;
+      margin-top: 60px; }
+    .doc-form-div .doc-form-inner-div .signatures-block .signatures-body {
+      color: rgba(0, 0, 0, 0.87);
+      margin-top: 60px; }
+      .doc-form-div .doc-form-inner-div .signatures-block .signatures-body .signature-info-cell {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 100%;
+        display: inline-block; }
 
 .page-header {
   text-align: center; }

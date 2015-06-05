@@ -6,6 +6,7 @@ require './models/document'
 require './lib/velocify'
 require './lib/diamond'
 require './lib/helpers'
+require './lib/app_cache'
 require 'json'
 
 
@@ -15,32 +16,53 @@ get '/' do
   File.read(File.join('public', 'index.html'))
 end
 
+post '/leads/:id/cache_state' do
+  content_type :json
+
+  app_cache = AppCache.new
+  app_cache.set_by_lead params[:id], params[:state]
+end
+
+get '/leads/:id/cache' do
+  content_type :json
+
+  app_cache = AppCache.new
+  state = app_cache.get_by_lead params[:id]
+  state.to_json
+
+end
+
 post '/docs' do
   content_type :json
 
   custom_fields, campus, template_id, 
-  recipients, leads_id, template_title = params[:custom_fields], 
-                                         params[:campus],
-                                         params[:template_id], 
-                                         params[:recipients], 
-                                         params[:leads_id], 
-                                         params[:template_title]
+  recipients, leads_id, template_title, email = params[:custom_fields], 
+                                                params[:campus],
+                                                params[:template_id], 
+                                                params[:recipients], 
+                                                params[:leads_id], 
+                                                params[:template_title],
+                                                params[:email]
 
   recipients = recipients.values.map do |r| 
     r.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
   end
 
-  document = Document.new(custom_fields, template_id)
-  doc_maker = DocMaker.new(document)
-  #title = "doc_#{template_title}_#{leads_id || 'no_lead'}_#{Time.now.to_i}"
+  document = Document.new custom_fields, template_id, template_title
+  doc_maker = DocMaker.new document
 
   begin
-    doc_maker.request_signature(recipients, template_title)
-    doc_id = doc_maker.get_signature_request_id
-    signatures = doc_maker.get_signatures
 
-    if signatures
-      return  { signatures: signatures }.to_json
+    if email
+      doc_maker.create_email_signature_request recipients
+    else
+      doc_maker.create_embedded_signature_request recipients
+    end
+
+    doc = doc_maker.sent_signature_request.data
+
+    if doc 
+      return  { doc: doc }.to_json
     else
       return  {  
         error: {  
@@ -64,6 +86,16 @@ post '/docs' do
 
     return error 404, error.to_json
   end
+end
+
+post '/signature_requests/:id/remind' do
+  content_type :json
+
+  email = params[:email]
+  id = params[:id]
+
+  res = DocMaker.remind_signers id, email
+  res.to_json
 end
 
 get '/templates/:template_id/signatures/:signature_id' do

@@ -71,7 +71,8 @@ var RecipientsManager = {
                 messageListener: callback
             });
         })
-    },
+    }
+
 
 }
 

@@ -147,7 +147,7 @@ var LeadMixin = {
             leadPending = _.any(this.state.extensions.leadPending);
 
         var hasLeadPending = this.state.syncRemote && leadPending, 
-            hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId;
+            hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId, 
             hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
             hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
 

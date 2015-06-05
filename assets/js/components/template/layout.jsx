@@ -67,50 +67,26 @@ var TemplateLayout = React.createClass({
         });
     },
 
-    handleDocSignatures: function(err, signatures) {
-        console.log("handling doc signatures")
+    handleDocSignatures: function(signatures, type, signatureRequestId) {
         var templates = this.state.templates,
             templateIndex = this.state.templateIndex,
             recipients = templates[templateIndex].recipients;
 
-        console.log("reciiipients", recipients)
-        console.log("Sigs", signatures)
+        _.each(recipients, function(r, i) {
+            var signature = signatures[i];
 
-        if (err) {
-            this.handleFormError(err);
-        } else {
-            _.each(recipients, function(r, i) {
-                //var signature = _.select(signatures, function(s) {
-                   //return s.signer_email_address == r.email && s.signer_name == r.name
-                //});
+            if (!signature || !signature.signature_id) return false;
 
-                var signature = signatures[i];
+            signature.type = type;
+            signature.signatureRequestId = signatureRequestId;
 
+            this.setRecipient(i, "email", signature.signer_email_address);
+            this.setRecipient(i, "name", signature.signer_name);
+            this.setRecipient(i, "signature", signature)
 
-                //var signatureId = signature[0] && signature[0].signature_id;
+        }.bind(this));
 
-                if (!signature || !signature.signature_id) return false;
-
-                this.setRecipient(i, "email", signature.signer_email_address);
-
-                this.setRecipient(i, "name", signature.signer_name);
-
-                this.setRecipient(i, "signature", signature)
-
-                console.log("setting new signature!")
-
-                //this.cursors.templates.set([
-                        //templateIndex,
-                        //"recipients",
-                        //i,
-                        //"signature"
-                    //],
-                    //signature[0]
-                //);
-            }.bind(this));
-
-            this.setLoading(false);
-        };
+        this.setLoading(false);
     },
 
     handleTemplateInputChange: function(e) {
@@ -189,13 +165,22 @@ var TemplateLayout = React.createClass({
         e.preventDefault();
 
         var doc = this.state.extensions.docs[i];
-        console.log("Here is the doc", doc)
-
-        if (doc && doc.signatures) {
-            return this.handleDocSignatures(null, doc.signatures);
-        };
+        this.handleDoc(null, doc);
 
         //this.setCustomFieldsFromDoc(doc);
+    },
+
+    handleDoc: function(err, doc) {
+        console.log("Here is the doc", doc)
+
+        if (err) {
+            this.handleFormError(err);
+        } else {
+            var type = doc.signing_url ? "email" : "embed",
+                signatureRequestId = doc.signature_request_id;
+
+            this.handleDocSignatures(doc.signatures, type, signatureRequestId);
+        }
     },
 
     handleProgramIndexChange: function(e) {
@@ -376,12 +361,13 @@ var TemplateLayout = React.createClass({
                             updateCustomField={this.updateCustomField} 
                             removeCustomField={this.removeCustomField}
                             onSignature={this.handleRecipientSignature}
+                            onSignatureReminder={this.handleRecipientSignatureReminder}
                             onRemoveSignatures={this.handleRemoveRecipientSignatures}
                             campus={this.props.query.campus}
                             docUrl={this.state.docUrl}
                             templateLoading={this.state.templateLoading}
                             onLoading={this.handleFormSubmitLoading}
-                            onSignatures={this.handleDocSignatures}
+                            onDoc={this.handleDoc}
                             onIsReady={this.toggleIsReady}
                             docError={this.state.docError}
                             onDocError={this.handleDocError}

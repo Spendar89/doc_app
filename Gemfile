@@ -10,6 +10,7 @@ gem 'tiny_tds'
 gem 'thin'
 gem 'rack-parser', :require => 'rack/parser'
 gem 'net-ldap'
+gem 'redis'
 
 group :development do
   gem 'colorize'

@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'redis'
 require 'rack/parser'
 require 'dotenv'
 require 'colorize'

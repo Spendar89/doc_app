@@ -38,6 +38,7 @@ GEM
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
+    redis (3.2.1)
     rspec (3.2.0)
       rspec-core (~> 3.2.0)
       rspec-expectations (~> 3.2.0)
@@ -99,6 +100,7 @@ DEPENDENCIES
   hellosign-ruby-sdk
   net-ldap
   rack-parser
+  redis
   rspec
   savon (~> 2.8.0)
   sinatra
