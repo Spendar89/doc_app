@@ -2,7 +2,7 @@ var RecipientsBlock = React.createClass({
 
     renderRecipient: function(recipient, i) {
         var iconStyle = "glyphicon glyphicon-envelope";
-        var buttonStyle = "btn btn-primary btn-block";
+        var buttonStyle = "btn btn-default btn-block";
 
         if (recipient.authorized) {
             iconStyle = "glyphicon glyphicon-ok";

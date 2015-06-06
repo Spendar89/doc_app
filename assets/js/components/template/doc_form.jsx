@@ -149,12 +149,12 @@ var DocForm = React.createClass({
 
     renderSubmit: function() {
         var className= !this.props.validationErrors[0] 
-            ? "btn-primary btn btn-block"
+            ? "btn-default btn btn-block"
             : "btn-danger btn btn-block";
 
         if (this._hasSignatures()) {
             return (
-                <button  className="btn-primary btn btn-block" 
+                <button  className="btn-default btn btn-block" 
                          onClick={this.props.onRemoveSignatures} >
                     Back
                 </button>
@@ -172,19 +172,23 @@ var DocForm = React.createClass({
         } else {
             return  (
                 <div className="generate-btn-div">
-                    <div className="col-sm-6">
-                        <input  disabled={_.any(this.props.templateLoading)} 
-                                className={className} 
-                                type="submit" 
-                                value="Sign by Email" 
-                                onClick={this.handleGenerate.bind(this, true)} />
+                    <div className="col-sm-6 form-group">
+                        <a 
+                            disabled={_.any(this.props.templateLoading)} 
+                            className={className} 
+                            title="Sign By Email"
+                            onClick={this.handleGenerate.bind(this, true)}>
+                            <span className="glyphicon glyphicon-inbox"></span>
+                        </a>
                     </div>
-                    <div className="col-sm-6">
-                        <input  disabled={_.any(this.props.templateLoading)} 
-                                className={className}
-                                type="submit" 
-                                value="Sign in Person" 
-                                onClick={this.handleGenerate.bind(this, false)} />
+                    <div className="col-sm-6 form-group">
+                        <a
+                            disabled={_.any(this.props.templateLoading)} 
+                            className={className}
+                            title="Sign in Person"
+                            onClick={this.handleGenerate.bind(this, false)} >
+                            <span className="glyphicon glyphicon-user"></span>
+                        </a>
                     </div>
                 </div>
             ) 

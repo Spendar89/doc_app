@@ -49,11 +49,13 @@ var LeadDocsBlock = React.createClass({
                                     Click to view and/or download a pdf:</i></p>
                         </div>
                         <div className="docs-search-div row">
-                            <div className="col-sm-8">
+                            <div className="col-sm-8 form-group">
                                 <input className="form-control" onChange={this.props.onDocsEmail} value={this.props.docsEmail} />
                             </div>
                             <div className="col-sm-4">
-                                <input className="btn btn-primary btn-block row" type="submit" value="search" onClick={this.props.onSearch} />
+                                <a className="btn btn-default btn-block" onClick={this.props.onSearch}>
+                                    <span className="glyphicon glyphicon-search"></span>
+                                </a>
                             </div>
                         </div>
                         <div className="lead-table-div">

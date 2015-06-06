@@ -21,10 +21,14 @@ var TemplateBlock = React.createClass({
                 </div>
                 <div className="cycle-templates-div">
                     <div className="col-sm-6 cycle-btn-div">
-                        <a className="btn btn-default btn-block" onClick={handlePrev}> Prev </a>
+                        <a className="btn btn-default btn-block" onClick={handlePrev}>
+                            <span className="glyphicon glyphicon-arrow-left"></span>
+                        </a>
                     </div>
                     <div className="col-sm-6 cycle-btn-div">
-                        <a className="btn btn-default btn-block" onClick={handleNext}> Next </a>
+                        <a className="btn btn-default btn-block" onClick={handleNext}>
+                            <span className="glyphicon glyphicon-arrow-right"></span>
+                        </a>
                     </div>
                 </div>
                 <label>Current Template</label>

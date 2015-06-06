@@ -450,13 +450,13 @@ var TemplateLayout = React.createClass({
 
                 var mobileLayout = 
                     <ReactSwipe continuous={true} shouldUpdate={function() {return true}}>
-                        <div>
+                        <div className="mobile-div">
                             {leftDiv.call(this, 12)}
                         </div>
-                        <div>
+                        <div className="mobile-div">
                             {middleDiv.call(this, 12)}
                         </div>
-                        <div>
+                        <div className="mobile-div">
                             {rightDiv.call(this, 12)}
                         </div>
                     </ReactSwipe>

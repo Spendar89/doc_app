@@ -44,7 +44,7 @@ var LeadsSearchInput = React.createClass({
                 <button className="btn btn-default col-sm-3 pull-right"
                         disabled={!this.state.isValid}
                         onClick={this.handleClick} >
-                    Search
+                    <span className="glyphicon glyphicon-search"></span>
                 </button>
             </form>
         );

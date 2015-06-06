@@ -23,7 +23,7 @@ var LeadDataBlock = React.createClass({
     renderLeadDataRows: function () {
         return _.map(
             this.props.lead, function (value, key) {
-                if (!key.match(/UserDefined/)) {
+                if (this.props.customFields[key]) {
                     return this.renderLeadDataRow(key, value)
                 }
             }.bind(this)
@@ -31,6 +31,7 @@ var LeadDataBlock = React.createClass({
     },
 
     render: function () {
+        var leadTableDisplay = this.props.syncRemote ? "block" : "none";
         return (
             <div className="lead-data-block col-sm-12">
                 <div className="block-body-top row">
@@ -45,7 +46,7 @@ var LeadDataBlock = React.createClass({
                         </label>
                     </div>
                 </div>
-                <div className="lead-table-div row">
+                <div className="lead-table-div row" style={{display: leadTableDisplay}}>
                     <table className="table">
                         <tbody>
                             {this.renderLeadDataRows()}
