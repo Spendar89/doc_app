@@ -4,7 +4,7 @@ class AppCache
   attr_accessor :redis
 
   def initialize
-    @redis = Redis.new
+    @redis = Redis.new(url: ENV['REDIS_URL'])
   end
 
   def set_by_lead(lead_id, state)
@@ -21,8 +21,12 @@ class AppCache
   end
 
   def get_templates
-    res = @redis.get "templates"
-    JSON.parse(res) if res
+    begin
+      res = @redis.get "templates"
+      JSON.parse(res)
+    rescue
+      []
+    end
   end
 
 end

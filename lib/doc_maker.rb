@@ -48,10 +48,10 @@ class DocMaker
     {customFields: cf_hash, id: template.template_id, title: template.title, roles: roles}
   end
 
-  def get_templates(update_cache=false)
+  def get_templates
     ap = AppCache.new
     cached = ap.get_templates
-    return cached if cached && !update_cache
+    return cached if cached.any?
     templates = @client.get_templates.map{|t| get_template t}
     ap.set_templates templates 
     templates
