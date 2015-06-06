@@ -167,6 +167,12 @@ get '/templates/:template_id' do
   return doc_maker.get_template.to_json
 end
 
+get '/templates' do 
+  content_type :json
+  dm = DocMaker.new
+  dm.get_templates.to_json
+end
+
 get '/leads' do
   content_type :json
   @v = Velocify.new

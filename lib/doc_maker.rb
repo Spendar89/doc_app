@@ -1,5 +1,6 @@
 require './config/hello_sign'
 require './lib/diamond'
+require './lib/app_cache'
 
 class DocMaker
   attr_accessor :document, :sent_signature_request, :client, :embedded_sign_url
@@ -35,8 +36,8 @@ class DocMaker
     )
   end
 
-  def get_template
-    template = @client.get_template(
+  def get_template(template=false)
+    template ||= @client.get_template(
       { template_id: @document.template_id }
     )
     cf_hash = {}
@@ -45,6 +46,15 @@ class DocMaker
     end
     roles = template.signer_roles.map(&:name)
     {customFields: cf_hash, id: template.template_id, title: template.title, roles: roles}
+  end
+
+  def get_templates(update_cache=false)
+    ap = AppCache.new
+    cached = ap.get_templates
+    return cached if cached && !update_cache
+    templates = @client.get_templates.map{|t| get_template t}
+    ap.set_templates templates 
+    templates
   end
 
   # convenience method for optaining signature_request_id from @sent_signature_request

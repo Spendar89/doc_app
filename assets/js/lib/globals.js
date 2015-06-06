@@ -3,6 +3,7 @@ _ = require('lodash');
 async = require('async');
 $ = require('jquery');
 Spinner = require('./../../../public/vendor/react-spinner/index.jsx');
+MediaQuery = require('react-responsive');
 DOCKER_HOST = process.env.DOCKER_HOST;
 EMAIL_AUTH_APP = process.env.NODE_ENV === "docker" ? process.env.EMAIL_AUTH_APP : "http://localhost:8000";
 HELLO_SIGN_CLIENT_ID = process.env.HELLO_SIGN_CLIENT_ID;

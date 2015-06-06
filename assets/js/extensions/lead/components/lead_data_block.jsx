@@ -37,7 +37,7 @@ var LeadDataBlock = React.createClass({
                     <p>
                         <i>This displays current data for the selected lead. Highlighted rows will be updated when synced.</i>
                     </p>
-                    <div className="checkbox col-sm-12">
+                    <div className="checkbox">
                         <label>
                             <input  type="checkbox" value={this.props.syncRemote} 
                                 checked={this.props.syncRemote} onChange={this.props.handleSync} />

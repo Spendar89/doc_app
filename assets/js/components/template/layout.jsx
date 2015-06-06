@@ -1,4 +1,5 @@
-var BranchMixin = require('baobab-react/mixins').branch;
+var BranchMixin = require('baobab-react/mixins').branch,
+    ReactSwipe = require('react-swipe');
 
 var SharedBlock = require('./../shared/shared_block.jsx'),
     Navbar = require('./navbar.jsx');
@@ -36,21 +37,26 @@ var TemplateLayout = React.createClass({
 
     getInitialState: function() {
         return {
-            templateLoading: "Downloading Package Data",
+            templateLoading: {},
             templateIndex: 0,
             docUrl: false,
             docError: false,
             isLeadsSearching: false,
             leads: [],
             validationErrors: [],
-            docsEmail: ""
+            docsEmail: "",
+            groupTemplates: true
         }
     },
 
-    setLoading: function(text) {
+    setLoading: function(key, text) {
         if (this.state.docError) return false;
+        var templateLoading = _.extend(this.state.templateLoading, {})
+
+        templateLoading[key] = text;
+
         this.setState({
-            templateLoading: text
+            templateLoading: templateLoading 
         });
     },
 
@@ -63,7 +69,7 @@ var TemplateLayout = React.createClass({
     handleFormError: function(err) {
         this.setState({
             docError: err,
-            templateLoading: false
+            templateLoading: {}
         });
     },
 
@@ -89,12 +95,33 @@ var TemplateLayout = React.createClass({
         this.setLoading(false);
     },
 
-    handleTemplateInputChange: function(e) {
-        var i = e.target.value;
+    handleTemplateInputChange: function(e, i) {
+        if (e) i = e.target.value;
         this.setState({
             templateIndex: i,
             validationErrors: []
         });
+    },
+
+    handleTemplateCycle: function(prev, e) {
+        e.preventDefault();
+
+        var templateIndex = this.state.templateIndex,
+            newIndex = templateIndex + 1,
+            length = this.state.templates.length - 1;
+
+        if (prev) newIndex = templateIndex - 1;
+
+        if (newIndex < 0) newIndex = length;
+
+        if (newIndex > length) newIndex = 0;
+
+        this.handleTemplateInputChange(null, newIndex);
+    },
+
+    handleGroupTemplates: function() {
+        var groupTemplates = this.state.groupTemplates;
+        this.setState({groupTemplates: !groupTemplates});
     },
 
     handleSync: function(e) {
@@ -106,7 +133,7 @@ var TemplateLayout = React.createClass({
 
     handleFormSubmitLoading: function() {
         this.setState({
-            templateLoading: "Generating Doc"
+            templateLoading: {"doc": "Generating Doc"}
         });
     },
 
@@ -171,7 +198,7 @@ var TemplateLayout = React.createClass({
     },
 
     handleDoc: function(err, doc) {
-        console.log("Here is the doc", doc)
+        this.setLoading("doc", false)
 
         if (err) {
             this.handleFormError(err);
@@ -315,10 +342,14 @@ var TemplateLayout = React.createClass({
             programs={this.state.extensions.programs} />;
 
         var templateBlock = <TemplateBlock  packageName={this.packageData.name}
-            template={template}
-            templates={this.state.templates} 
-            templateLoading={this.state.templateLoading}
-            onChange={this.handleTemplateInputChange} />;
+                                            template={template}
+                                            templates={this.state.templates} 
+                                            templateIndex={this.state.templateIndex}
+                                            templateLoading={this.state.templateLoading}
+                                            groupTemplates={this.state.groupTemplates}
+                                            onGroupTemplates={this.handleGroupTemplates}
+                                            onCycle={this.handleTemplateCycle}
+                                            onChange={this.handleTemplateInputChange} />;
 
         var recipientsBlock = <RecipientsBlock  onRecipientChange={this.handleRecipientChange} 
                                                 onSignature={this.handleRecipientSignature}
@@ -356,56 +387,99 @@ var TemplateLayout = React.createClass({
 
             }.bind(this)
 
+            var leftDiv = function(cols) {
+                return (
+                    <div className={"col-sm-" + cols + " left-div"}>
+                        <SharedBlock blockBody={templateBlock} 
+                            blockDescription={"Cycle through the available templates or select one from the dropdown."}
+                            blockHeader={"Templates"} />
+                        <SharedBlock blockBody={recipientsBlock} 
+                            blockDescription={"Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email."}
+                            blockHeader={"Recipients"} />
+                        <LeadDocsBlock  lead={this.state.extensions.lead} 
+                            onDocClick={this.handleDocClick}
+                            onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}
+                            docsEmail={this.state.docsEmail}
+                            onDocsEmail={this.handleDocsEmail}
+                            isRecipientsValid={this.isRecipientsValid}
+                            template={this.currentTemplate()}
+                            docs={this.state.extensions.docs} />
+                    </div>
+                )
+            };
+
+                var middleDiv = function(cols) {
+                    return ( 
+                            <div className={"col-sm-" + cols + " doc-form-div middle-div"}>
+                                <DocForm    template={template}
+                                    customFields={this.state.templates[this.state.templateIndex].customFields} 
+                                    updateCustomField={this.updateCustomField} 
+                                    removeCustomField={this.removeCustomField}
+                                    onSignature={this.handleRecipientSignature}
+                                    onSignatureReminder={this.handleRecipientSignatureReminder}
+                                    onRemoveSignatures={this.handleRemoveRecipientSignatures}
+                                    campus={this.props.query.campus}
+                                    docUrl={this.state.docUrl}
+                                    templateLoading={this.state.templateLoading}
+                                    onLoading={this.handleFormSubmitLoading}
+                                    onDoc={this.handleDoc}
+                                    docError={this.state.docError}
+                                    onDocError={this.handleDocError}
+                                    signatures={this.state.signatures}
+                                    recipients={template.recipients}
+                                    recipientsBlock={recipientsBlock}
+                                    isRecipientsValid={this.isRecipientsValid}
+                                    onValidationErrors={this.handleValidationErrors}
+                                    validationErrors={this.state.validationErrors || []}
+                                    lead={this.state.extensions.lead} />
+                            </div>
+                           )
+                };
+
+
+                var rightDiv = function(cols) {
+                    return (
+                        <div className={"col-sm-"+ cols +" right-div"}>
+                            <SharedBlock blockBody={programBlock} 
+                                blockHeader={"Current Program"} />
+                            <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
+                        </div>
+
+                    )
+                };
+
+                var mobileLayout = 
+                    <ReactSwipe continuous={true} shouldUpdate={function() {return true}}>
+                        <div>
+                            {leftDiv.call(this, 12)}
+                        </div>
+                        <div>
+                            {middleDiv.call(this, 12)}
+                        </div>
+                        <div>
+                            {rightDiv.call(this, 12)}
+                        </div>
+                    </ReactSwipe>
+
+                    var standardLayout =
+                        <div>
+                            {leftDiv.call(this, 3)}
+                            {middleDiv.call(this, 6)}
+                            {rightDiv.call(this, 3)}
+                        </div>
+
         
 
         return (
             <div className="template-layout">
                 <Navbar />
                 <div className="app-template-inner">
-                    <div className="col-sm-3 left-div">
-                        <SharedBlock blockBody={templateBlock} 
-                                     blockHeader={"Template"} />
-                        <SharedBlock blockBody={recipientsBlock} 
-                                     blockDescription={"Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email."}
-                                     blockHeader={"Recipients"} />
-                        <LeadDocsBlock  lead={this.state.extensions.lead} 
-                                        onDocClick={this.handleDocClick}
-                                        onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}
-                                        docsEmail={this.state.docsEmail}
-                                        onDocsEmail={this.handleDocsEmail}
-                                        isRecipientsValid={this.isRecipientsValid}
-                                        template={this.currentTemplate()}
-                                        docs={this.state.extensions.docs} />
-                    </div>
-                    <div className="col-sm-6 doc-form-div middle-div">
-                        <DocForm    template={template}
-                            customFields={this.state.templates[this.state.templateIndex].customFields} 
-                            updateCustomField={this.updateCustomField} 
-                            removeCustomField={this.removeCustomField}
-                            onSignature={this.handleRecipientSignature}
-                            onSignatureReminder={this.handleRecipientSignatureReminder}
-                            onRemoveSignatures={this.handleRemoveRecipientSignatures}
-                            campus={this.props.query.campus}
-                            docUrl={this.state.docUrl}
-                            templateLoading={this.state.templateLoading}
-                            onLoading={this.handleFormSubmitLoading}
-                            onDoc={this.handleDoc}
-                            onIsReady={this.toggleIsReady}
-                            docError={this.state.docError}
-                            onDocError={this.handleDocError}
-                            signatures={this.state.signatures}
-                            recipients={template.recipients}
-                            recipientsBlock={recipientsBlock}
-                            isRecipientsValid={this.isRecipientsValid}
-                            onValidationErrors={this.handleValidationErrors}
-                            validationErrors={this.state.validationErrors || []}
-                            lead={this.state.extensions.lead} />
-                    </div>
-                    <div className="col-sm-3 right-div">
-                        <SharedBlock blockBody={programBlock} 
-                                     blockHeader={"Current Program"} />
-                         <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
-                    </div>
+                    <MediaQuery minDeviceWidth={1025}>
+                        {standardLayout}
+                    </MediaQuery>
+                    <MediaQuery maxDeviceWidth={1024}>
+                        {mobileLayout}
+                    </MediaQuery>
                 </div>
             </div>
         );

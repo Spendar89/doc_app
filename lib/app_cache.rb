@@ -16,4 +16,13 @@ class AppCache
     JSON.parse(res)
   end
 
+  def set_templates(templates)
+    @redis.set "templates", templates.to_json
+  end
+
+  def get_templates
+    res = @redis.get "templates"
+    JSON.parse(res) if res
+  end
+
 end

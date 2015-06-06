@@ -25,6 +25,8 @@ TemplateMixin = {
             fieldName
         ], field);
 
+        this.cursors.allCustomFields.set(fieldName, field);
+
         //this.cursors.templates.set(this.state.templateIndex, template)
 
         if (field.customMethod) field.customMethod(this);
@@ -103,7 +105,7 @@ TemplateMixin = {
     },
 
     componentDidMount: function() {
-        this.fetchTemplateAndSetState();
+        this.fetchTemplatesAndSetState();
     },
 
     setStateFromTemplate: function(prevTemplate, template, callback) {
@@ -120,6 +122,20 @@ TemplateMixin = {
 
 
         return callback && callback(null, template);
+    },
+
+    fetchTemplatesAndSetState: function() {
+        var controller = setTemplateController.call(this);
+        controller.getTemplates(function(err, data) {
+            if (err) {
+                return this.setState({
+                    docError: err
+                });
+            };
+
+            this.cursors.templates.set(data)
+        }.bind(this));
+
     },
 
     fetchTemplateAndSetState: function(prevTemplate) {
@@ -205,17 +221,6 @@ TemplateMixin = {
 
     },
 
-    toggleIsReady: function() {
-        var i = this.state.templateIndex,
-            isReady = this.state.templates[i].isReady;
-
-        this.cursors.templates.set([
-            i, "isReady"
-        ], !isReady);
-
-        this.setLoading(false);
-    },
-
     handleRecipientChange: function(i, key, e) {
         this.cursors.templates.set(
             [
@@ -249,7 +254,6 @@ TemplateMixin = {
 
         if (isDone){
             this.setState({
-                templateLoading: false,
                 docUrl: false
             });
         };
@@ -273,16 +277,14 @@ TemplateMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.templates[this.state.templateIndex],
             prevTemplate = prevState.templates[prevState.templateIndex],
-            allCustomFields = this.state.allCustomFields,
             prevAllCustomFields = prevState.allCustomFields;
 
         if (template && template.id != prevTemplate.id) {
-            var allCustomFields = _.extend(
-                allCustomFields, 
+            var allCustomFields = _.extend( 
+                this.state.allCustomFields,
                 prevAllCustomFields
             );
             this.cursors.allCustomFields.set(allCustomFields);
-            console.log("new all custom fields 1")
             this.fetchTemplateAndSetState(prevTemplate);
         };
 

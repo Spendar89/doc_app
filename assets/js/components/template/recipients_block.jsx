@@ -73,7 +73,7 @@ var RecipientsBlock = React.createClass({
 
     render: function () {
         return (
-            <div className="recipients-block row">
+            <div className="recipients-block row" id="recipientBlock">
                 {_.map(this.props.recipients, this.renderRecipient)}
             </div>
         )

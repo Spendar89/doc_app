@@ -18,7 +18,7 @@ TemplateController.prototype = {
         var path = '/templates/' + this.templateId,
             url = buildUrl(path);
 
-        this.loaderFn("Loading Template");
+        this.loaderFn("template", "Loading Template");
 
         // Use cached customFIelds:
         //if (template.customFields) {
@@ -33,17 +33,33 @@ TemplateController.prototype = {
             .end(
                 function(err, res) {
                     var body = res && res.body;
-                    this.loaderFn(false);
+                    this.loaderFn("template", false);
                     callback(err, body);
                 }.bind(this)
             );
 
     },
 
+    getTemplates: function(callback) {
+        var path = '/templates',
+            url = buildUrl(path);
+
+        this.loaderFn("templates", "Loading Templates");
+
+        request
+            .get(url)
+            .end(
+                function(err, res) {
+                    var body = res && res.body;
+                    this.loaderFn("templates", false);
+                    callback(err, body);
+                }.bind(this)
+            );
+        
+    },
+
     getDocs: function(email, callback) {
         var url = "/docs?email=" + email;
-
-        this.loaderFn("Loading Docs");
 
         request
             .get(url)
@@ -53,7 +69,6 @@ TemplateController.prototype = {
             .end(
                 function(err, res) {
                     var docs = res && res.body;
-                    this.loaderFn(false);
                     callback(err, res && res.body);
                 }.bind(this)
             );

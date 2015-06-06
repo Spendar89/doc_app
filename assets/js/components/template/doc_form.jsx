@@ -103,9 +103,17 @@ var DocForm = React.createClass({
     },
     
     searchingStyle: function() {
+        var templateLoading = this.props.templateLoading;
+        var isLoading =  templateLoading && _.any(templateLoading);
         return {
-            display: (this.props.templateLoading ? "block" : "none")
+            display: (isLoading ? "block" : "none")
         };
+    },
+
+    getLoadingText: function() {
+        var tl = this.props.templateLoading;
+        var vals = _.any(tl) && _.values(tl);
+        return _.compact(vals)[0];
     },
 
     errorStyle: function() {
@@ -116,7 +124,7 @@ var DocForm = React.createClass({
 
     formStyle: function() {
         return {
-            visibility: (!this.props.templateLoading && !this.props.docError ? "visible" : "hidden")
+            visibility: (!_.any(this.props.templateLoading) && !this.props.docError ? "visible" : "hidden")
         };
     },
 
@@ -165,14 +173,14 @@ var DocForm = React.createClass({
             return  (
                 <div className="generate-btn-div">
                     <div className="col-sm-6">
-                        <input  disabled={this.props.templateLoading} 
+                        <input  disabled={_.any(this.props.templateLoading)} 
                                 className={className} 
                                 type="submit" 
                                 value="Sign by Email" 
                                 onClick={this.handleGenerate.bind(this, true)} />
                     </div>
                     <div className="col-sm-6">
-                        <input  disabled={this.props.templateLoading} 
+                        <input  disabled={_.any(this.props.templateLoading)} 
                                 className={className}
                                 type="submit" 
                                 value="Sign in Person" 
@@ -242,7 +250,7 @@ var DocForm = React.createClass({
                     }
                 </div>
                 <div className="loader-div" style={this.searchingStyle()}>
-                    <h3 className="loader-text">{this.props.templateLoading}</h3>
+                    <h3 className="loader-text">{this.getLoadingText()}</h3>
                     <Spinner />
                 </div>
                 {this.renderDocError()}

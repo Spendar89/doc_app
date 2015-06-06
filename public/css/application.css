@@ -150,8 +150,7 @@ td {
   /*min-height: 180px;*/ }
 
 #recipientBlock {
-  /*height: 30%;*/
-  /*min-height: 250px;*/ }
+  min-height: 71px; }
 
 #leadDataBlock {
   /* height: 33%; */ }
@@ -201,9 +200,10 @@ td {
   /* position: absolute; */
   /* overflow: hidden; */
   /* height: 100%; */
+  padding: 0;
   padding-bottom: 15px; }
   .app-template-div .app-template-inner {
-    padding-top: 65px;
+    padding-top: 50px;
     /* height: 100%; */ }
 
 .btn {
@@ -224,13 +224,18 @@ td {
     border: none;
     padding: 0px; }
 
+.cycle-templates-div .cycle-btn-div {
+  padding: 0;
+  padding-right: 7.5px;
+  margin-bottom: 22px; }
+
 .doc-form-div {
   color: rgba(0, 0, 0, 0.87);
   /* height: 98%; */ }
   .doc-form-div .doc-form-inner-div {
     height: 100%;
     margin-top: 15px;
-    min-height: 800px;
+    min-height: 650px;
     background: white;
     box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.2);
     border-radius: 2px; }
@@ -258,8 +263,7 @@ td {
         color: rgba(0, 0, 0, 0.54) !important;
         font-weight: normal; }
       .doc-form-div .doc-form-inner-div .doc-form .doc-form-inputs {
-        /* height: 95%; */
-        /* overflow: scroll; */ }
+        padding-bottom: 100px; }
       .doc-form-div .doc-form-inner-div .doc-form .doc-input.invalid input {
         border-color: #ffcfcf !important; }
       .doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {

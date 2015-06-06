@@ -14,8 +14,10 @@
     "jquery": "^2.1.4",
     "lodash": "^3.2.0",
     "react": "^0.13.3",
+    "react-responsive": "0.0.6",
     "react-router": "^0.13.3",
     "react-spinner": "^0.2.1",
+    "react-swipe": "^2.1.0",
     "superagent": "^1.2.0"
   },
   "devDependencies": {

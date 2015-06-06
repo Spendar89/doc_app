@@ -19,7 +19,7 @@ LeadController.prototype = {
         var path = "/leads/" + this.leadId,
             url = buildUrl(path);
 
-        this.loaderFn("Syncing Lead Data");
+        this.loaderFn("lead", "Syncing Lead Data");
 
         request
             .put(url)
@@ -29,7 +29,7 @@ LeadController.prototype = {
             })
             .end(
                 function(err, res) {
-                    this.loaderFn(false);
+                    this.loaderFn("lead", false);
                     callback(err, res && res.body);
                 }.bind(this)
             );
@@ -51,7 +51,7 @@ LeadController.prototype = {
             return callback(err);
         };
 
-        this.loaderFn("Fetching Lead");
+        this.loaderFn("lead", "Fetching Lead");
 
         request
             .get(url)
@@ -62,7 +62,7 @@ LeadController.prototype = {
                 function(err, res) {
                     var body = res && res.body;
                     this.leadId = body && body["LeadsID"];
-                    this.loaderFn(false);
+                    this.loaderFn("lead", false);
                     callback(err, body);
                 }.bind(this)
             );
@@ -76,7 +76,7 @@ LeadController.prototype = {
         var email = lead["Email"]
         var url = "/docs?email=" + email;
 
-        this.loaderFn("Fetching Saved Docs");
+        this.loaderFn("lead", "Fetching Saved Docs");
 
         request
             .get(url)
@@ -86,7 +86,7 @@ LeadController.prototype = {
             .end(
                 function(err, res) {
                     var docs = res && res.body;
-                    this.loaderFn(false);
+                    this.loaderFn("lead", false);
                     callback(err, res && res.body);
                 }.bind(this)
             );
