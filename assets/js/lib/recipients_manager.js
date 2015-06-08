@@ -30,11 +30,11 @@ var RecipientsManager = {
         return recipients && recipients[i] 
     },
 
-    getRecipientsByTemplate: function(template, prevTemplate) {
+    getRecipientsByTemplate: function(template, prevTemplate, isGrouped) {
         return _.map(template.roles, function(r, i) {
             var keepRecipient;
 
-            if (prevTemplate) {
+            if (prevTemplate && prevTemplate.recipients) {
                 _.each(prevTemplate.recipients, function(pr) {
                     if (pr.role == r) keepRecipient = pr;
                 });
@@ -42,7 +42,7 @@ var RecipientsManager = {
 
             if (keepRecipient) return keepRecipient;
 
-            if (template.recipients) return template.recipients[i];
+            if (template.recipients && !isGrouped) return template.recipients[i];
 
             return  {role: r, name: "", email: ""};
         });

@@ -10,8 +10,11 @@ var DocForm = React.createClass({
     },
 
     renderDocInputs: function () {
+        var template = this.props.template,
+            customFields = template && template.customFields;
+
         return _.map(
-            this.props.customFields, function (field, fieldName) {
+            customFields, function (field, fieldName) {
                 return (
                     <div key={fieldName}>
                         {this.renderDocInputHeader(field)}
@@ -31,7 +34,7 @@ var DocForm = React.createClass({
     },
 
     transformCustomFields: function () {
-        return _.transform(this.props.customFields, function(result, field, name) {
+        return _.transform(this.props.template.customFields, function(result, field, name) {
             // if field.value is undefined its because its a checkbox
             // or else it would not have passed validation...
             result[name] = field.value || "";
@@ -43,7 +46,7 @@ var DocForm = React.createClass({
 
         var validRecipients = this.props.isRecipientsValid();  
 
-        var validFields = _.every(this.props.customFields, function(field, fieldName) {
+        var validFields = _.every(this.props.template.customFields, function(field, fieldName) {
             if (field.optional) return true;
             return field.value !== undefined || field.type === "checkbox";
         });
@@ -61,6 +64,7 @@ var DocForm = React.createClass({
 
     generateDoc: function(email) {
         var lead = this.props.lead || {},
+            template = this.props.template,
             recipients = _.map(this.props.template.recipients, function(r) {
                 r.email_address = r.email;
                 r = _.pick(r, ["email_address", "role", "name"]);
@@ -72,8 +76,9 @@ var DocForm = React.createClass({
         $.post("/docs", {
             email: email,
             custom_fields: this.transformCustomFields(), 
-            template_id: this.props.template.id,
-            template_title: this.props.template.title,
+            template_ids: this.props.groupedTemplateIds,
+            template_id: template && template.id,
+            template_title: template && template.title,
             leads_id: lead.LeadsID,
             recipients: recipients,
             campus: this.props.campus
@@ -178,7 +183,8 @@ var DocForm = React.createClass({
                             className={className} 
                             title="Sign By Email"
                             onClick={this.handleGenerate.bind(this, true)}>
-                            <span className="glyphicon glyphicon-inbox"></span>
+                            <span className="glyphicon glyphicon-inbox col-sm-4"></span>
+                            <span className="">Sign by Email</span>
                         </a>
                     </div>
                     <div className="col-sm-6 form-group">
@@ -187,7 +193,8 @@ var DocForm = React.createClass({
                             className={className}
                             title="Sign in Person"
                             onClick={this.handleGenerate.bind(this, false)} >
-                            <span className="glyphicon glyphicon-user"></span>
+                            <span className="glyphicon glyphicon-user col-sm-4"></span>
+                            <span className="">Sign in Person</span>
                         </a>
                     </div>
                 </div>
@@ -207,6 +214,7 @@ var DocForm = React.createClass({
             //console.log("already has sigss!", this.props.savedDoc.signatures);
             //return this.props.onSignatures(null, this.props.savedDoc.signatures)
         //}
+        var template = this.props.template;
 
         if (this.props.validationErrors[0]) {
             console.log("ValidationErrors", this.props.validationErrors);
@@ -243,7 +251,7 @@ var DocForm = React.createClass({
                             : (
                                 <div>
                                     <h3 className="doc-form-header col-sm-6">
-                                        {this.props.template.title}
+                                        {template && template.title}
                                     </h3>
                                     <h3 className="col-sm-6">
                                         {this.renderSubmit()}

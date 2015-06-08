@@ -32,7 +32,8 @@ var TemplateLayout = React.createClass({
         allCustomFields: ['allCustomFields'],
         templates: ['package', 'templates'], 
         extensions: ['extensions'],
-        sources: ['sources']
+        sources: ['sources'],
+        groupedTemplate: ['groupedTemplateIds']
     },
 
     getInitialState: function() {
@@ -45,7 +46,7 @@ var TemplateLayout = React.createClass({
             leads: [],
             validationErrors: [],
             docsEmail: "",
-            groupTemplates: true
+            groupTemplates: false
         }
     },
 
@@ -122,6 +123,11 @@ var TemplateLayout = React.createClass({
     handleGroupTemplates: function() {
         var groupTemplates = this.state.groupTemplates;
         this.setState({groupTemplates: !groupTemplates});
+    },
+
+    handleTemplateInGroup: function(i) {
+        var template = this.state.templates[i];
+        this.cursors.templates.set([i, "inGroup"], !template.inGroup);
     },
 
     handleSync: function(e) {
@@ -348,6 +354,7 @@ var TemplateLayout = React.createClass({
                                             templateLoading={this.state.templateLoading}
                                             groupTemplates={this.state.groupTemplates}
                                             onGroupTemplates={this.handleGroupTemplates}
+                                            onTemplateInGroup={this.handleTemplateInGroup}
                                             onCycle={this.handleTemplateCycle}
                                             onChange={this.handleTemplateInputChange} />;
 
@@ -356,7 +363,7 @@ var TemplateLayout = React.createClass({
                                                 onAuthTokenSend={this.handleRecipientAuthTokenSend}
                                                 onAuthTokenChange={this.handleRecipientAuthTokenChange}
                                                 onAuthTokenSubmit={this.handleRecipientAuthTokenSubmit}
-                                                recipients={template.recipients} />;
+                                                template={this.currentTemplate()} />;
 
 
             var renderLeadBlock = function() {
@@ -376,7 +383,7 @@ var TemplateLayout = React.createClass({
                             : (
                                 <LeadDataBlock  lead={this.state.extensions.lead} 
                                                 leadPending={this.state.extensions.leadPending} 
-                                                customFields={this.state.templates[this.state.templateIndex].customFields}
+                                                customFields={this.currentTemplate() && this.currentTemplate().customFields}
                                                 syncRemote={this.state.syncRemote}
                                                 handleSync={this.handleSync} />
 
@@ -396,14 +403,6 @@ var TemplateLayout = React.createClass({
                         <SharedBlock blockBody={recipientsBlock} 
                             blockDescription={"Confirm a recipient by entering the confirmation code sent to the provided email address. Note: Non-leads must use an scitexas.edu email."}
                             blockHeader={"Recipients"} />
-                        <LeadDocsBlock  lead={this.state.extensions.lead} 
-                            onDocClick={this.handleDocClick}
-                            onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}
-                            docsEmail={this.state.docsEmail}
-                            onDocsEmail={this.handleDocsEmail}
-                            isRecipientsValid={this.isRecipientsValid}
-                            template={this.currentTemplate()}
-                            docs={this.state.extensions.docs} />
                     </div>
                 )
             };
@@ -411,8 +410,9 @@ var TemplateLayout = React.createClass({
                 var middleDiv = function(cols) {
                     return ( 
                             <div className={"col-sm-" + cols + " doc-form-div middle-div"}>
-                                <DocForm    template={template}
-                                    customFields={this.state.templates[this.state.templateIndex].customFields} 
+                                <DocForm    
+                                    template={this.currentTemplate()}
+                                    groupedTemplateIds={this.currentGroupedTemplateIds()}
                                     updateCustomField={this.updateCustomField} 
                                     removeCustomField={this.removeCustomField}
                                     onSignature={this.handleRecipientSignature}
@@ -426,7 +426,7 @@ var TemplateLayout = React.createClass({
                                     docError={this.state.docError}
                                     onDocError={this.handleDocError}
                                     signatures={this.state.signatures}
-                                    recipients={template.recipients}
+                                    recipients={template && template.recipients}
                                     recipientsBlock={recipientsBlock}
                                     isRecipientsValid={this.isRecipientsValid}
                                     onValidationErrors={this.handleValidationErrors}
@@ -443,6 +443,14 @@ var TemplateLayout = React.createClass({
                             <SharedBlock blockBody={programBlock} 
                                 blockHeader={"Current Program"} />
                             <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
+                            <LeadDocsBlock  lead={this.state.extensions.lead} 
+                                onDocClick={this.handleDocClick}
+                                onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}
+                                docsEmail={this.state.docsEmail}
+                                onDocsEmail={this.handleDocsEmail}
+                                isRecipientsValid={this.isRecipientsValid}
+                                template={this.currentTemplate()}
+                                docs={this.state.extensions.docs} />
                         </div>
 
                     )

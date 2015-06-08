@@ -17,6 +17,40 @@ body {
   padding-left: 15px;
 }
 
+.group-templates-div {
+  margin-top: 22px;
+    input[type='checkbox'] {
+      height: 10px;
+      width: 10px;
+        -webkit-appearance: none;
+        border-radius: 2px;
+        border: 1px solid;
+        outline: none !important;
+        &:checked {
+          -webkit-appearance:none;
+          background: rgba(0,0,0,0.54);
+        }
+      &.group-templates-input {
+        font-size: 50px;
+        width: 20px;
+        height: 20px;
+
+      }
+
+    }
+
+  }
+  .group-templates-checkbox {
+    color: rgba(0,0,0,0.54);
+    label {
+      b{
+        margin-left: 15px;
+        line-height: 29px;
+        font-weight: lighter;
+      }
+    }
+}
+
 .signature-icon {
   color: #5cb85c;
   margin-left: 15px;

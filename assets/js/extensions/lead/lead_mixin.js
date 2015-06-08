@@ -169,8 +169,7 @@ var LeadMixin = {
         };
 
         if (hasLeadRecipient) {
-            var i = this.state.templateIndex,
-                name = lead["FName"] + " " + lead["LName"],
+            var name = lead["FName"] + " " + lead["LName"],
                 email = lead["Email"],
                 id =  lead["LeadsID"],
                 recipient = {"name": name, "email": email, "id": id};

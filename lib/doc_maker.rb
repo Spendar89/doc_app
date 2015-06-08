@@ -3,6 +3,7 @@ require './lib/diamond'
 require './lib/app_cache'
 
 class DocMaker
+
   attr_accessor :document, :sent_signature_request, :client, :embedded_sign_url
 
   # initialize with custom_fields hash and template_id
@@ -14,26 +15,24 @@ class DocMaker
   # calls @client.send_signature_request_with_template method and sets 
   # @sent_signature_request to response object
   def create_embedded_signature_request(recipients) 
-    @sent_signature_request ||= @client.create_embedded_signature_request_with_template(
+    opts = @document.options.merge({
       test_mode: 1, 
-      client_id: ENV['HELLO_SIGN_CLIENT_ID'],
-      signers: recipients,
-      title: @document.title,
-      subject: @document.subject,
-      template_id: @document.template_id,
-      custom_fields: @document.custom_fields
-    )
+      signers: recipients, 
+      client_id: ENV['HELLO_SIGN_CLIENT_ID']
+    })
+
+    @sent_signature_request ||= 
+      @client.create_embedded_signature_request_with_template(opts)
   end
 
   def create_email_signature_request(recipients)
-    @sent_signature_request ||= @client.send_signature_request_with_template(
+    opts = @document.options.merge({
       test_mode: 1, 
-      signers: recipients,
-      title: @document.title,
-      subject: @document.subject,
-      template_id: @document.template_id,
-      custom_fields: @document.custom_fields
-    )
+      signers: recipients
+    })
+
+    @sent_signature_request ||= 
+      @client.send_signature_request_with_template(opts)
   end
 
   def get_template(template=false)

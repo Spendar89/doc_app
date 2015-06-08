@@ -4,8 +4,8 @@ var EA_PACKAGE_DATA = require('./../lib/packages/ea_package/package_data.json'),
     RecipientsManager = require('./../lib/recipients_manager.js');
 
 var setTemplateController = function() {
-    var template = this.currentTemplate(), 
-        templateId = template && template.id, 
+    var template = this.currentTemplate(),
+        templateId = template && template.id,
         campus = this.state.campus,
         loaderFn = this.setLoading;
 
@@ -47,8 +47,9 @@ TemplateMixin = {
     setCustomFields: function(template, callback) {
         var sources = this.state.sources,
             customFields = this.state.allCustomFields,
-            templateConfig = this.currentTemplate().config,
-            config = _.merge(this.packageData.config, templateConfig),
+            title = template.title
+            //templateConfig = this.packageData.config.templates[title],
+            config = _.merge(this.packageData.config, template.config),
             customMethods = this.customMethods,
             fields = {};
 
@@ -90,19 +91,15 @@ TemplateMixin = {
                     optional: isOptional
                 });
 
-                callback(null);
+                callback && callback(null);
             },
             function(err) {
                 template.customFields = fields;
-                callback(err, template);
+                callback && callback(err, template);
             }.bind(this)
         );
     },
 
-    currentTemplate: function() {
-        var i = this.state.templateIndex;
-        return this.cursors.templates.get(i);
-    },
 
     componentDidMount: function() {
         this.fetchTemplatesAndSetState();
@@ -119,21 +116,19 @@ TemplateMixin = {
 
         this.handleRemoveRecipientSignatures();
 
-
-
         return callback && callback(null, template);
     },
 
     fetchTemplatesAndSetState: function() {
         var controller = setTemplateController.call(this);
-        controller.getTemplates(function(err, data) {
+        controller.getTemplates(function(err, templates) {
             if (err) {
                 return this.setState({
                     docError: err
                 });
             };
 
-            this.cursors.templates.set(data)
+            this.cursors.templates.set(templates);
         }.bind(this));
 
     },
@@ -141,14 +136,15 @@ TemplateMixin = {
     fetchTemplateAndSetState: function(prevTemplate) {
         var fetchTemplate = function() {
             var template = this.currentTemplate(),
+                title = template.title,
                 controller = setTemplateController.call(this),
                 callback = function(cb) {
                     return cb(null, template);
                 };
 
-            return template.customFields
-                ? callback
-                : controller.getTemplate.bind(controller);
+            template.config = this.packageData.config.templates[title];
+
+            return template.customFields ? callback : controller.getTemplate.bind(controller);
         }.call(this);
 
         async.waterfall(
@@ -175,7 +171,7 @@ TemplateMixin = {
             templateIndex = this.state.templateIndex;
 
         _.each(custom_fields, function(cf) {
-            if (cf.name) docFields[cf.name] = cf["value"];   
+            if (cf.name) docFields[cf.name] = cf["value"];
         });
 
         this.cursors.sources.set("docFields", docFields)
@@ -190,23 +186,23 @@ TemplateMixin = {
             ],
             this._handleLoading
         );
-        
+
     },
-    
+
     setStateFromDocs: function(docs, callback) {
         this.cursors.extensions.set('docs', docs);
         callback(null)
     },
 
     //sendRecipientAuthToken: function(recipient, callback) {
-        //var controller = setTemplateController.call(this);
-        //controller.sendRecipientAuthToken(recipient, callback);
+    //var controller = setTemplateController.call(this);
+    //controller.sendRecipientAuthToken(recipient, callback);
     //},
 
     //fetchRecipientAuthStatus: function(recipient, callback) {
-        //var controller = setTemplateController.call(this);
-        //controller.fetchRecipientAuthStatus(recipient, callback);
-         //Do Something
+    //var controller = setTemplateController.call(this);
+    //controller.fetchRecipientAuthStatus(recipient, callback);
+    //Do Something
     //},
 
     _setStateFromSignatures: function() {
@@ -222,13 +218,26 @@ TemplateMixin = {
     },
 
     handleRecipientChange: function(i, key, e) {
-        this.cursors.templates.set(
-            [
-                this.state.templateIndex,
-                "recipients", i, key
-            ],
-            e.target.value
-        );
+        window.testTemplate = this.state.groupedTemplate;
+        window.regTemplate = this.state.templates[this.state.templateIndex]
+        if (this.state.groupedTemplate) {
+            this.cursors.groupedTemplate.set(
+                [
+                    "recipients",
+                    i,
+                    key
+                ],
+                e.target.value
+            );
+        } else {
+            this.cursors.templates.set(
+                [
+                    this.state.templateIndex,
+                    "recipients", i, key
+                ],
+                e.target.value
+            );
+        }
     },
 
     isRecipientsValid: function(opts) {
@@ -250,9 +259,9 @@ TemplateMixin = {
             this.setState({
                 docError: err
             });
-        }; 
+        };
 
-        if (isDone){
+        if (isDone) {
             this.setState({
                 docUrl: false
             });
@@ -261,26 +270,33 @@ TemplateMixin = {
 
     _refreshCustomFields: function() {
         var template = this.currentTemplate(),
+            customFields = template && template.customFields,
             templates = this.cursors.templates,
             index = this.state.templateIndex;
 
-        if (!template.customFields) return false;
+        console.log("refershing custom fields", template)
+
+        if (!customFields) return false;
 
         this.setCustomFields(
-            template, 
+            template,
             function(err, template) {
                 templates.set(index, template);
             }
         );
     },
 
+    hasParentRecipient: function(template) {
+        return _.include(template.roles, "Parent/Guardian");
+    },
+
     componentDidUpdate: function(prevProps, prevState) {
-        var template = this.state.templates[this.state.templateIndex],
-            prevTemplate = prevState.templates[prevState.templateIndex],
+        var template = this.state.groupedTemplate || this.state.templates[this.state.templateIndex],
+            prevTemplate = prevState.groupedTemplate || prevState.templates[prevState.templateIndex],
             prevAllCustomFields = prevState.allCustomFields;
 
-        if (template && template.id != prevTemplate.id) {
-            var allCustomFields = _.extend( 
+        if (template && prevTemplate && template.id != prevTemplate.id || template && !prevTemplate) {
+            var allCustomFields = _.extend(
                 this.state.allCustomFields,
                 prevAllCustomFields
             );
@@ -291,6 +307,52 @@ TemplateMixin = {
         if (this.state.sources != prevState.sources) {
             this._refreshCustomFields();
         };
+
+        if (!this.state.groupTemplates && prevState.groupTemplates) {
+            this.cursors.templates.apply(function(templates) {
+                return _.map(templates, function(template) {
+                    template.inGroup = false;
+                    return template;
+                });
+            });
+        };
+
+        // Templates loaded for first time:
+        if (this.state.templates[0] && !prevState.templates[0]) {
+            console.log("templates loaded", this.state.templates);
+        };
+
+        if (this.state.groupTemplates != prevState.groupTemplates) {
+            var templates = _.map(this.state.templates, function(t) {
+                var title = t.title,
+                    config = this.packageData.config.templates[title]; 
+
+                if (!this.hasParentRecipient(t)) {
+                    t.inGroup = this.state.groupTemplates;
+                };
+
+                t.config = config;
+                this.setCustomFields(t);
+
+                return t;
+            }.bind(this));
+
+            this.cursors.templates.set(templates);
+        };
+
+        if (this.state.templates != prevState.templates) {
+            var groupedTemplate = this.getGroupedTemplate();
+
+            if (this.state.groupedTemplate && groupedTemplate) {
+                var cfs = _.pick(this.state.groupedTemplate.customFields, _.keys(groupedTemplate.customFields))
+                groupedTemplate.title = "Grouped Template";
+                groupedTemplate.customFields = _.extend(groupedTemplate.customFields, cfs);
+            }
+
+            this.cursors.groupedTemplate.set(groupedTemplate);
+        };
+
+        //if (this.state.templates && !prevState.templates)
     }
 };
 

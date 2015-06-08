@@ -1,27 +1,24 @@
 {
     "name": "EA Package",
 
-    "templates": [
+    "templates": [],
 
-        {
-            "id": "721c8a1754463d5029504e8c169e1705cc344d98",
-            "title": "Primary Agreement"
-        }, {
-            "id": "e131ee507fc368fccbfeecf45e6d413b2db4f88b",
-            "title": "Primary Agreement (With Parent/Guardian)"
-        }, {
-            "id": "1281b2c8bcb9c84b3ac2f49b02f0546add2ba06c",
-            "title": "Tour Acknowledgement Catalog"
-        }, {
-            "id": "c13f4831fd61d50580c4c10d476df50e0973d780",
-            "title": "Clinical Laboratory Disclosure Statement"
-        }, {
-            "id": "24f0904e451092c67e750b789510f8e152350919",
-            "title": "Communication Authorization"
-        }, {
-            "id": "55bf6a3ee35e473dfac3b0e383f8bd6d9895891f",
-            "title": "Record of Previous Education and Training",
-            "config": {
+    "config": {
+        "templates": {
+            "Insurance Waiver (With Parent/Guardian)": {
+                "headers": {
+                    "Name (Parent/Guardian)": "Parent/Guardian Information"
+                }
+            },
+
+            "Federal Demographic Information Request": {
+                "headers": {
+                    "Hispanic/Latino": "Individuals are asked to designate ethnicity as:",
+                    "American Indian or Alaska Native": "Then select one or more of the racial groups:"
+                }
+            },
+
+            "Record of Previous Education and Training": {
                 "headers": {
                     "Name and Location - College": "Post-Secondary Education",
                     "Name and Location - College 2": "Post-Secondary Education",
@@ -49,45 +46,8 @@
                     "I Will Receive Credit": "I have discussed the above evaluation of my previous education and training with the authorized school official and acknowledge that:"
                 }
             }
-        }, {
-            "id": "c550d6268b8550190a80947bdeb6ffc15133be4c",
-            "title": "SCI Disclosure Statement"
-        }, {
-            "id": "7ba538b68020dbbe97f3c8aa135a6d93eb70af57",
-            "title": "Acknowledgements - Student"
-        }, {
-            "id": "be8a7215d6b82612e6eab0c47d126cb3632b8dac",
-            "title": "Externship Disclosure"
-        }, {
-            "id": "85de91148d095a62c3cc48addc68ea90ad78638b",
-            "title": "Talent Release"
-        }, {
-            "id": "b82e55d72972a17a295870b0317597e049de355f",
-            "title": "Prospective and Current Student Notification"
-        }, {
-            "id": "eed5def472c00779ef41a1b46d56489723fc27eb",
-            "title": "Federal Demographic Information Request",
-            "config": {
-                "headers": {
-                    "Hispanic/Latino": "Individuals are asked to designate ethnicity as:",
-                    "American Indian or Alaska Native": "Then select one or more of the racial groups:"
-                }
-            }
-        }, {
-            "id": "09265a65ecc3128b33119a75122b1ce447dea8fd",
-            "title": "Insurance Waiver"
-        }, {
-            "id": "79020eb3984dc35d756c0ef856e538901782dcaa",
-            "title": "Insurance Waiver (With Parent/Guardian)",
-            "config": {
-                "headers": {
-                    "Name (Parent/Guardian)": "Parent/Guardian Information"
-                }
-            }
-        }
-    ],
+        },
 
-    "config": {
         "customOptions": {},
 
         "customTypes": {
@@ -125,21 +85,21 @@
             "Program",
             "StartDate",
             "GradDate"
-        ],
+            ],
 
-        "headers": {
-            "FName": "Enrollment Information",
-            "ProgramName": "Program Information",
-            "RegFee": "Fees",
-            "Cash": "Method of Payment",
-            "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
-            "ReportYear": "Program Data",
-            "High School Diploma": "Secondary Education",
-            "Previous Training": "Additional Information"
-
-
+            "headers": {
+                "FName": "Enrollment Information",
+                "ProgramName": "Program Information",
+                "RegFee": "Fees",
+                "Cash": "Method of Payment",
+                "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
+                "ReportYear": "Program Data",
+                "High School Diploma": "Secondary Education",
+                "Previous Training": "Additional Information"
 
 
-        }
+
+
+            }
     }
 }

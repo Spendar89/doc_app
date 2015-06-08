@@ -16,7 +16,8 @@ var tree = new Baobab({
     package: EA_PACKAGE_DATA,
     allCustomFields: {},
     extensions: {},
-    sources: {}
+    sources: {},
+    groupedTemplate: {}
 });
 
 var Layout = React.createClass({

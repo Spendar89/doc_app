@@ -8,6 +8,7 @@ require './lib/diamond'
 require './lib/helpers'
 require './lib/app_cache'
 require 'json'
+require 'active_support/all'
 
 
 set :root, File.dirname(__FILE__)
@@ -35,10 +36,11 @@ end
 post '/docs' do
   content_type :json
 
-  custom_fields, campus, template_id, 
+  custom_fields, campus, template_id, template_ids,
   recipients, leads_id, template_title, email = params[:custom_fields], 
                                                 params[:campus],
                                                 params[:template_id], 
+                                                params[:template_ids],
                                                 params[:recipients], 
                                                 params[:leads_id], 
                                                 params[:template_title],
@@ -48,7 +50,7 @@ post '/docs' do
     r.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
   end
 
-  document = Document.new custom_fields, template_id, template_title
+  document = Document.new custom_fields, template_id, template_ids, template_title, template_ids
   doc_maker = DocMaker.new document
 
   begin

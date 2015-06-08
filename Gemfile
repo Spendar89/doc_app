@@ -11,6 +11,7 @@ gem 'thin'
 gem 'rack-parser', :require => 'rack/parser'
 gem 'net-ldap'
 gem 'redis'
+gem 'activesupport'
 
 group :development do
   gem 'colorize'

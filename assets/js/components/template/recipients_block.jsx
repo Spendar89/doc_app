@@ -72,9 +72,10 @@ var RecipientsBlock = React.createClass({
     },
 
     render: function () {
+        var template = this.props.template;
         return (
             <div className="recipients-block row" id="recipientBlock">
-                {_.map(this.props.recipients, this.renderRecipient)}
+                {_.map(template && template.recipients, this.renderRecipient)}
             </div>
         )
     }
