@@ -147,6 +147,26 @@
             "PhoneOther",
             "PhoneMobile",
             "OtherFees",
+            "*Probation",
+            "*Offense",
+            "*Punishment",
+            "*Court",
+            "*Charged",
+            "*Date",
+            "*Contact",
+            "*Relationship",
+            "DateOfBirth",
+            "*Entrance",
+            "*1",
+            "*Less",
+            "*Original",
+            "*School Official",
+            "*Total",
+            "*Hrs",
+            "*SCI",
+            "*2",
+            "*3",
+            "*Previous",
             "*- College",
             "*- Technical",
             "*- Other"
@@ -163,7 +183,10 @@
             "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
             "ReportYear": "Program Data",
             "High School Diploma": "Secondary Education",
-            "Previous Training": "Additional Information"
+            "Previous Training": "Additional Information",
+            "Subject 1": "Subject 1",
+            "Subject 2": "Subject 2",
+            "Subject 3": "Subject 3"
         }
     }
 }
