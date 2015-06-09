@@ -449,6 +449,17 @@ var DocInput = React.createClass({displayName: "DocInput",
                     )
                 )
             )
+        } else if (this.props.field.type === "textarea") {
+            return (
+                React.createElement("div", {className: "textarea"}, 
+                    this.renderLabel(), 
+                    React.createElement("textarea", {disabled: this.props.field.disabled, 
+                                onChange: this.handleChange, 
+                                rows: "4", 
+                                value: this.props.field.value, 
+                                className: "doc-block-input form-control"})
+                )
+            )
         } else {
             return (
                 React.createElement("div", {className: "default-input"}, 
@@ -3128,6 +3139,46 @@ module.exports={
 
     "config": {
         "templates": {
+            "Primary Agreement (With Parent/Guardian)": {
+                "headers": {
+                    "Weeks": "Program Data",
+                    "RegFee": "Program Fees",
+                    "Cash": "Method of Payment",
+                    "Morning": "Session",
+                    "FName": "Enrollment Information",
+                    "ProgramName": "Program Information"
+                }
+            },
+            "Primary Agreement": {
+                "headers": {
+                    "Weeks": "Program Data",
+                    "RegFee": "Program Fees",
+                    "Cash": "Method of Payment",
+                    "Morning": "Session",
+                    "FName": "Enrollment Information",
+                    "ProgramName": "Program Information"
+                }
+            },
+            "Criminal Background Check Authorization  (With Parent/Guardian)": {
+                "headers": {
+                    "FName": "Enrollment Information",
+                    "I have no criminal conviction": "Criminal Conviction History",
+                    "Previous Street 1": "Previous Address 1",
+                    "Previous Street 2": "Previous Address 2",
+                    "Previous Street 3": "Previous Address 3"
+                }
+
+            },
+            "Criminal Background Check Authorization": {
+                "headers": {
+                    "FName": "Enrollment Information",
+                    "I have no criminal conviction": "Criminal Conviction History",
+                    "Previous Street 1": "Previous Address 1",
+                    "Previous Street 2": "Previous Address 2",
+                    "Previous Street 3": "Previous Address 3"
+                }
+
+            },
             "Insurance Waiver (With Parent/Guardian)": {
                 "headers": {
                     "Name (Parent/Guardian)": "Parent/Guardian Information"
@@ -3138,6 +3189,35 @@ module.exports={
                 "headers": {
                     "Hispanic/Latino": "Individuals are asked to designate ethnicity as:",
                     "American Indian or Alaska Native": "Then select one or more of the racial groups:"
+                }
+            },
+            "Dream Sheet": {
+                "headers": {
+                    "Address": "Contact Information",
+                    "Date Requested": "Dream Sheet Dates"
+                }
+
+            },
+            "High School Transcript Request Form": {
+                "headers": {
+                    "FName": "Enrollment Information",
+                    "Address": "Contact Information",
+                    "SCI Fax": "SCI Contact Information",
+                    "Date Attended From": "High School Dates"
+                }
+
+            },
+
+            "Access to Educational Records and Student Information": {
+                "headers": {
+                    "Contact 1": "Authorized Contacts"
+                }
+            },
+
+            "Clinical Laboratory Disclosure Statement": {
+                "headers": {
+                    "I have read and understand the clinical laboratory disclosure statement": "Please Check all that Apply"
+
                 }
             },
 
@@ -3174,6 +3254,8 @@ module.exports={
         "customOptions": {},
 
         "customTypes": {
+            "Description of Offense": "textarea",
+            "Terms or Conditions of Any Current Sentence, Probation, or Parole": "textarea",
             "Date": "date",
             "Date of Tour": "date",
             "Address": "address",
@@ -3208,22 +3290,15 @@ module.exports={
             "Program",
             "StartDate",
             "GradDate"
-            ],
+        ],
 
-            "headers": {
-                "FName": "Enrollment Information",
-                "ProgramName": "Program Information",
-                "RegFee": "Fees",
-                "Cash": "Method of Payment",
-                "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
-                "ReportYear": "Program Data",
-                "High School Diploma": "Secondary Education",
-                "Previous Training": "Additional Information"
-
-
-
-
-            }
+        "headers": {
+            "SCI Rep Name": "SCI Rep",
+            "A copy of the school catalog and a program/course outline for the programs in which I wish to enroll": "Check if You've Received",
+            "ReportYear": "Program Data",
+            "High School Diploma": "Secondary Education",
+            "Previous Training": "Additional Information"
+        }
     }
 }
 

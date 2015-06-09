@@ -68,6 +68,17 @@ var DocInput = React.createClass({
                     </label>
                 </div>
             )
+        } else if (this.props.field.type === "textarea") {
+            return (
+                <div className="textarea">
+                    {this.renderLabel()}
+                    <textarea   disabled={this.props.field.disabled}
+                                onChange={this.handleChange} 
+                                rows="4" 
+                                value={this.props.field.value} 
+                                className="doc-block-input form-control" />
+                </div>
+            )
         } else {
             return (
                 <div className="default-input">
