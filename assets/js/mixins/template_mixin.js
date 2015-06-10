@@ -1,5 +1,4 @@
 var EA_PACKAGE_DATA = require('./../lib/packages/ea_package/package_data.json'),
-    EA_CUSTOM_METHODS = require('./../lib/packages/ea_package/custom_methods.js'),
     TemplateController = require('./../controllers/template_controller.js'),
     RecipientsManager = require('./../lib/recipients_manager.js');
 
@@ -16,7 +15,6 @@ var setTemplateController = function() {
 TemplateMixin = {
 
     packageData: EA_PACKAGE_DATA,
-    customMethods: EA_CUSTOM_METHODS,
 
     updateCustomField: function(fieldName, field) {
         this.cursors.templates.set([
@@ -26,10 +24,6 @@ TemplateMixin = {
         ], field);
 
         this.cursors.allCustomFields.set(fieldName, field);
-
-        //this.cursors.templates.set(this.state.templateIndex, template)
-
-        if (field.customMethod) field.customMethod(this);
 
         // TODO: Decouple lead logic from template logic.
         this.setLeadPending(fieldName, field.value);
@@ -50,7 +44,6 @@ TemplateMixin = {
             title = template.title
             //templateConfig = this.packageData.config.templates[title],
             config = _.merge(this.packageData.config, template.config),
-            customMethods = this.customMethods,
             fields = {};
 
         async.each(
@@ -274,8 +267,6 @@ TemplateMixin = {
             templates = this.cursors.templates,
             index = this.state.templateIndex;
 
-        console.log("refershing custom fields", template)
-
         if (!customFields) return false;
 
         this.setCustomFields(
@@ -319,7 +310,7 @@ TemplateMixin = {
 
         // Templates loaded for first time:
         if (this.state.templates[0] && !prevState.templates[0]) {
-            console.log("templates loaded", this.state.templates);
+            //console.log("templates loaded", this.state.templates);
         };
 
         if (this.state.groupTemplates != prevState.groupTemplates) {
