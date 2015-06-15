@@ -16,7 +16,7 @@ TemplateMixin = {
 
     packageData: EA_PACKAGE_DATA,
 
-    updateCustomField: function(fieldName, field) {
+    handleCustomFieldUpdate: function(fieldName, field) {
         this.cursors.templates.set([
             this.state.templateIndex,
             "customFields",
@@ -27,6 +27,49 @@ TemplateMixin = {
 
         // TODO: Decouple lead logic from template logic.
         this.setLeadPending(fieldName, field.value);
+
+        this.setFieldGroupDisplay(field);
+    },
+
+    setFieldGroupDisplay: function(field) {
+        var display,
+            config = this.currentTemplate().config,
+            customFields = this.currentTemplate().customFields;
+
+        if (!config || !config.customFieldGroups) return false;
+
+        var group = config.customFieldGroups[field.name]
+        if (!group) return false;
+
+        console.log("here is the field", field)
+
+        if (field.value) {
+            display = "block";
+        } else {
+            display = "none";
+        };
+
+        _.each(group, function(g) {
+            var fieldNames = [g];
+
+            if (g[0] === "*") {
+                fieldNames =  _.filter(_.keys(customFields), function(name) {
+                    return name.match(g.substring(1));
+                });
+                console.log("heres the field match", fieldNames)
+            };
+
+            _.each(fieldNames, function(fn) {
+                var f = customFields[fn];
+
+                if (f) {
+                    f.display = display;
+                    this.handleCustomFieldUpdate(fn, f);
+                }
+
+            }.bind(this))
+
+        }.bind(this));
     },
 
     removeCustomField: function(fieldName) {
@@ -65,6 +108,8 @@ TemplateMixin = {
                 var isDisabled = _.include(disabledFields, name);
 
                 field.header = header;
+
+                field.display = field.display || "block";
 
                 if (customFields[name] && customFields[name].value) {
                     fieldValue = customFields[name].value;
@@ -284,7 +329,9 @@ TemplateMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.groupedTemplate || this.state.templates[this.state.templateIndex],
             prevTemplate = prevState.groupedTemplate || prevState.templates[prevState.templateIndex],
-            prevAllCustomFields = prevState.allCustomFields;
+            prevAllCustomFields = prevState.allCustomFields,
+            switchedCustomFields = template && prevTemplate && template.customFields && template.id != prevTemplate.id,
+            firstCustomFields = template && template.customFields && !prevTemplate;
 
         if (template && prevTemplate && template.id != prevTemplate.id || template && !prevTemplate) {
             var allCustomFields = _.extend(
@@ -293,6 +340,12 @@ TemplateMixin = {
             );
             this.cursors.allCustomFields.set(allCustomFields);
             this.fetchTemplateAndSetState(prevTemplate);
+        };
+
+        if (switchedCustomFields || firstCustomFields) {
+            _.each(template.customFields, function(field) {
+                this.setFieldGroupDisplay(field);
+            }.bind(this));
         };
 
         if (this.state.sources != prevState.sources) {
@@ -341,6 +394,7 @@ TemplateMixin = {
             }
 
             this.cursors.groupedTemplate.set(groupedTemplate);
+
         };
 
         //if (this.state.templates && !prevState.templates)

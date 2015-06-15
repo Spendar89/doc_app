@@ -9,7 +9,7 @@ var DocInput = React.createClass({
         } else {
             field.value = e.target.value;
         };
-        this.props.updateField(this.props.fieldName, field);
+        this.props.onCustomFieldUpdate(this.props.fieldName, field);
     },
 
     renderDocOption: function(value, i) {
@@ -123,9 +123,13 @@ var DocInput = React.createClass({
     },
 
     render: function() {
-        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ";
+        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ",
+            fieldDisplay = this.props.field.display,
+            inputStyle = {display: fieldDisplay};
+
+        
         return (
-            <div className={this.validationClass() + gridClass + this.customMethodClass()}>
+            <div style={inputStyle} className={this.validationClass() + gridClass + this.customMethodClass()}>
                 {this.renderInput()}
             </div>
         );

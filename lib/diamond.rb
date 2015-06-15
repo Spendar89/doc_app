@@ -98,16 +98,19 @@ class Diamond
   def get_program_terms(program_description)
     results = []
     @client.execute(
-      "SELECT DISTINCT Program.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-                    FROM [#{@db_name}].dbo.Program 
-                    INNER JOIN [#{@db_name}].dbo.ProgramCourse
-                    ON [#{@db_name}].dbo.Program.ProgramNo = [#{@db_name}].dbo.ProgramCourse.ProgramNo 
-                    INNER JOIN [#{@db_name}].dbo.CourseOffering 
-                    ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
-                    INNER JOIN [#{@db_name}].dbo.Term 
-                    ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
-                    WHERE TermEndDate >= '#{Date.today.to_s}' 
-                    AND ProgramDescription = '#{program_description}'"
+      "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+                    FROM [#{@db_name}].dbo.Term 
+                    WHERE TermEndDate >= '#{Date.today.to_s}'"
+      #"SELECT DISTINCT Program.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+                    #FROM [#{@db_name}].dbo.Program 
+                    #INNER JOIN [#{@db_name}].dbo.ProgramCourse
+                    #ON [#{@db_name}].dbo.Program.ProgramNo = [#{@db_name}].dbo.ProgramCourse.ProgramNo 
+                    #INNER JOIN [#{@db_name}].dbo.CourseOffering 
+                    #ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
+                    #INNER JOIN [#{@db_name}].dbo.Term 
+                    #ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
+                    #WHERE TermEndDate >= '#{Date.today.to_s}' 
+                    #AND ProgramDescription = '#{program_description}'"
     )
     .each { |r| 
       results << r 

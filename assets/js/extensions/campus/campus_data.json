@@ -9,6 +9,33 @@
     },
 
     {
+        "SCI Name": "Brownsville",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Brownsville",
+        "SCI Zip": "20005"
+    },
+
+    {
+        "SCI Name": "Corpus Christi",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Corpus Christy",
+        "SCI Zip": "20005"
+    },
+
+    {
+        "SCI Name": "Harlingen",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Harlingen",
+        "SCI Zip": "20005"
+    },
+
+    {
         "SCI Name": "Pharr",
         "SCI Phone": "301-893-4929",
         "SCI Fax": "701-800-9000",

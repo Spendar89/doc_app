@@ -19,7 +19,7 @@ var DocForm = React.createClass({
                     <div key={fieldName}>
                         {this.renderDocInputHeader(field)}
                         <DocInput field={field} 
-                                  updateField={this.props.updateCustomField} 
+                                  onCustomFieldUpdate={this.props.onCustomFieldUpdate} 
                                   fieldName={fieldName} />
                     </div>
                 );
@@ -29,7 +29,7 @@ var DocForm = React.createClass({
 
     renderDocInputHeader: function (field) {
         if (field.header) {
-            return <h2 className="doc-input-header col-sm-12"><small>{field.header}</small></h2>
+            return <h2 style={{display: field.display}} className="doc-input-header col-sm-12"><small>{field.header}</small></h2>
         }
     },
 

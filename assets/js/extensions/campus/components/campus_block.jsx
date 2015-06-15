@@ -7,14 +7,16 @@ var CampusBlock = React.createClass({
     render: function() {
         return (
             <div>
-                <p><i>Select a campus from the provided options:</i></p>
+                <i>
+                    <p>Select a campus from the provided options (Disabled when lead has already been selected):</p>
+                </i>
 
                 <div className="form-group">
                     <label className="control-label">Campus</label>
                     <select className="form-control" 
-                            disabled={!this.props.campuses}
+                            disabled={!this.props.campuses || this.props.query.campus || this.props.query.vId}
                             onChange={this.props.onCampusIndexChange} 
-                            selected={this.props.campusIndex}>
+                            value={this.props.campusIndex} >
                         {_.map(this.props.campuses, this.renderCampusOption)}
                     </select>
                 </div>

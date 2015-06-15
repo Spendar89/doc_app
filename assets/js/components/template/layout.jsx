@@ -365,6 +365,7 @@ var TemplateLayout = React.createClass({
         var campusBlock = <CampusBlock  templateLoading={this.state.templateLoading} 
             onCampusIndexChange={this.handleCampusIndexChange}
             campusIndex={this.state.extensions.campusIndex} 
+            query={this.props.query}
             campuses={this.state.extensions.campuses} />;
 
         var templateBlock = <TemplateBlock  packageName={this.packageData.name}
@@ -433,7 +434,7 @@ var TemplateLayout = React.createClass({
                                 <DocForm    
                                     template={this.currentTemplate()}
                                     groupedTemplateIds={this.currentGroupedTemplateIds()}
-                                    updateCustomField={this.updateCustomField} 
+                                    onCustomFieldUpdate={this.handleCustomFieldUpdate} 
                                     removeCustomField={this.removeCustomField}
                                     onSignature={this.handleRecipientSignature}
                                     onSignatureReminder={this.handleRecipientSignatureReminder}

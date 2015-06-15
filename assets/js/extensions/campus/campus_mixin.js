@@ -26,34 +26,24 @@ module.exports = {
     },
 
     componentDidUpdate: function(prevProps, prevState) {
-        var campusIndex = this.state.extensions.campusIndex;
+        var campusIndex = this.state.extensions.campusIndex,
+            queryCampus = this.props.query.campus,
+            campuses = this.state.extensions.campuses,
+            campus = this.state.sources.campus;
 
-        if (!this.props.query.campus && campusIndex != prevState.extensions.campusIndex) {
+        if (campusIndex != prevState.extensions.campusIndex) {
             console.log("new campus Index!", campusIndex)
             var campus = this.state.extensions.campuses[campusIndex];
             this.cursors.sources.set("campus", campus);
         };
 
-        if (this.props.query.campus && this.state.sources.campus && this.props.query.campus != this.state.sources.campus["SCI Name"]) {
-            _.each(this.state.extensions.campuses, function(campus, i) {
-                if (campus["SCI Name"] === this.props.query.campus) {
-                    console.log("changing campus index from query 2")
-                    var campus = CAMPUS_DATA[i];
-                    this.cursors.extensions.set("campusIndex", i);
-                    return this.cursors.sources.set("campus", campus);
+        if (queryCampus && campus && queryCampus != campus["SCI Name"]) {
+            _.each(campuses, function(c, i) {
+                if (c["SCI Name"] === queryCampus) {
+                    return this.cursors.extensions.set("campusIndex", i);
                 };
             }.bind(this));
         };
-
-        //if (this.props.query.campus != prevProps.query.campus) {
-            //_.each(this.state.extensions.campuses, function(campus, i) {
-                //if (campus["SCI Name"] === this.props.query.campus) {
-                    //console.log("changing campus index from query")
-                    //return this.cursors.extensions.set("campusIndex", i);
-                //}
-            //}.bind(this))
-        //};
-
 
     }
 };

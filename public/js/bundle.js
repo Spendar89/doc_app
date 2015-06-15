@@ -117,7 +117,7 @@ var DocForm = React.createClass({displayName: "DocForm",
                     React.createElement("div", {key: fieldName}, 
                         this.renderDocInputHeader(field), 
                         React.createElement(DocInput, {field: field, 
-                                  updateField: this.props.updateCustomField, 
+                                  onCustomFieldUpdate: this.props.onCustomFieldUpdate, 
                                   fieldName: fieldName})
                     )
                 );
@@ -127,7 +127,7 @@ var DocForm = React.createClass({displayName: "DocForm",
 
     renderDocInputHeader: function (field) {
         if (field.header) {
-            return React.createElement("h2", {className: "doc-input-header col-sm-12"}, React.createElement("small", null, field.header))
+            return React.createElement("h2", {style: {display: field.display}, className: "doc-input-header col-sm-12"}, React.createElement("small", null, field.header))
         }
     },
 
@@ -390,7 +390,7 @@ var DocInput = React.createClass({displayName: "DocInput",
         } else {
             field.value = e.target.value;
         };
-        this.props.updateField(this.props.fieldName, field);
+        this.props.onCustomFieldUpdate(this.props.fieldName, field);
     },
 
     renderDocOption: function(value, i) {
@@ -504,9 +504,13 @@ var DocInput = React.createClass({displayName: "DocInput",
     },
 
     render: function() {
-        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ";
+        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ",
+            fieldDisplay = this.props.field.display,
+            inputStyle = {display: fieldDisplay};
+
+        
         return (
-            React.createElement("div", {className: this.validationClass() + gridClass + this.customMethodClass()}, 
+            React.createElement("div", {style: inputStyle, className: this.validationClass() + gridClass + this.customMethodClass()}, 
                 this.renderInput()
             )
         );
@@ -886,6 +890,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
         var campusBlock = React.createElement(CampusBlock, {templateLoading: this.state.templateLoading, 
             onCampusIndexChange: this.handleCampusIndexChange, 
             campusIndex: this.state.extensions.campusIndex, 
+            query: this.props.query, 
             campuses: this.state.extensions.campuses});
 
         var templateBlock = React.createElement(TemplateBlock, {packageName: this.packageData.name, 
@@ -954,7 +959,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                                 React.createElement(DocForm, {
                                     template: this.currentTemplate(), 
                                     groupedTemplateIds: this.currentGroupedTemplateIds(), 
-                                    updateCustomField: this.updateCustomField, 
+                                    onCustomFieldUpdate: this.handleCustomFieldUpdate, 
                                     removeCustomField: this.removeCustomField, 
                                     onSignature: this.handleRecipientSignature, 
                                     onSignatureReminder: this.handleRecipientSignatureReminder, 
@@ -1463,6 +1468,33 @@ module.exports=[
     },
 
     {
+        "SCI Name": "Brownsville",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Brownsville",
+        "SCI Zip": "20005"
+    },
+
+    {
+        "SCI Name": "Corpus Christi",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Corpus Christy",
+        "SCI Zip": "20005"
+    },
+
+    {
+        "SCI Name": "Harlingen",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Harlingen",
+        "SCI Zip": "20005"
+    },
+
+    {
         "SCI Name": "Pharr",
         "SCI Phone": "301-893-4929",
         "SCI Fax": "701-800-9000",
@@ -1501,34 +1533,24 @@ module.exports = {
     },
 
     componentDidUpdate: function(prevProps, prevState) {
-        var campusIndex = this.state.extensions.campusIndex;
+        var campusIndex = this.state.extensions.campusIndex,
+            queryCampus = this.props.query.campus,
+            campuses = this.state.extensions.campuses,
+            campus = this.state.sources.campus;
 
-        if (!this.props.query.campus && campusIndex != prevState.extensions.campusIndex) {
+        if (campusIndex != prevState.extensions.campusIndex) {
             console.log("new campus Index!", campusIndex)
             var campus = this.state.extensions.campuses[campusIndex];
             this.cursors.sources.set("campus", campus);
         };
 
-        if (this.props.query.campus && this.state.sources.campus && this.props.query.campus != this.state.sources.campus["SCI Name"]) {
-            _.each(this.state.extensions.campuses, function(campus, i) {
-                if (campus["SCI Name"] === this.props.query.campus) {
-                    console.log("changing campus index from query 2")
-                    var campus = CAMPUS_DATA[i];
-                    this.cursors.extensions.set("campusIndex", i);
-                    return this.cursors.sources.set("campus", campus);
+        if (queryCampus && campus && queryCampus != campus["SCI Name"]) {
+            _.each(campuses, function(c, i) {
+                if (c["SCI Name"] === queryCampus) {
+                    return this.cursors.extensions.set("campusIndex", i);
                 };
             }.bind(this));
         };
-
-        //if (this.props.query.campus != prevProps.query.campus) {
-            //_.each(this.state.extensions.campuses, function(campus, i) {
-                //if (campus["SCI Name"] === this.props.query.campus) {
-                    //console.log("changing campus index from query")
-                    //return this.cursors.extensions.set("campusIndex", i);
-                //}
-            //}.bind(this))
-        //};
-
 
     }
 };
@@ -1544,14 +1566,16 @@ var CampusBlock = React.createClass({displayName: "CampusBlock",
     render: function() {
         return (
             React.createElement("div", null, 
-                React.createElement("p", null, React.createElement("i", null, "Select a campus from the provided options:")), 
+                React.createElement("i", null, 
+                    React.createElement("p", null, "Select a campus from the provided options (Disabled when lead has already been selected):")
+                ), 
 
                 React.createElement("div", {className: "form-group"}, 
                     React.createElement("label", {className: "control-label"}, "Campus"), 
                     React.createElement("select", {className: "form-control", 
-                            disabled: !this.props.campuses, 
+                            disabled: !this.props.campuses || this.props.query.campus || this.props.query.vId, 
                             onChange: this.props.onCampusIndexChange, 
-                            selected: this.props.campusIndex}, 
+                            value: this.props.campusIndex}, 
                         _.map(this.props.campuses, this.renderCampusOption)
                     )
                 )
@@ -2831,6 +2855,19 @@ module.exports={
                     "Previous Street 1": "Previous Address 1",
                     "Previous Street 2": "Previous Address 2",
                     "Previous Street 3": "Previous Address 3"
+                },
+                "customFieldGroups": {
+                    "I have the following criminal conviction": [
+                        "Nature of Offense",
+                        "Date Charged",
+                        "Location of Court",
+                        "Penalty or Punishment(s) Imposed",
+                        "Terms or Conditions of Any Current Sentence, Probation, or Parole ",
+                        "Probation Officer Name",
+                        "Probation Officer Phone",
+                        "Description of Offense",
+                        "Terms or Conditions of Any Current Sentence, Probation, or Parole"
+                    ]
                 }
 
             },
@@ -2841,6 +2878,19 @@ module.exports={
                     "Previous Street 1": "Previous Address 1",
                     "Previous Street 2": "Previous Address 2",
                     "Previous Street 3": "Previous Address 3"
+                },
+                "customFieldGroups": {
+                    "I have the following criminal conviction": [
+                        "Nature of Offense",
+                        "Date Charged",
+                        "Location of Court",
+                        "Penalty or Punishment(s) Imposed",
+                        "Terms or Conditions of Any Current Sentence, Probation, or Parole ",
+                        "Probation Officer Name",
+                        "Probation Officer Phone",
+                        "Description of Offense",
+                        "Terms or Conditions of Any Current Sentence, Probation, or Parole"
+                    ]
                 }
 
             },
@@ -2871,11 +2921,13 @@ module.exports={
                     "Date Attended From": "High School Dates"
                 }
 
+
+
             },
 
             "Access to Educational Records and Student Information": {
                 "headers": {
-                    "Contact 1": "Authorized Contacts"
+                    "Contact 1": "People to release your information to:"
                 }
             },
 
@@ -2911,7 +2963,15 @@ module.exports={
                     "Original Program Length (Hrs)": "Credit/Price Adjustments (School Official)",
                     "I certify that all information provided by the student has been evaluated and that the student will not receive credit": "Statement (School Official)",
                     "School Official Name": "Additional Information (School Official)",
-                    "I Will Receive Credit": "I have discussed the above evaluation of my previous education and training with the authorized school official and acknowledge that:"
+                    "I Will Receive Credit": "I have discussed the above evaluation of my previous education and training with the authorized school official and acknowledge that:",
+                    "I Received A Post-Secondary Education": "Check the Following Box if you Have Received a Post-Secondary Education, such as College or Technical School"
+                },
+                "customFieldGroups": {
+                    "I Received A Post-Secondary Education": [
+                        "*College",
+                        "*Technical",
+                        "*Other"
+                    ]
                 }
             }
         },
@@ -3147,7 +3207,7 @@ TemplateMixin = {
 
     packageData: EA_PACKAGE_DATA,
 
-    updateCustomField: function(fieldName, field) {
+    handleCustomFieldUpdate: function(fieldName, field) {
         this.cursors.templates.set([
             this.state.templateIndex,
             "customFields",
@@ -3158,6 +3218,49 @@ TemplateMixin = {
 
         // TODO: Decouple lead logic from template logic.
         this.setLeadPending(fieldName, field.value);
+
+        this.setFieldGroupDisplay(field);
+    },
+
+    setFieldGroupDisplay: function(field) {
+        var display,
+            config = this.currentTemplate().config,
+            customFields = this.currentTemplate().customFields;
+
+        if (!config || !config.customFieldGroups) return false;
+
+        var group = config.customFieldGroups[field.name]
+        if (!group) return false;
+
+        console.log("here is the field", field)
+
+        if (field.value) {
+            display = "block";
+        } else {
+            display = "none";
+        };
+
+        _.each(group, function(g) {
+            var fieldNames = [g];
+
+            if (g[0] === "*") {
+                fieldNames =  _.filter(_.keys(customFields), function(name) {
+                    return name.match(g.substring(1));
+                });
+                console.log("heres the field match", fieldNames)
+            };
+
+            _.each(fieldNames, function(fn) {
+                var f = customFields[fn];
+
+                if (f) {
+                    f.display = display;
+                    this.handleCustomFieldUpdate(fn, f);
+                }
+
+            }.bind(this))
+
+        }.bind(this));
     },
 
     removeCustomField: function(fieldName) {
@@ -3196,6 +3299,8 @@ TemplateMixin = {
                 var isDisabled = _.include(disabledFields, name);
 
                 field.header = header;
+
+                field.display = field.display || "block";
 
                 if (customFields[name] && customFields[name].value) {
                     fieldValue = customFields[name].value;
@@ -3415,7 +3520,9 @@ TemplateMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var template = this.state.groupedTemplate || this.state.templates[this.state.templateIndex],
             prevTemplate = prevState.groupedTemplate || prevState.templates[prevState.templateIndex],
-            prevAllCustomFields = prevState.allCustomFields;
+            prevAllCustomFields = prevState.allCustomFields,
+            switchedCustomFields = template && prevTemplate && template.customFields && template.id != prevTemplate.id,
+            firstCustomFields = template && template.customFields && !prevTemplate;
 
         if (template && prevTemplate && template.id != prevTemplate.id || template && !prevTemplate) {
             var allCustomFields = _.extend(
@@ -3424,6 +3531,12 @@ TemplateMixin = {
             );
             this.cursors.allCustomFields.set(allCustomFields);
             this.fetchTemplateAndSetState(prevTemplate);
+        };
+
+        if (switchedCustomFields || firstCustomFields) {
+            _.each(template.customFields, function(field) {
+                this.setFieldGroupDisplay(field);
+            }.bind(this));
         };
 
         if (this.state.sources != prevState.sources) {
@@ -3472,6 +3585,7 @@ TemplateMixin = {
             }
 
             this.cursors.groupedTemplate.set(groupedTemplate);
+
         };
 
         //if (this.state.templates && !prevState.templates)
