@@ -21,8 +21,11 @@ var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.
 var ProgramMixin = require('./../../extensions/program/program_mixin.js'),
     ProgramBlock = require('./../../extensions/program/components/program_block.jsx');
 
+var CampusMixin = require('./../../extensions/campus/campus_mixin.js'),
+    CampusBlock = require('./../../extensions/campus/components/campus_block.jsx');
+
 var TemplateLayout = React.createClass({
-    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin, HelpersMixin],
+    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin, CampusMixin, HelpersMixin],
 
     contextTypes: {
         router: React.PropTypes.func
@@ -160,13 +163,17 @@ var TemplateLayout = React.createClass({
                 url = '/leads?phone='
             }
             return $.get(url + phone, function (data) {
+                //var leads = _.select(data, function(d) {
+                    //return d["college/campus_of_interest"] === this.state.sources.campus["SCI Name"];
+                //}.bind(this));
                 return callback(data)
-            });
+            }.bind(this));
         };
 
         //TODO: Move fetchLeads to leadsController...
         this.setState({isLeadsSearching: true, leads: []});
-        fetchLeads(phone, isEmail, function (data) {
+
+        fetchLeads.call(this, phone, isEmail, function (data) {
             //TODO: Move to cursor...
             this.setState({
                 isLeadsSearching: false,
@@ -224,6 +231,14 @@ var TemplateLayout = React.createClass({
     handleProgramTermIndexChange: function(e) {
         var index = e.target.value;
         this.cursors.extensions.set("programTermIndex", index);
+    },
+
+    handleCampusIndexChange: function(e) {
+        var index = e.target.value;
+        if (!this.props.query.campus) {
+            console.log("changing campus index")
+            this.cursors.extensions.set("campusIndex", index);
+        }
     },
 
     fetchRecipientSignatureUrl: function(recipient, templateId, callback) {
@@ -346,6 +361,11 @@ var TemplateLayout = React.createClass({
             programTermIndex={this.state.extensions.programTermIndex} 
             programTerms={this.state.extensions.programTerms}
             programs={this.state.extensions.programs} />;
+            
+        var campusBlock = <CampusBlock  templateLoading={this.state.templateLoading} 
+            onCampusIndexChange={this.handleCampusIndexChange}
+            campusIndex={this.state.extensions.campusIndex} 
+            campuses={this.state.extensions.campuses} />;
 
         var templateBlock = <TemplateBlock  packageName={this.packageData.name}
                                             template={template}
@@ -440,8 +460,10 @@ var TemplateLayout = React.createClass({
                 var rightDiv = function(cols) {
                     return (
                         <div className={"col-sm-"+ cols +" right-div"}>
+                            <SharedBlock blockBody={campusBlock} 
+                                blockHeader={"Campus"} />
                             <SharedBlock blockBody={programBlock} 
-                                blockHeader={"Current Program"} />
+                                blockHeader={"Program"} />
                             <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
                             <LeadDocsBlock  lead={this.state.extensions.lead} 
                                 onDocClick={this.handleDocClick}

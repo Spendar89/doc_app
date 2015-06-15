@@ -3,19 +3,10 @@ var PROGRAM_DATA = require('./program_data.json');
 var parseTerm = function(term, index) {
     var beginDate = term["TermBeginDate"],
         endDate = term["TermEndDate"];
-        //termId = term["TermID"];
 
     term["TermBeginDate"] = new Date(beginDate).toLocaleDateString();
     term["TermEndDate"] = new Date(endDate).toLocaleDateString();
 
-    //var t = {
-        //"StartDate": startDate,
-        //"GradDate": gradDate,
-        //"TermID": termId,
-        //index: index
-    //};
-
-    //return t;
     return term;
 };
 
@@ -96,6 +87,6 @@ var ProgramMixin = {
             this.cursors.sources.set("programTerm", programTerm);
         }
     }
-}
+};
 
 module.exports = ProgramMixin;

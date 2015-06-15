@@ -1,0 +1,19 @@
+[
+    {
+        "SCI Name": "Austin",
+        "SCI Phone": "202-255-4618",
+        "SCI Fax": "202-320-4323",
+        "SCI Address": "2100 Mass Ave",
+        "SCI City": "Austin",
+        "SCI Zip": "20005"
+    },
+
+    {
+        "SCI Name": "Pharr",
+        "SCI Phone": "301-893-4929",
+        "SCI Fax": "701-800-9000",
+        "SCI Address": "4101 21st St",
+        "SCI City": "Pharr",
+        "SCI Zip": "80201"
+    }
+]
