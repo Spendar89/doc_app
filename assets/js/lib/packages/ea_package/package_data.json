@@ -34,7 +34,8 @@
                     "Previous Street 3": "Previous Address 3"
                 },
                 "customFieldGroups": {
-                    "I have the following criminal conviction": [
+                    "leader": "I have the following criminal conviction",
+                    "fieldNames": [
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -45,8 +46,8 @@
                         "Description of Offense",
                         "Terms or Conditions of Any Current Sentence, Probation, or Parole"
                     ]
-                }
 
+                }
             },
             "Criminal Background Check Authorization": {
                 "headers": {
@@ -57,7 +58,8 @@
                     "Previous Street 3": "Previous Address 3"
                 },
                 "customFieldGroups": {
-                    "I have the following criminal conviction": [
+                    "leader": "I have the following criminal conviction",
+                    "fieldNames": [
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -68,6 +70,7 @@
                         "Description of Offense",
                         "Terms or Conditions of Any Current Sentence, Probation, or Parole"
                     ]
+
                 }
 
             },
@@ -144,7 +147,8 @@
                     "I Received A Post-Secondary Education": "Check the Following Box if you Have Received a Post-Secondary Education, such as College or Technical School"
                 },
                 "customFieldGroups": {
-                    "I Received A Post-Secondary Education": [
+                    "leader": "I Received A Post-Secondary Education",
+                    "fieldNames": [
                         "*College",
                         "*Technical",
                         "*Other"
@@ -223,6 +227,32 @@
             "Subject 1": "Subject 1",
             "Subject 2": "Subject 2",
             "Subject 3": "Subject 3"
+        },
+
+        "customFieldGroups": {
+            "I Received A Post-Secondary Education": {
+                "leader": "I Received A Post-Secondary Education",
+                "fieldNames": [
+                    "*College",
+                    "*Technical",
+                    "*Other"
+                ]
+            },
+            "I have the following criminal conviction": {
+                "leader": "I have the following criminal conviction",
+                "fieldNames": [
+                    "Nature of Offense",
+                    "Date Charged",
+                    "Location of Court",
+                    "Penalty or Punishment(s) Imposed",
+                    "Terms or Conditions of Any Current Sentence, Probation, or Parole ",
+                    "Probation Officer Name",
+                    "Probation Officer Phone",
+                    "Description of Offense",
+                    "Terms or Conditions of Any Current Sentence, Probation, or Parole"
+                    ]
+
+            }
         }
     }
 }

@@ -31,15 +31,15 @@ TemplateMixin = {
         this.setFieldGroupDisplay(field);
     },
 
-    setFieldGroupDisplay: function(field) {
+    setFieldGroupDisplay: function(field, template) {
         var display,
-            config = this.currentTemplate().config,
-            customFields = this.currentTemplate().customFields;
+            template = template || this.currentTemplate(),
+            config = this.packageData.config,
+            customFields = template.customFields;
 
-        if (!config || !config.customFieldGroups) return false;
+        if (!config || !config.customFieldGroups || !config.customFieldGroups[field.name]) return false;
 
-        var group = config.customFieldGroups[field.name]
-        if (!group) return false;
+        var fieldNames = config.customFieldGroups[field.name].fieldNames;
 
         console.log("here is the field", field)
 
@@ -49,27 +49,29 @@ TemplateMixin = {
             display = "none";
         };
 
-        _.each(group, function(g) {
-            var fieldNames = [g];
+        _.each(fieldNames, function(fieldName) {
+            var fieldNameMatches;
 
-            if (g[0] === "*") {
-                fieldNames =  _.filter(_.keys(customFields), function(name) {
-                    return name.match(g.substring(1));
+            if (fieldName[0] === "*") {
+                fieldNameMatches =  _.filter(_.keys(customFields), function(name) {
+                    return name.match(fieldName.substring(1));
                 });
-                console.log("heres the field match", fieldNames)
+                console.log("heres the field match", fieldNameMatches)
+            } else {
+                fieldNameMatches = [fieldName];
             };
 
-            _.each(fieldNames, function(fn) {
-                var f = customFields[fn];
+            _.each(fieldNameMatches, function(fieldNameMatch) {
+                var field = _.extend(customFields[fieldNameMatch], {});
 
-                if (f) {
-                    f.display = display;
-                    this.handleCustomFieldUpdate(fn, f);
+                if (field) {
+                    field.display = display;
+                    this.handleCustomFieldUpdate(fieldNameMatch, field);
                 }
-
-            }.bind(this))
-
+            }.bind(this));
         }.bind(this));
+
+        return customFields;
     },
 
     removeCustomField: function(fieldName) {
@@ -109,7 +111,21 @@ TemplateMixin = {
 
                 field.header = header;
 
-                field.display = field.display || "block";
+                var fieldGroup = config.customFieldGroups;
+
+                var isInFieldGroup = fieldGroup && _.any(fieldGroup.fieldNames, function(fieldName) {
+                    if (fieldName[0] === "*") {
+                        return name.match(fieldName.substring(1))
+                    };
+                    return name === fieldName;
+                });
+
+                if (isInFieldGroup) {
+                    var leader = fieldGroup.leader,
+                        leaderValue = template.customFields[leader].value;
+
+                    field.display = leaderValue ? "block" : "none";
+                };
 
                 if (customFields[name] && customFields[name].value) {
                     fieldValue = customFields[name].value;
@@ -342,11 +358,11 @@ TemplateMixin = {
             this.fetchTemplateAndSetState(prevTemplate);
         };
 
-        if (switchedCustomFields || firstCustomFields) {
-            _.each(template.customFields, function(field) {
-                this.setFieldGroupDisplay(field);
-            }.bind(this));
-        };
+        //if (switchedCustomFields || firstCustomFields) {
+            //_.each(template.customFields, function(field) {
+                //this.setFieldGroupDisplay(field);
+            //}.bind(this));
+        //};
 
         if (this.state.sources != prevState.sources) {
             this._refreshCustomFields();

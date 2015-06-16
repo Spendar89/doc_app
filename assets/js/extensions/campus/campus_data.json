@@ -1,46 +1,57 @@
 [
     {
         "SCI Name": "Austin",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
+        "SCI Fax": "512-265-0203",
+        "SCI Address": "2301 S. Congress Ave.",
         "SCI City": "Austin",
-        "SCI Zip": "20005"
+        "SCI Zip": "78704"
     },
 
     {
         "SCI Name": "Brownsville",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
+        "SCI Fax": "956-215-7109",
+        "SCI Address": "935 N Expressway",
         "SCI City": "Brownsville",
-        "SCI Zip": "20005"
+        "SCI Zip": "78523"
     },
 
     {
         "SCI Name": "Corpus Christi",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
-        "SCI City": "Corpus Christy",
-        "SCI Zip": "20005"
+        "SCI Fax": "361-214-1727",
+        "SCI Address": "2422 Airline Rd.",
+        "SCI City": "Corpus Christi",
+        "SCI Zip": "78414"
+    },
+
+    {
+        "SCI Name": "San Antonio North",
+        "SCI Fax": "210-802-2226",
+        "SCI Address": "6963 NW Loop 410",
+        "SCI City": "San Antonio",
+        "SCI Zip": "78238"
+    },
+
+    {
+        "SCI Name": "San Antonio South",
+        "SCI Fax": "210-802-2230",
+        "SCI Address": "238 SW Military Dr. Ste 101",
+        "SCI City": "San Antonio",
+        "SCI Zip": "78221"
     },
 
     {
         "SCI Name": "Harlingen",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
+        "SCI Fax": "956-215-7113",
+        "SCI Address": "1122 Morgan Blvd.",
         "SCI City": "Harlingen",
-        "SCI Zip": "20005"
+        "SCI Zip": "78550"
     },
 
     {
         "SCI Name": "Pharr",
-        "SCI Phone": "301-893-4929",
-        "SCI Fax": "701-800-9000",
-        "SCI Address": "4101 21st St",
+        "SCI Fax": "956-215-7108",
+        "SCI Address": "1500 N. Jackson Rd.",
         "SCI City": "Pharr",
-        "SCI Zip": "80201"
+        "SCI Zip": "78577"
     }
 ]

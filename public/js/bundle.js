@@ -1460,47 +1460,58 @@ module.exports = TemplateController;
 module.exports=[
     {
         "SCI Name": "Austin",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
+        "SCI Fax": "512-265-0203",
+        "SCI Address": "2301 S. Congress Ave.",
         "SCI City": "Austin",
-        "SCI Zip": "20005"
+        "SCI Zip": "78704"
     },
 
     {
         "SCI Name": "Brownsville",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
+        "SCI Fax": "956-215-7109",
+        "SCI Address": "935 N Expressway",
         "SCI City": "Brownsville",
-        "SCI Zip": "20005"
+        "SCI Zip": "78523"
     },
 
     {
         "SCI Name": "Corpus Christi",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
-        "SCI City": "Corpus Christy",
-        "SCI Zip": "20005"
+        "SCI Fax": "361-214-1727",
+        "SCI Address": "2422 Airline Rd.",
+        "SCI City": "Corpus Christi",
+        "SCI Zip": "78414"
+    },
+
+    {
+        "SCI Name": "San Antonio North",
+        "SCI Fax": "210-802-2226",
+        "SCI Address": "6963 NW Loop 410",
+        "SCI City": "San Antonio",
+        "SCI Zip": "78238"
+    },
+
+    {
+        "SCI Name": "San Antonio South",
+        "SCI Fax": "210-802-2230",
+        "SCI Address": "238 SW Military Dr. Ste 101",
+        "SCI City": "San Antonio",
+        "SCI Zip": "78221"
     },
 
     {
         "SCI Name": "Harlingen",
-        "SCI Phone": "202-255-4618",
-        "SCI Fax": "202-320-4323",
-        "SCI Address": "2100 Mass Ave",
+        "SCI Fax": "956-215-7113",
+        "SCI Address": "1122 Morgan Blvd.",
         "SCI City": "Harlingen",
-        "SCI Zip": "20005"
+        "SCI Zip": "78550"
     },
 
     {
         "SCI Name": "Pharr",
-        "SCI Phone": "301-893-4929",
-        "SCI Fax": "701-800-9000",
-        "SCI Address": "4101 21st St",
+        "SCI Fax": "956-215-7108",
+        "SCI Address": "1500 N. Jackson Rd.",
         "SCI City": "Pharr",
-        "SCI Zip": "80201"
+        "SCI Zip": "78577"
     }
 ]
 
@@ -2857,7 +2868,8 @@ module.exports={
                     "Previous Street 3": "Previous Address 3"
                 },
                 "customFieldGroups": {
-                    "I have the following criminal conviction": [
+                    "leader": "I have the following criminal conviction",
+                    "fieldNames": [
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -2868,8 +2880,8 @@ module.exports={
                         "Description of Offense",
                         "Terms or Conditions of Any Current Sentence, Probation, or Parole"
                     ]
-                }
 
+                }
             },
             "Criminal Background Check Authorization": {
                 "headers": {
@@ -2880,7 +2892,8 @@ module.exports={
                     "Previous Street 3": "Previous Address 3"
                 },
                 "customFieldGroups": {
-                    "I have the following criminal conviction": [
+                    "leader": "I have the following criminal conviction",
+                    "fieldNames": [
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -2891,6 +2904,7 @@ module.exports={
                         "Description of Offense",
                         "Terms or Conditions of Any Current Sentence, Probation, or Parole"
                     ]
+
                 }
 
             },
@@ -2967,7 +2981,8 @@ module.exports={
                     "I Received A Post-Secondary Education": "Check the Following Box if you Have Received a Post-Secondary Education, such as College or Technical School"
                 },
                 "customFieldGroups": {
-                    "I Received A Post-Secondary Education": [
+                    "leader": "I Received A Post-Secondary Education",
+                    "fieldNames": [
                         "*College",
                         "*Technical",
                         "*Other"
@@ -3046,6 +3061,32 @@ module.exports={
             "Subject 1": "Subject 1",
             "Subject 2": "Subject 2",
             "Subject 3": "Subject 3"
+        },
+
+        "customFieldGroups": {
+            "I Received A Post-Secondary Education": {
+                "leader": "I Received A Post-Secondary Education",
+                "fieldNames": [
+                    "*College",
+                    "*Technical",
+                    "*Other"
+                ]
+            },
+            "I have the following criminal conviction": {
+                "leader": "I have the following criminal conviction",
+                "fieldNames": [
+                    "Nature of Offense",
+                    "Date Charged",
+                    "Location of Court",
+                    "Penalty or Punishment(s) Imposed",
+                    "Terms or Conditions of Any Current Sentence, Probation, or Parole ",
+                    "Probation Officer Name",
+                    "Probation Officer Phone",
+                    "Description of Offense",
+                    "Terms or Conditions of Any Current Sentence, Probation, or Parole"
+                    ]
+
+            }
         }
     }
 }
@@ -3222,15 +3263,15 @@ TemplateMixin = {
         this.setFieldGroupDisplay(field);
     },
 
-    setFieldGroupDisplay: function(field) {
+    setFieldGroupDisplay: function(field, template) {
         var display,
-            config = this.currentTemplate().config,
-            customFields = this.currentTemplate().customFields;
+            template = template || this.currentTemplate(),
+            config = this.packageData.config,
+            customFields = template.customFields;
 
-        if (!config || !config.customFieldGroups) return false;
+        if (!config || !config.customFieldGroups || !config.customFieldGroups[field.name]) return false;
 
-        var group = config.customFieldGroups[field.name]
-        if (!group) return false;
+        var fieldNames = config.customFieldGroups[field.name].fieldNames;
 
         console.log("here is the field", field)
 
@@ -3240,27 +3281,29 @@ TemplateMixin = {
             display = "none";
         };
 
-        _.each(group, function(g) {
-            var fieldNames = [g];
+        _.each(fieldNames, function(fieldName) {
+            var fieldNameMatches;
 
-            if (g[0] === "*") {
-                fieldNames =  _.filter(_.keys(customFields), function(name) {
-                    return name.match(g.substring(1));
+            if (fieldName[0] === "*") {
+                fieldNameMatches =  _.filter(_.keys(customFields), function(name) {
+                    return name.match(fieldName.substring(1));
                 });
-                console.log("heres the field match", fieldNames)
+                console.log("heres the field match", fieldNameMatches)
+            } else {
+                fieldNameMatches = [fieldName];
             };
 
-            _.each(fieldNames, function(fn) {
-                var f = customFields[fn];
+            _.each(fieldNameMatches, function(fieldNameMatch) {
+                var field = _.extend(customFields[fieldNameMatch], {});
 
-                if (f) {
-                    f.display = display;
-                    this.handleCustomFieldUpdate(fn, f);
+                if (field) {
+                    field.display = display;
+                    this.handleCustomFieldUpdate(fieldNameMatch, field);
                 }
-
-            }.bind(this))
-
+            }.bind(this));
         }.bind(this));
+
+        return customFields;
     },
 
     removeCustomField: function(fieldName) {
@@ -3300,7 +3343,21 @@ TemplateMixin = {
 
                 field.header = header;
 
-                field.display = field.display || "block";
+                var fieldGroup = config.customFieldGroups;
+
+                var isInFieldGroup = fieldGroup && _.any(fieldGroup.fieldNames, function(fieldName) {
+                    if (fieldName[0] === "*") {
+                        return name.match(fieldName.substring(1))
+                    };
+                    return name === fieldName;
+                });
+
+                if (isInFieldGroup) {
+                    var leader = fieldGroup.leader,
+                        leaderValue = template.customFields[leader].value;
+
+                    field.display = leaderValue ? "block" : "none";
+                };
 
                 if (customFields[name] && customFields[name].value) {
                     fieldValue = customFields[name].value;
@@ -3533,11 +3590,11 @@ TemplateMixin = {
             this.fetchTemplateAndSetState(prevTemplate);
         };
 
-        if (switchedCustomFields || firstCustomFields) {
-            _.each(template.customFields, function(field) {
-                this.setFieldGroupDisplay(field);
-            }.bind(this));
-        };
+        //if (switchedCustomFields || firstCustomFields) {
+            //_.each(template.customFields, function(field) {
+                //this.setFieldGroupDisplay(field);
+            //}.bind(this));
+        //};
 
         if (this.state.sources != prevState.sources) {
             this._refreshCustomFields();
