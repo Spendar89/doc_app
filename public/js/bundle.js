@@ -111,8 +111,11 @@ var DocForm = React.createClass({displayName: "DocForm",
         var template = this.props.template,
             customFields = template && template.customFields;
 
+            customFields = customFields && _.sortBy(customFields, "index");
+
         return _.map(
-            customFields, function (field, fieldName) {
+            customFields, function (field) {
+                var fieldName = field.name;
                 return (
                     React.createElement("div", {key: fieldName}, 
                         this.renderDocInputHeader(field), 
@@ -150,7 +153,7 @@ var DocForm = React.createClass({displayName: "DocForm",
         });
 
         if (!validRecipients) {
-            errs.push("Recipient fields are still blank")
+            errs.push("Recipient fields must contain valid name and email address")
         };
 
         if (!validFields) {
@@ -3010,7 +3013,10 @@ module.exports={
             "Date of Birth": "date",
             "SSN": "password",
             "Evening": "checkbox",
-            "Morning": "checkbox"
+            "Morning": "checkbox",
+            "Date Attended From": "date",
+            "Date Attended To": "date",
+            "Graduation Date": "date"
         },
 
         "optionalFields": [
@@ -3209,7 +3215,9 @@ var HelpersMixin = {
         });
 
         groupedTemplate.roles = _.uniq(groupedTemplate.roles);
-        groupedTemplate.recipients = RecipientsManager.getRecipientsByTemplate(groupedTemplate, this.state.groupedTemplate, true);
+
+        groupedTemplate.recipients = RecipientsManager
+            .getRecipientsByTemplate(groupedTemplate, this.state.groupedTemplate, true);
 
         return groupedTemplate.customFields && _.extend({}, groupedTemplate);
     },
@@ -3323,9 +3331,9 @@ TemplateMixin = {
             config = _.merge(this.packageData.config, template.config),
             fields = {};
 
-        async.each(
+        _.each(
             _.keys(template.customFields),
-            function(name, callback) {
+            function(name, i) {
                 var fieldValue,
                     field = template.customFields[name],
                     header = config.headers[field.name],
@@ -3343,6 +3351,8 @@ TemplateMixin = {
 
                 field.header = header;
 
+                field.index = i;
+
                 var fieldGroup = config.customFieldGroups;
 
                 var isInFieldGroup = fieldGroup && _.any(fieldGroup.fieldNames, function(fieldName) {
@@ -3354,9 +3364,11 @@ TemplateMixin = {
 
                 if (isInFieldGroup) {
                     var leader = fieldGroup.leader,
-                        leaderValue = template.customFields[leader].value;
+                        customField = template.customFields[leader];
 
-                    field.display = leaderValue ? "block" : "none";
+                    if (customField) {
+                        field.display = customField.value ? "block" : "none";
+                    }
                 };
 
                 if (customFields[name] && customFields[name].value) {
@@ -3378,12 +3390,12 @@ TemplateMixin = {
                 });
 
                 callback && callback(null);
-            },
-            function(err) {
-                template.customFields = fields;
-                callback && callback(err, template);
-            }.bind(this)
+            }
         );
+
+        template.customFields = fields;
+
+        callback && callback(null, template);
     },
 
 
@@ -3529,12 +3541,13 @@ TemplateMixin = {
     isRecipientsValid: function(opts) {
         var opts = opts || {},
             template = this.currentTemplate(),
-            recipients = template.recipients;
+            recipients = template.recipients,
+            emailRegEx = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i; 
 
         return _.every(recipients, function(r) {
             if (opts.auth) return r.authorized;
 
-            return !_.isEmpty(r.email) && !_.isEmpty(r.name)
+            return !_.isEmpty(r.email)  && emailRegEx.test(r.email) && !_.isEmpty(r.name) 
         });
     },
 
@@ -3590,12 +3603,6 @@ TemplateMixin = {
             this.fetchTemplateAndSetState(prevTemplate);
         };
 
-        //if (switchedCustomFields || firstCustomFields) {
-            //_.each(template.customFields, function(field) {
-                //this.setFieldGroupDisplay(field);
-            //}.bind(this));
-        //};
-
         if (this.state.sources != prevState.sources) {
             this._refreshCustomFields();
         };
@@ -3611,7 +3618,10 @@ TemplateMixin = {
 
         // Templates loaded for first time:
         if (this.state.templates[0] && !prevState.templates[0]) {
-            //console.log("templates loaded", this.state.templates);
+            var templates = _.sortBy(this.state.templates, function(t) {
+                return t.title.match("Primary Agreement");
+            });
+            this.cursors.templates.set(templates);
         };
 
         if (this.state.groupTemplates != prevState.groupTemplates) {
@@ -3645,7 +3655,6 @@ TemplateMixin = {
 
         };
 
-        //if (this.state.templates && !prevState.templates)
     }
 };
 

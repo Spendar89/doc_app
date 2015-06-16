@@ -33,7 +33,9 @@ var HelpersMixin = {
         });
 
         groupedTemplate.roles = _.uniq(groupedTemplate.roles);
-        groupedTemplate.recipients = RecipientsManager.getRecipientsByTemplate(groupedTemplate, this.state.groupedTemplate, true);
+
+        groupedTemplate.recipients = RecipientsManager
+            .getRecipientsByTemplate(groupedTemplate, this.state.groupedTemplate, true);
 
         return groupedTemplate.customFields && _.extend({}, groupedTemplate);
     },

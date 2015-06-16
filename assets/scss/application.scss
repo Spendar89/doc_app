@@ -359,7 +359,7 @@ td {
             }
             .doc-input {
                 &.invalid input {
-                    border-color: #ffcfcf !important;
+                    border-color: $red !important;
                 }
                 &.custom-method label {
                     color: #2e6da4;

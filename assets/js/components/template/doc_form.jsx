@@ -13,8 +13,11 @@ var DocForm = React.createClass({
         var template = this.props.template,
             customFields = template && template.customFields;
 
+            customFields = customFields && _.sortBy(customFields, "index");
+
         return _.map(
-            customFields, function (field, fieldName) {
+            customFields, function (field) {
+                var fieldName = field.name;
                 return (
                     <div key={fieldName}>
                         {this.renderDocInputHeader(field)}
@@ -52,7 +55,7 @@ var DocForm = React.createClass({
         });
 
         if (!validRecipients) {
-            errs.push("Recipient fields are still blank")
+            errs.push("Recipient fields must contain valid name and email address")
         };
 
         if (!validFields) {

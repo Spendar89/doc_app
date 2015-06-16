@@ -294,7 +294,7 @@ td {
       .doc-form-div .doc-form-inner-div .doc-form .doc-form-inputs {
         padding-bottom: 100px; }
       .doc-form-div .doc-form-inner-div .doc-form .doc-input.invalid input {
-        border-color: #ffcfcf !important; }
+        border-color: #d9534f !important; }
       .doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {
         color: #2e6da4; }
     .doc-form-div .doc-form-inner-div .signatures-block .signatures-header {

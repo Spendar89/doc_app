@@ -176,7 +176,10 @@
             "Date of Birth": "date",
             "SSN": "password",
             "Evening": "checkbox",
-            "Morning": "checkbox"
+            "Morning": "checkbox",
+            "Date Attended From": "date",
+            "Date Attended To": "date",
+            "Graduation Date": "date"
         },
 
         "optionalFields": [
