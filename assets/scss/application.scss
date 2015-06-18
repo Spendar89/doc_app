@@ -4,7 +4,7 @@ $blue: #337ab7;
 $red: #d9534f;
 
 body {
-    background: #EEEEEE;
+    background: #fafafa;
     font-family: 'Roboto', sans-serif !important;
     a {
       cursor: pointer; 
@@ -18,35 +18,36 @@ body {
 }
 
 .group-templates-div {
+  font-weight: bold !important;
   margin-top: 22px;
     input[type='checkbox'] {
       height: 10px;
       width: 10px;
+      -webkit-appearance: none;
+      border: 3px solid rgba(0, 0, 0, 0.26);
+      border-radius: 3px;
+      outline: none !important;
+      &:checked {
         -webkit-appearance: none;
-        border-radius: 2px;
-        border: 1px solid;
-        outline: none !important;
-        &:checked {
-          -webkit-appearance:none;
-          background: rgba(0,0,0,0.54);
-        }
+        background: rgb(98, 185, 247);
+        border: 3px solid rgb(98, 185, 247);
+      }
       &.group-templates-input {
         font-size: 50px;
         width: 20px;
         height: 20px;
-
       }
 
     }
 
   }
   .group-templates-checkbox {
-    color: rgba(0,0,0,0.54);
+    text-transform: uppercase;
     label {
       b{
         margin-left: 15px;
-        line-height: 29px;
-        font-weight: lighter;
+        line-height: 30px;
+        font-size: 16px;
       }
     }
 }
@@ -56,8 +57,9 @@ body {
   margin-left: 15px;
 }
 
-.validation-error-header, .validation-error {
-  color: $red;
+.validation-error {
+  font-size: 14px;
+  /*color: $red;*/
 }
 .template-layout {
     height: 100%;
@@ -139,9 +141,10 @@ td {
 }
 .block-div {
     background: white;
-    box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.2);
+    /*box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.2);*/
+    box-shadow: rgba(0,0,0,.2)0 2px 6px 0;
     margin-top: 15px;
-    border-radius: 2px;
+    border-radius: 0px;
     /* padding: 0; */
     margin-bottom: 15px;
     overflow: hidden;
@@ -155,11 +158,12 @@ td {
         /* color: white; */
         border-bottom: 1px solid #edecec;
         .control-label {
-            color: rgba(0, 0, 0, 0.87);
-            font-weight: lighter;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
+          color: rgba(0, 0, 0, 0.56);
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+          font-weight: 900;
+          font-size: 16px;
         }
     }
     .block-description {
@@ -167,29 +171,6 @@ td {
     }
     .block-body {
         padding-top: 15px;
-        /* padding: 15px 15px 0px 15px; */
-        /* font-size: 12px !important; */
-        /* overflow: scroll; */
-        /* height: 93%; */
-        /* position: relative; */
-        /* overflow-x: hidden; */
-        /* width: 100%; */
-        /* padding-bottom: 30px; */
-    }
-    &.with-table .block-body {
-        /* overflow-x: hidden; */
-        /* padding: 0; */
-        /* overflow: scroll; */
-        /* height: 93%; */
-        /* position: absolute; */
-        /* overflow-x: hidden; */
-        /* width: 100%; */
-        .block-body-top {
-            /*padding: 15px 15px 0px 15px;*/
-        }
-        td {
-            /*padding-left: 15px !important;*/
-        }
     }
 }
 #leadDocsBlock {
@@ -284,7 +265,16 @@ td {
     white-space: nowrap;
     overflow: hidden;
     &.btn-default {
-      color: rgba(0, 0, 0, 0.54);
+      color: rgba(0, 0, 0, 0.56);
+      border: none;
+      background-color: rgb(244, 244, 244);
+      border-radius: 3px;
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.28);
+      &:hover {
+        background-color: #D0D0D0;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+        color: white;
+      }
     }
     &.btn-remove {
       background: transparent;
@@ -316,8 +306,8 @@ td {
         margin-top: 15px;
         min-height: 650px;
         background: white;
-        box-shadow: 0px 0px 2px 1px rgba(153, 153, 153, 0.2);
-        border-radius: 2px;
+        box-shadow: rgba(0,0,0,.2)0 2px 6px 0;
+        border-radius: 0px;
         .doc-form-header-div {
             color: rgba(0, 0, 0, 0.54);
             padding: 15px;
@@ -328,21 +318,27 @@ td {
                 background: #ffdfdf;
             }
             .btn-default {
-              color: rgba(0, 0, 0, 0.87);
+              color: white;
+              background-color: #1e73be;
+              box-shadow: 0 0 2px rgba(0, 0, 0, 0.28);
+              border: none;
+              border-radius: 3px;
+              text-transform: uppercase;
+              font-weight: 800;
+              padding: 11px 12px 11px 0px;
+              font-size: 11px;
+              &:hover {
+                background-color: #0E4A80;
+              }
             }
         }
         .doc-form-header {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          color: rgba(0, 0, 0, 0.87);
-          margin-top: 25px;
-          font-weight: lighter;
-            /* margin: 0px; */
-            /* padding: 15px; */
-            /*text-overflow: ellipsis;*/
-            /*white-space: nowrap;*/
-            /*overflow: hidden;*/
+          /*margin-top: 29px;*/
+          font-weight: 800; 
+          font-size: 20px;
         }
         .doc-form {
             /* border-top: none; */
@@ -359,7 +355,8 @@ td {
             }
             .doc-input {
                 &.invalid input {
-                    border-color: $red !important;
+                  border-color: rgba(255, 178, 174, 0.73) !important;
+                  border: 1px solid;
                 }
                 &.custom-method label {
                     color: #2e6da4;
@@ -393,7 +390,8 @@ td {
 }
 .navbar-default {
     /* height: 50px; */
-    background: #EEEEEE;
+    background: transparent;
+    border-radius: 0;
     color: rgba(0, 0, 0, 0.54);
     font-weight: lighter;
     /* border: none; */
@@ -483,7 +481,6 @@ td {
     }
     h5 {
       line-height: 17px;
-      font-weight: lighter;
     }
 }
 /*# sourceMappingURL=application.css.map */
