@@ -1,4 +1,5 @@
 require 'tiny_tds'
+require './lib/app_cache'
 
 class Diamond
   attr_accessor :client, :errors
@@ -95,26 +96,36 @@ class Diamond
     ).do
   end
 
-  def get_program_terms(program_description)
+  def get_program_terms(program_description, refresh=false)
+    ap = AppCache.new
+
+    unless refresh
+      cached = ap.get "terms"
+      return cached if cached.any?
+    end
+
     results = []
+
     @client.execute(
       "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-                    FROM [#{@db_name}].dbo.Term 
-                    WHERE TermEndDate >= '#{Date.today.to_s}'"
-      #"SELECT DISTINCT Program.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-                    #FROM [#{@db_name}].dbo.Program 
-                    #INNER JOIN [#{@db_name}].dbo.ProgramCourse
-                    #ON [#{@db_name}].dbo.Program.ProgramNo = [#{@db_name}].dbo.ProgramCourse.ProgramNo 
-                    #INNER JOIN [#{@db_name}].dbo.CourseOffering 
-                    #ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
-                    #INNER JOIN [#{@db_name}].dbo.Term 
-                    #ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
-                    #WHERE TermEndDate >= '#{Date.today.to_s}' 
-                    #AND ProgramDescription = '#{program_description}'"
-    )
-    .each { |r| 
-      results << r 
-    }
+       FROM [#{@db_name}].dbo.Term 
+       WHERE TermEndDate >= '#{Date.today.to_s}'"
+    ).each { |r| results << r }
+
+    ap.set "terms", results
+
     results
   end
 end
+
+#Old Program Terms:
+#"SELECT DISTINCT Program.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+#FROM [#{@db_name}].dbo.Program 
+#INNER JOIN [#{@db_name}].dbo.ProgramCourse
+#ON [#{@db_name}].dbo.Program.ProgramNo = [#{@db_name}].dbo.ProgramCourse.ProgramNo 
+#INNER JOIN [#{@db_name}].dbo.CourseOffering 
+#ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
+#INNER JOIN [#{@db_name}].dbo.Term 
+#ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
+#WHERE TermEndDate >= '#{Date.today.to_s}' 
+#AND ProgramDescription = '#{program_description}'"

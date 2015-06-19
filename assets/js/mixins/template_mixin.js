@@ -178,8 +178,12 @@ TemplateMixin = {
     },
 
     fetchTemplatesAndSetState: function() {
-        var controller = setTemplateController.call(this);
-        controller.getTemplates(function(err, templates) {
+        var controller = setTemplateController.call(this),
+            opts = {};
+
+        opts.refresh = this.props.query.refreshTemplates;
+
+        controller.getTemplates(opts, function(err, templates) {
             if (err) {
                 return this.setState({
                     docError: err

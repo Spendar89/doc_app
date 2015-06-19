@@ -40,14 +40,18 @@ TemplateController.prototype = {
 
     },
 
-    getTemplates: function(callback) {
+    getTemplates: function(options, callback) {
         var path = '/templates',
-            url = buildUrl(path);
+            url = buildUrl(path),
+            refresh = options && options.refresh;
 
         this.loaderFn("templates", "Loading Templates");
 
         request
             .get(url)
+            .query({
+                refresh: refresh 
+            })
             .end(
                 function(err, res) {
                     var body = res && res.body;

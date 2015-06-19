@@ -7,7 +7,7 @@
         "templates": {
             "Primary Agreement (With Parent/Guardian)": {
                 "headers": {
-                    "Weeks": "Program Data",
+                    "Weeks": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
@@ -17,7 +17,7 @@
             },
             "Primary Agreement": {
                 "headers": {
-                    "Weeks": "Program Data",
+                    "Weeks": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
@@ -36,6 +36,10 @@
                 "customFieldGroups": {
                     "leader": "I have the following criminal conviction",
                     "fieldNames": [
+                        "*Previous Street",
+                        "*Previous City",
+                        "*Previous Zip",
+                        "*Previous State",
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -60,6 +64,10 @@
                 "customFieldGroups": {
                     "leader": "I have the following criminal conviction",
                     "fieldNames": [
+                        "*Previous Street",
+                        "*Previous City",
+                        "*Previous Zip",
+                        "*Previous State",
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -151,7 +159,8 @@
                     "fieldNames": [
                         "*College",
                         "*Technical",
-                        "*Other"
+                        "*Other",
+                        "Previous Training"
                     ]
                 }
             }
@@ -183,12 +192,9 @@
         },
 
         "optionalFields": [
-            "Address 2",
-            "City 2",
-            "State 2",
-            "Zip 2",
             "PhoneOther",
             "PhoneMobile",
+            "MName",
             "OtherFees",
             "Credits",
             "*Probation",
@@ -206,13 +212,13 @@
             "*School Official",
             "*Total",
             "*Hrs",
-            "*SCI",
             "*2",
             "*3",
             "*Previous",
             "*- College",
             "*- Technical",
-            "*- Other"
+            "*- Other",
+            "*Certificate,"
         ],
 
         "disabledFields": [
@@ -238,12 +244,17 @@
                 "fieldNames": [
                     "*College",
                     "*Technical",
-                    "*Other"
+                    "*Other",
+                    "Previous Training"
                 ]
             },
             "I have the following criminal conviction": {
                 "leader": "I have the following criminal conviction",
                 "fieldNames": [
+                    "*Previous Street",
+                    "*Previous City",
+                    "*Previous Zip",
+                    "*Previous State",
                     "Nature of Offense",
                     "Date Charged",
                     "Location of Court",

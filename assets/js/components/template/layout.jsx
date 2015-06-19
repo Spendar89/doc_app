@@ -461,11 +461,11 @@ var TemplateLayout = React.createClass({
                 var rightDiv = function(cols) {
                     return (
                         <div className={"col-sm-"+ cols +" right-div"}>
+                            <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
                             <SharedBlock blockBody={campusBlock} 
                                 blockHeader={"Campus"} />
                             <SharedBlock blockBody={programBlock} 
                                 blockHeader={"Program"} />
-                            <SharedBlock blockBody={renderLeadBlock()} blockHeader={"Lead"} />
                             <LeadDocsBlock  lead={this.state.extensions.lead} 
                                 onDocClick={this.handleDocClick}
                                 onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}

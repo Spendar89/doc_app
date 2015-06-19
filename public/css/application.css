@@ -10,20 +10,31 @@ body {
   padding-right: 15px;
   padding-left: 15px; }
 
+.checkbox label {
+  /*color: #81C2FC !important;*/
+  line-height: 20px; }
+.checkbox input[type='checkbox'] {
+  transition: background .1s ease-in-out;
+  cursor: pointer;
+  min-height: 10px;
+  min-width: 10px;
+  -webkit-appearance: none;
+  border: 3px solid #1e73be;
+  border-radius: 3px;
+  outline: none !important; }
+  .checkbox input[type='checkbox']:checked {
+    -webkit-appearance: none;
+    background: #1e73be; }
+
 .group-templates-div {
   font-weight: bold !important;
   margin-top: 22px; }
   .group-templates-div input[type='checkbox'] {
-    height: 10px;
-    width: 10px;
+    min-height: 10px;
+    min-width: 10px;
     -webkit-appearance: none;
-    border: 3px solid rgba(0, 0, 0, 0.26);
     border-radius: 3px;
     outline: none !important; }
-    .group-templates-div input[type='checkbox']:checked {
-      -webkit-appearance: none;
-      background: #62b9f7;
-      border: 3px solid #62b9f7; }
     .group-templates-div input[type='checkbox'].group-templates-input {
       font-size: 50px;
       width: 20px;
@@ -201,41 +212,31 @@ td {
     margin: 0px; }
 
 .app-template-div {
-  /* width: 100%; */
-  /* position: absolute; */
-  /* overflow: hidden; */
-  /* height: 100%; */
   padding: 0;
   padding-bottom: 15px; }
-  .app-template-div .app-template-inner {
-    /*padding-top: 50px;*/
-    /* height: 100%; */ }
 
 .btn {
-  border-radius: 0;
-  /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
   text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden; }
+  overflow: hidden;
+  border: none; }
   .btn.btn-default {
     color: rgba(0, 0, 0, 0.56);
     border: none;
     background-color: #f4f4f4;
     border-radius: 3px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.28); }
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.2); }
     .btn.btn-default:hover {
       background-color: #D0D0D0;
-      box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.66);
       color: white; }
   .btn.btn-remove {
     background: transparent;
     color: #d9534f;
-    border: none;
     padding: 0px; }
   .btn.btn-icon {
     background: transparent;
     color: #337ab7;
-    border: none;
     padding: 0px; }
 
 .cycle-templates-div .cycle-btn-div {
@@ -257,8 +258,7 @@ td {
       color: rgba(0, 0, 0, 0.54);
       padding: 15px;
       border-bottom: 1px solid #edecec;
-      border-radius: 2px 2px 0px 0px;
-      /* overflow: hidden; */ }
+      border-radius: 2px 2px 0px 0px; }
       .doc-form-div .doc-form-inner-div .doc-form-header-div.doc-error {
         background: #ffdfdf; }
       .doc-form-div .doc-form-inner-div .doc-form-header-div .btn-default {
@@ -277,25 +277,22 @@ td {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      /*margin-top: 29px;*/
       font-weight: 800;
       font-size: 20px; }
-    .doc-form-div .doc-form-inner-div .doc-form {
-      /* border-top: none; */
-      /* height: 93%; */
-      /* padding: 15px; */
-      /* padding-bottom: 0; */
-      /* padding-top: 0; */ }
-      .doc-form-div .doc-form-inner-div .doc-form label {
-        color: rgba(0, 0, 0, 0.54) !important;
-        font-weight: normal; }
-      .doc-form-div .doc-form-inner-div .doc-form .doc-form-inputs {
-        padding-bottom: 100px; }
-      .doc-form-div .doc-form-inner-div .doc-form .doc-input.invalid input {
-        border-color: rgba(255, 178, 174, 0.73) !important;
-        border: 1px solid; }
-      .doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {
-        color: #2e6da4; }
+    .doc-form-div .doc-form-inner-div .doc-form .empty-fields-div {
+      text-align: center;
+      margin-top: 200px;
+      color: rgba(0, 0, 0, 0.26); }
+    .doc-form-div .doc-form-inner-div .doc-form label {
+      color: rgba(0, 0, 0, 0.54) !important;
+      font-weight: normal; }
+    .doc-form-div .doc-form-inner-div .doc-form .doc-form-inputs {
+      padding-bottom: 100px; }
+    .doc-form-div .doc-form-inner-div .doc-form .doc-input.invalid input {
+      border-color: rgba(255, 178, 174, 0.73) !important;
+      border: 1px solid; }
+    .doc-form-div .doc-form-inner-div .doc-form .doc-input.custom-method label {
+      color: #2e6da4; }
     .doc-form-div .doc-form-inner-div .signatures-block .signatures-header {
       color: rgba(0, 0, 0, 0.54);
       text-align: center;

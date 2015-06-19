@@ -157,22 +157,29 @@ end
 
 get '/terms' do
   content_type :json
+
   d = Diamond.new(params[:campus])
   program_description = params[:program_description]
-  return d.get_program_terms(program_description).to_json
+
+  d.get_program_terms(program_description).to_json
 end
 
 get '/templates/:template_id' do
   content_type :json
+
   @document = Document.new({}, params[:template_id])
   doc_maker = DocMaker.new(@document)
-  return doc_maker.get_template.to_json
+
+  doc_maker.get_template.to_json
 end
 
 get '/templates' do 
   content_type :json
+
+  refresh = params[:refresh] === "true"
+
   dm = DocMaker.new
-  dm.get_templates.to_json
+  dm.get_templates(refresh).to_json
 end
 
 get '/leads' do

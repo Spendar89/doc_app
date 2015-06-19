@@ -111,7 +111,15 @@ var DocForm = React.createClass({displayName: "DocForm",
         var template = this.props.template,
             customFields = template && template.customFields;
 
-            customFields = customFields && _.sortBy(customFields, "index");
+        customFields = customFields && _.sortBy(customFields, "index");
+
+        if (_.isEmpty(customFields)) {
+            return (
+                React.createElement("h2", {className: "empty-fields-div"}, 
+                    "This document does not have any fields, yet still requires a signature."
+                )
+            );
+        };
 
         return _.map(
             customFields, function (field) {
@@ -317,10 +325,6 @@ var DocForm = React.createClass({displayName: "DocForm",
         //}
         var template = this.props.template;
 
-        if (this.props.validationErrors[0]) {
-            console.log("ValidationErrors", this.props.validationErrors);
-        };
-
         var renderSignaturesBlock = function() {
             return (
                 React.createElement("div", {className: "signatures-block-div"}, 
@@ -347,7 +351,6 @@ var DocForm = React.createClass({displayName: "DocForm",
                                         this.renderSubmit()
                                     )
                             )
-                            
                         )
                             : (
                                 React.createElement("div", null, 
@@ -989,11 +992,11 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                 var rightDiv = function(cols) {
                     return (
                         React.createElement("div", {className: "col-sm-"+ cols +" right-div"}, 
+                            React.createElement(SharedBlock, {blockBody: renderLeadBlock(), blockHeader: "Lead"}), 
                             React.createElement(SharedBlock, {blockBody: campusBlock, 
                                 blockHeader: "Campus"}), 
                             React.createElement(SharedBlock, {blockBody: programBlock, 
                                 blockHeader: "Program"}), 
-                            React.createElement(SharedBlock, {blockBody: renderLeadBlock(), blockHeader: "Lead"}), 
                             React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
                                 onDocClick: this.handleDocClick, 
                                 onSearch: this.fetchDocsAndSetState.bind(this, this.state.docsEmail), 
@@ -1415,14 +1418,18 @@ TemplateController.prototype = {
 
     },
 
-    getTemplates: function(callback) {
+    getTemplates: function(options, callback) {
         var path = '/templates',
-            url = buildUrl(path);
+            url = buildUrl(path),
+            refresh = options && options.refresh;
 
         this.loaderFn("templates", "Loading Templates");
 
         request
             .get(url)
+            .query({
+                refresh: refresh 
+            })
             .end(
                 function(err, res) {
                     var body = res && res.body;
@@ -2330,9 +2337,9 @@ module.exports = ProgramBlock;
 
 
 },{}],24:[function(require,module,exports){
-module.exports=[
-    {
+module.exports=[{
         "ProgramName": "Administrative Assistant - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2346,18 +2353,67 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 19945,
-        "NumberEnrolled": 28,
-        "NumberGrads": 13,
-        "CompletionRate": 46,
-        "NumberGradsEmployed": 10,
-        "EmploymentRate": 77,
-        "NumberGradsPlaced": 6,
-        "PlacementRate": 46.15,
-        "ReportYear": 2013
+        "campusData": {
+            "Austin": {
+                "NumberEnrolled": 28,
+                "NumberGrads": 13,
+                "CompletionRate": 46,
+                "NumberGradsEmployed": 10,
+                "EmploymentRate": 77,
+                "NumberGradsPlaced": 6,
+                "PlacementRate": 46.15
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 15,
+                "NumberGrads": 8,
+                "CompletionRate": 53.33,
+                "NumberGradsEmployed": 4,
+                "EmploymentRate": 57.14,
+                "NumberGradsPlaced": 2,
+                "PlacementRate": 28.57
+            },
+            "Harlingen": {
+                "NumberEnrolled": 28,
+                "NumberGrads": 20,
+                "CompletionRate": 71.43,
+                "NumberGradsEmployed": 20,
+                "EmploymentRate": 100,
+                "NumberGradsPlaced": 12,
+                "PlacementRate": 60
+            },
+            "Pharr": {
+                "NumberEnrolled": 13,
+                "NumberGrads": 4,
+                "CompletionRate": 31,
+                "NumberGradsEmployed": 1,
+                "EmploymentRate": 25,
+                "NumberGradsPlaced": 0,
+                "PlacementRate": 0
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 7,
+                "NumberGrads": 4,
+                "CompletionRate": 57,
+                "NumberGradsEmployed": 4,
+                "EmploymentRate": 100,
+                "NumberGradsPlaced": 4,
+                "PlacementRate": 100
+            },
+            "Brownsville": {
+                "NumberEnrolled": 3,
+                "NumberGrads": 1,
+                "CompletionRate": 100,
+                "NumberGradsEmployed": 2,
+                "EmploymentRate": 67,
+                "NumberGradsPlaced": 1,
+                "PlacementRate": 33
+            }
+        }
     },
 
     {
         "ProgramName": "Administrative Assistant - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2371,18 +2427,67 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 13370,
-        "NumberEnrolled": 28,
-        "NumberGrads": 13,
-        "CompletionRate": 46,
-        "NumberGradsEmployed": 10,
-        "EmploymentRate": 77,
-        "NumberGradsPlaced": 6,
-        "PlacementRate": 46.15,
-        "ReportYear": 2013
+        "campusData": {
+            "Austin": {
+                "NumberEnrolled": 28,
+                "NumberGrads": 13,
+                "CompletionRate": 46,
+                "NumberGradsEmployed": 10,
+                "EmploymentRate": 77,
+                "NumberGradsPlaced": 6,
+                "PlacementRate": 46.15
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 15,
+                "NumberGrads": 8,
+                "CompletionRate": 53.33,
+                "NumberGradsEmployed": 4,
+                "EmploymentRate": 57.14,
+                "NumberGradsPlaced": 2,
+                "PlacementRate": 28.57
+            },
+            "Harlingen": {
+                "NumberEnrolled": 28,
+                "NumberGrads": 20,
+                "CompletionRate": 71.43,
+                "NumberGradsEmployed": 20,
+                "EmploymentRate": 100,
+                "NumberGradsPlaced": 12,
+                "PlacementRate": 60
+            },
+            "Pharr": {
+                "NumberEnrolled": 13,
+                "NumberGrads": 4,
+                "CompletionRate": 31,
+                "NumberGradsEmployed": 1,
+                "EmploymentRate": 25,
+                "NumberGradsPlaced": 0,
+                "PlacementRate": 0
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 7,
+                "NumberGrads": 4,
+                "CompletionRate": 57,
+                "NumberGradsEmployed": 4,
+                "EmploymentRate": 100,
+                "NumberGradsPlaced": 4,
+                "PlacementRate": 100
+            },
+            "Brownsville": {
+                "NumberEnrolled": 3,
+                "NumberGrads": 1,
+                "CompletionRate": 100,
+                "NumberGradsEmployed": 2,
+                "EmploymentRate": 67,
+                "NumberGradsPlaced": 1,
+                "PlacementRate": 33
+            }
+        }
     },
 
     {
         "ProgramName": "Business Accounting Specialist - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2396,18 +2501,76 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 15970,
-        "NumberEnrolled": 55,
-        "NumberGrads": 28,
-        "CompletionRate": 51,
-        "NumberGradsEmployed": 19,
-        "EmploymentRate": 68,
-        "NumberGradsPlaced": 16,
-        "PlacementRate": 57,
-        "ReportYear": 2013
+        "campusData": {
+            "Austin": {
+                "NumberEnrolled": 55,
+                "NumberGrads": 28,
+                "CompletionRate": 51,
+                "NumberGradsEmployed": 19,
+                "EmploymentRate": 68,
+                "NumberGradsPlaced": 16,
+                "PlacementRate": 57
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 46,
+                "NumberGrads": 25,
+                "CompletionRate": 54,
+                "NumberGradsEmployed": 1,
+                "EmploymentRate": 76,
+                "NumberGradsPlaced": 6,
+                "PlacementRate": 29
+            },
+            "San Antonio North": {
+                "NumberEnrolled": 48,
+                "NumberGrads": 18,
+                "CompletionRate": 38,
+                "NumberGradsEmployed": 8,
+                "EmploymentRate": 50,
+                "NumberGradsPlaced": 5,
+                "PlacementRate": 31
+            },
+            "Harlingen": {
+                "NumberEnrolled": 52,
+                "NumberGrads": 31,
+                "CompletionRate": 60,
+                "NumberGradsEmployed": 17,
+                "EmploymentRate": 63,
+                "NumberGradsPlaced": 10,
+                "PlacementRate": 37
+            },
+            "Pharr": {
+                "NumberEnrolled": 72,
+                "NumberGrads": 38,
+                "CompletionRate": 53,
+                "NumberGradsEmployed": 27,
+                "EmploymentRate": 77,
+                "NumberGradsPlaced": 18,
+                "PlacementRate": 51
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 53,
+                "NumberGrads": 31,
+                "CompletionRate": 58,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 68,
+                "NumberGradsPlaced": 21,
+                "PlacementRate": 68
+            },
+            "Brownsville": {
+                "NumberEnrolled": 107,
+                "NumberGrads": 67,
+                "CompletionRate": 63,
+                "NumberGradsEmployed": 41,
+                "EmploymentRate": 63,
+                "NumberGradsPlaced": 27,
+                "PlacementRate": 42
+            }
+        }
     },
 
     {
         "ProgramName": "Business Accounting Specialist - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2421,18 +2584,76 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 15970,
-        "NumberEnrolled": 55,
-        "NumberGrads": 28,
-        "CompletionRate": 51,
-        "NumberGradsEmployed": 19,
-        "EmploymentRate": 68,
-        "NumberGradsPlaced": 16,
-        "PlacementRate": 57,
-        "ReportYear": 2013
+        "campusData": {
+            "Austin": {
+                "NumberEnrolled": 55,
+                "NumberGrads": 28,
+                "CompletionRate": 51,
+                "NumberGradsEmployed": 19,
+                "EmploymentRate": 68,
+                "NumberGradsPlaced": 16,
+                "PlacementRate": 57
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 46,
+                "NumberGrads": 25,
+                "CompletionRate": 54,
+                "NumberGradsEmployed": 1,
+                "EmploymentRate": 76,
+                "NumberGradsPlaced": 6,
+                "PlacementRate": 29
+            },
+            "San Antonio North": {
+                "NumberEnrolled": 48,
+                "NumberGrads": 18,
+                "CompletionRate": 38,
+                "NumberGradsEmployed": 8,
+                "EmploymentRate": 50,
+                "NumberGradsPlaced": 5,
+                "PlacementRate": 31
+            },
+            "Harlingen": {
+                "NumberEnrolled": 52,
+                "NumberGrads": 31,
+                "CompletionRate": 60,
+                "NumberGradsEmployed": 17,
+                "EmploymentRate": 63,
+                "NumberGradsPlaced": 10,
+                "PlacementRate": 37
+            },
+            "Pharr": {
+                "NumberEnrolled": 72,
+                "NumberGrads": 38,
+                "CompletionRate": 53,
+                "NumberGradsEmployed": 27,
+                "EmploymentRate": 77,
+                "NumberGradsPlaced": 18,
+                "PlacementRate": 51
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 53,
+                "NumberGrads": 31,
+                "CompletionRate": 58,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 68,
+                "NumberGradsPlaced": 21,
+                "PlacementRate": 68
+            },
+            "Brownsville": {
+                "NumberEnrolled": 107,
+                "NumberGrads": 67,
+                "CompletionRate": 63,
+                "NumberGradsEmployed": 41,
+                "EmploymentRate": 63,
+                "NumberGradsPlaced": 27,
+                "PlacementRate": 42
+            }
+        }
     },
 
     {
         "ProgramName": "Medical Assistant - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2446,17 +2667,76 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 18920,
-        "NumberEnrolled": 256,
-        "NumberGrads": 135,
-        "CompletionRate": 53,
-        "NumberGradsEmployed": 90,
-        "EmploymentRate": 68,
-        "NumberGradsPlaced": 87,
-        "PlacementRate": 65
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 130,
+                "NumberGrads": 46,
+                "CompletionRate": 35,
+                "NumberGradsEmployed": 28,
+                "EmploymentRate": 61,
+                "NumberGradsPlaced": 26,
+                "PlacementRate": 57
+            },
+            "Austin": {
+                "NumberEnrolled": 175,
+                "NumberGrads": 83,
+                "CompletionRate": 47,
+                "NumberGradsEmployed": 60,
+                "EmploymentRate": 72,
+                "NumberGradsPlaced": 57,
+                "PlacementRate": 69
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 265,
+                "NumberGrads": 129,
+                "CompletionRate": 49,
+                "NumberGradsEmployed": 90,
+                "EmploymentRate": 73,
+                "NumberGradsPlaced": 86,
+                "PlacementRate": 69
+            },
+            "Harlingen": {
+                "NumberEnrolled": 204,
+                "NumberGrads": 141,
+                "CompletionRate": 69,
+                "NumberGradsEmployed": 99,
+                "EmploymentRate": 71,
+                "NumberGradsPlaced": 92,
+                "PlacementRate": 66
+            },
+            "Pharr": {
+                "NumberEnrolled": 198,
+                "NumberGrads": 127,
+                "CompletionRate": 64,
+                "NumberGradsEmployed": 94,
+                "EmploymentRate": 75,
+                "NumberGradsPlaced": 91,
+                "PlacementRate": 73
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 171,
+                "NumberGrads": 73,
+                "CompletionRate": 43,
+                "NumberGradsEmployed": 52,
+                "EmploymentRate": 71,
+                "NumberGradsPlaced": 52,
+                "PlacementRate": 71
+            },
+            "Brownsville": {
+                "NumberEnrolled": 155,
+                "NumberGrads": 97,
+                "CompletionRate": 63,
+                "NumberGradsEmployed": 71,
+                "EmploymentRate": 73,
+                "NumberGradsPlaced": 63,
+                "PlacementRate": 65
+            }
+        }
     },
 
     {
         "ProgramName": "Medical Assistant - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2470,17 +2750,76 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 18920,
-        "NumberEnrolled": 256,
-        "NumberGrads": 135,
-        "CompletionRate": 53,
-        "NumberGradsEmployed": 90,
-        "EmploymentRate": 68,
-        "NumberGradsPlaced": 87,
-        "PlacementRate": 65
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 130,
+                "NumberGrads": 46,
+                "CompletionRate": 35,
+                "NumberGradsEmployed": 28,
+                "EmploymentRate": 61,
+                "NumberGradsPlaced": 26,
+                "PlacementRate": 57
+            },
+            "Austin": {
+                "NumberEnrolled": 175,
+                "NumberGrads": 83,
+                "CompletionRate": 47,
+                "NumberGradsEmployed": 60,
+                "EmploymentRate": 72,
+                "NumberGradsPlaced": 57,
+                "PlacementRate": 69
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 265,
+                "NumberGrads": 129,
+                "CompletionRate": 49,
+                "NumberGradsEmployed": 90,
+                "EmploymentRate": 73,
+                "NumberGradsPlaced": 86,
+                "PlacementRate": 69
+            },
+            "Harlingen": {
+                "NumberEnrolled": 204,
+                "NumberGrads": 141,
+                "CompletionRate": 69,
+                "NumberGradsEmployed": 99,
+                "EmploymentRate": 71,
+                "NumberGradsPlaced": 92,
+                "PlacementRate": 66
+            },
+            "Pharr": {
+                "NumberEnrolled": 198,
+                "NumberGrads": 127,
+                "CompletionRate": 64,
+                "NumberGradsEmployed": 94,
+                "EmploymentRate": 75,
+                "NumberGradsPlaced": 91,
+                "PlacementRate": 73
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 171,
+                "NumberGrads": 73,
+                "CompletionRate": 43,
+                "NumberGradsEmployed": 52,
+                "EmploymentRate": 71,
+                "NumberGradsPlaced": 52,
+                "PlacementRate": 71
+            },
+            "Brownsville": {
+                "NumberEnrolled": 155,
+                "NumberGrads": 97,
+                "CompletionRate": 63,
+                "NumberGradsEmployed": 71,
+                "EmploymentRate": 73,
+                "NumberGradsPlaced": 63,
+                "PlacementRate": 65
+            }
+        }
     },
 
     {
         "ProgramName": "Medical Billing and Coding Specialist - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2494,17 +2833,76 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 16470,
-        "NumberEnrolled": 89,
-        "NumberGrads": 47,
-        "CompletionRate": 53,
-        "NumberGradsEmployed": 31,
-        "EmploymentRate": 69,
-        "NumberGradsPlaced": 28,
-        "PlacementRate": 63
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 41,
+                "NumberGrads": 22,
+                "CompletionRate": 54,
+                "NumberGradsEmployed": 10,
+                "EmploymentRate": 50,
+                "NumberGradsPlaced": 6,
+                "PlacementRate": 30
+            },
+            "Austin": {
+                "NumberEnrolled": 55,
+                "NumberGrads": 21,
+                "CompletionRate": 38,
+                "NumberGradsEmployed": 10,
+                "EmploymentRate": 50,
+                "NumberGradsPlaced": 8,
+                "PlacementRate": 40
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 85,
+                "NumberGrads": 43,
+                "CompletionRate": 51,
+                "NumberGradsEmployed": 31,
+                "EmploymentRate": 72,
+                "NumberGradsPlaced": 30,
+                "PlacementRate": 70
+            },
+            "Harlingen": {
+                "NumberEnrolled": 97,
+                "NumberGrads": 69,
+                "CompletionRate": 71,
+                "NumberGradsEmployed": 48,
+                "EmploymentRate": 70,
+                "NumberGradsPlaced": 45,
+                "PlacementRate": 65
+            },
+            "Pharr": {
+                "NumberEnrolled": 79,
+                "NumberGrads": 49,
+                "CompletionRate": 62,
+                "NumberGradsEmployed": 37,
+                "EmploymentRate": 76,
+                "NumberGradsPlaced": 33,
+                "PlacementRate": 67
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 47,
+                "NumberGrads": 28,
+                "CompletionRate": 60,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 78,
+                "NumberGradsPlaced": 20,
+                "PlacementRate": 74
+            },
+            "Brownsville": {
+                "NumberEnrolled": 55,
+                "NumberGrads": 30,
+                "CompletionRate": 55,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 70,
+                "NumberGradsPlaced": 19,
+                "PlacementRate": 63
+            }
+        }
     },
 
     {
         "ProgramName": "Medical Billing and Coding Specialist - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2518,17 +2916,76 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 16470,
-        "NumberEnrolled": 89,
-        "NumberGrads": 47,
-        "CompletionRate": 53,
-        "NumberGradsEmployed": 31,
-        "EmploymentRate": 69,
-        "NumberGradsPlaced": 28,
-        "PlacementRate": 63
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 41,
+                "NumberGrads": 22,
+                "CompletionRate": 54,
+                "NumberGradsEmployed": 10,
+                "EmploymentRate": 50,
+                "NumberGradsPlaced": 6,
+                "PlacementRate": 30
+            },
+            "Austin": {
+                "NumberEnrolled": 55,
+                "NumberGrads": 21,
+                "CompletionRate": 38,
+                "NumberGradsEmployed": 10,
+                "EmploymentRate": 50,
+                "NumberGradsPlaced": 8,
+                "PlacementRate": 40
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 85,
+                "NumberGrads": 43,
+                "CompletionRate": 51,
+                "NumberGradsEmployed": 31,
+                "EmploymentRate": 72,
+                "NumberGradsPlaced": 30,
+                "PlacementRate": 70
+            },
+            "Harlingen": {
+                "NumberEnrolled": 97,
+                "NumberGrads": 69,
+                "CompletionRate": 71,
+                "NumberGradsEmployed": 48,
+                "EmploymentRate": 70,
+                "NumberGradsPlaced": 45,
+                "PlacementRate": 65
+            },
+            "Pharr": {
+                "NumberEnrolled": 79,
+                "NumberGrads": 49,
+                "CompletionRate": 62,
+                "NumberGradsEmployed": 37,
+                "EmploymentRate": 76,
+                "NumberGradsPlaced": 33,
+                "PlacementRate": 67
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 47,
+                "NumberGrads": 28,
+                "CompletionRate": 60,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 78,
+                "NumberGradsPlaced": 20,
+                "PlacementRate": 74
+            },
+            "Brownsville": {
+                "NumberEnrolled": 55,
+                "NumberGrads": 30,
+                "CompletionRate": 55,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 70,
+                "NumberGradsPlaced": 19,
+                "PlacementRate": 63
+            }
+        }
     },
 
     {
         "ProgramName": "Medical Office Specialist - Morning",
+        "ReportYear": "2013-2014",
         "campus": "SA",
         "Morning": true,
         "Afternoon": false,
@@ -2543,17 +3000,31 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 15470,
-        "NumberEnrolled": 59,
-        "NumberGrads": 32,
-        "CompletionRate": 54,
-        "NumberGradsEmployed": 18,
-        "EmploymentRate": 62,
-        "NumberGradsPlaced": 14,
-        "PlacementRate": 48
+        "campusData": {
+            "San Antonio South": {
+                "NumberEnrolled": 46,
+                "NumberGrads": 22,
+                "CompletionRate": 48,
+                "NumberGradsEmployed": 13,
+                "EmploymentRate": 62,
+                "NumberGradsPlaced": 13,
+                "PlacementRate": 62
+            },
+            "Pharr": {
+                "NumberEnrolled": 29,
+                "NumberGrads": 20,
+                "CompletionRate": 69,
+                "NumberGradsEmployed": 12,
+                "EmploymentRate": 63,
+                "NumberGradsPlaced": 11,
+                "PlacementRate": 58
+            }
+        }
     },
 
     {
         "ProgramName": "Medical Office Specialist - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2567,17 +3038,31 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 15470,
-        "NumberEnrolled": 59,
-        "NumberGrads": 32,
-        "CompletionRate": 54,
-        "NumberGradsEmployed": 18,
-        "EmploymentRate": 62,
-        "NumberGradsPlaced": 14,
-        "PlacementRate": 48
+        "campusData": {
+            "San Antonio South": {
+                "NumberEnrolled": 46,
+                "NumberGrads": 22,
+                "CompletionRate": 48,
+                "NumberGradsEmployed": 13,
+                "EmploymentRate": 62,
+                "NumberGradsPlaced": 13,
+                "PlacementRate": 62
+            },
+            "Pharr": {
+                "NumberEnrolled": 29,
+                "NumberGrads": 20,
+                "CompletionRate": 69,
+                "NumberGradsEmployed": 12,
+                "EmploymentRate": 63,
+                "NumberGradsPlaced": 11,
+                "PlacementRate": 58
+            }
+        }
     },
 
     {
         "ProgramName": "Pharmacy Technician - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2591,17 +3076,49 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 16570,
-        "NumberEnrolled": 88,
-        "NumberGrads": 53,
-        "CompletionRate": 60,
-        "NumberGradsEmployed": 32,
-        "EmploymentRate": 60,
-        "NumberGradsPlaced": 32,
-        "PlacementRate": 60
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 87,
+                "NumberGrads": 37,
+                "CompletionRate": 42,
+                "NumberGradsEmployed": 22,
+                "EmploymentRate": 61,
+                "NumberGradsPlaced": 19,
+                "PlacementRate": 53
+            },
+            "Austin": {
+                "NumberEnrolled": 79,
+                "NumberGrads": 38,
+                "CompletionRate": 48,
+                "NumberGradsEmployed": 22,
+                "EmploymentRate": 58,
+                "NumberGradsPlaced": 20,
+                "PlacementRate": 53
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 159,
+                "NumberGrads": 88,
+                "CompletionRate": 55,
+                "NumberGradsEmployed": 51,
+                "EmploymentRate": 61,
+                "NumberGradsPlaced": 48,
+                "PlacementRate": 57
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 76,
+                "NumberGrads": 34,
+                "CompletionRate": 45,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 62,
+                "NumberGradsPlaced": 21,
+                "PlacementRate": 62
+            }
+        }
     },
 
     {
         "ProgramName": "Pharmacy Technician - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2615,18 +3132,50 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 16570,
-        "NumberEnrolled": 88,
-        "NumberGrads": 53,
-        "CompletionRate": 60,
-        "NumberGradsEmployed": 32,
-        "EmploymentRate": 60,
-        "NumberGradsPlaced": 32,
-        "PlacementRate": 60
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 87,
+                "NumberGrads": 37,
+                "CompletionRate": 42,
+                "NumberGradsEmployed": 22,
+                "EmploymentRate": 61,
+                "NumberGradsPlaced": 19,
+                "PlacementRate": 53
+            },
+            "Austin": {
+                "NumberEnrolled": 79,
+                "NumberGrads": 38,
+                "CompletionRate": 48,
+                "NumberGradsEmployed": 22,
+                "EmploymentRate": 58,
+                "NumberGradsPlaced": 20,
+                "PlacementRate": 53
+            },
+            "San Antonio South": {
+                "NumberEnrolled": 159,
+                "NumberGrads": 88,
+                "CompletionRate": 55,
+                "NumberGradsEmployed": 51,
+                "EmploymentRate": 61,
+                "NumberGradsPlaced": 48,
+                "PlacementRate": 57
+            },
+            "Corpus Christi": {
+                "NumberEnrolled": 76,
+                "NumberGrads": 34,
+                "CompletionRate": 45,
+                "NumberGradsEmployed": 21,
+                "EmploymentRate": 62,
+                "NumberGradsPlaced": 21,
+                "PlacementRate": 62
+            }
+        }
 
     },
 
     {
         "ProgramName": "Cosmetology Operator - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2651,6 +3200,7 @@ module.exports=[
 
     {
         "ProgramName": "Cosmetology Operator - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2676,6 +3226,7 @@ module.exports=[
 
     {
         "ProgramName": "HVAC - Morning",
+        "ReportYear": "2013-2014",
         "Morning": true,
         "Afternoon": false,
         "Evening": false,
@@ -2689,18 +3240,22 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 19945,
-        "NumberEnrolled": 0,
-        "NumberGrads": 0,
-        "CompletionRate": 0,
-        "NumberGradsEmployed": 0,
-        "EmploymentRate": 0,
-        "NumberGradsPlaced": 0,
-        "PlacementRate": 0
-
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 78,
+                "NumberGrads": 21,
+                "CompletionRate": 27,
+                "NumberGradsEmployed": 15,
+                "EmploymentRate": 71,
+                "NumberGradsPlaced": 1,
+                "PlacementRate": 5
+            }
+        }
     },
 
     {
         "ProgramName": "HVAC - Evening",
+        "ReportYear": "2013-2014",
         "Morning": false,
         "Afternoon": false,
         "Evening": true,
@@ -2714,13 +3269,17 @@ module.exports=[
         "Textbook": 0,
         "OtherFees": 0,
         "Total": 19945,
-        "NumberEnrolled": 0,
-        "NumberGrads": 0,
-        "CompletionRate": 0,
-        "NumberGradsEmployed": 0,
-        "EmploymentRate": 0,
-        "NumberGradsPlaced": 0,
-        "PlacementRate": 0
+        "campusData": {
+            "San Antonio North": {
+                "NumberEnrolled": 78,
+                "NumberGrads": 21,
+                "CompletionRate": 27,
+                "NumberGradsEmployed": 15,
+                "EmploymentRate": 71,
+                "NumberGradsPlaced": 1,
+                "PlacementRate": 5
+            }
+        }
     }
 ]
 
@@ -2795,24 +3354,50 @@ var ProgramMixin = {
 
     },
 
+    getProgramData: function(state) {
+        var programIndex = state.extensions.programIndex || 0,
+            programs = state.extensions.programs,
+            program = programs && programs[programIndex],
+            campus = state.sources.campus,
+            campusName = campus && campus["SCI Name"],
+            campusData = program && program.campusData;
+
+        if (campusName && campusData) {
+            campusData = campusData[campusName];
+            program = _.merge(program, campusData);
+        };
+
+        return program;
+
+    },
+
     componentDidMount: function() {
         this._fetchProgramsAndSetState();
     },
     
     componentDidUpdate: function(prevProps, prevState) {
         var programIndex = this.state.extensions.programIndex,
-            programTermIndex = this.state.extensions.programTermIndex;
+            programTermIndex = this.state.extensions.programTermIndex,
+            programData = this.getProgramData(this.state);
 
         if (programIndex != prevState.extensions.programIndex) {
-            var program = this.state.extensions.programs[programIndex]
-            this.cursors.sources.set("program", program);
             this._fetchTermsAndSetState(programIndex);
-        }
+            this.cursors.sources.set("program", programData);
+        };
+
+        if (this.state.sources.campus != prevState.sources.campus) {
+            this.cursors.sources.set("program", programData);
+        };
+
+        if (this.state.extensions.programs && !prevState.extensions.programs) {
+            this.cursors.sources.set("program", programData);
+        };
+
 
         if (programTermIndex != prevState.extensions.programTermIndex) {
             var programTerm = this.state.extensions.programTerms[programTermIndex]
             this.cursors.sources.set("programTerm", programTerm);
-        }
+        };
     }
 };
 
@@ -2846,7 +3431,7 @@ module.exports={
         "templates": {
             "Primary Agreement (With Parent/Guardian)": {
                 "headers": {
-                    "Weeks": "Program Data",
+                    "Weeks": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
@@ -2856,7 +3441,7 @@ module.exports={
             },
             "Primary Agreement": {
                 "headers": {
-                    "Weeks": "Program Data",
+                    "Weeks": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
@@ -2875,6 +3460,10 @@ module.exports={
                 "customFieldGroups": {
                     "leader": "I have the following criminal conviction",
                     "fieldNames": [
+                        "*Previous Street",
+                        "*Previous City",
+                        "*Previous Zip",
+                        "*Previous State",
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -2899,6 +3488,10 @@ module.exports={
                 "customFieldGroups": {
                     "leader": "I have the following criminal conviction",
                     "fieldNames": [
+                        "*Previous Street",
+                        "*Previous City",
+                        "*Previous Zip",
+                        "*Previous State",
                         "Nature of Offense",
                         "Date Charged",
                         "Location of Court",
@@ -2990,7 +3583,8 @@ module.exports={
                     "fieldNames": [
                         "*College",
                         "*Technical",
-                        "*Other"
+                        "*Other",
+                        "Previous Training"
                     ]
                 }
             }
@@ -3022,12 +3616,9 @@ module.exports={
         },
 
         "optionalFields": [
-            "Address 2",
-            "City 2",
-            "State 2",
-            "Zip 2",
             "PhoneOther",
             "PhoneMobile",
+            "MName",
             "OtherFees",
             "Credits",
             "*Probation",
@@ -3045,13 +3636,13 @@ module.exports={
             "*School Official",
             "*Total",
             "*Hrs",
-            "*SCI",
             "*2",
             "*3",
             "*Previous",
             "*- College",
             "*- Technical",
-            "*- Other"
+            "*- Other",
+            "*Certificate,"
         ],
 
         "disabledFields": [
@@ -3077,12 +3668,17 @@ module.exports={
                 "fieldNames": [
                     "*College",
                     "*Technical",
-                    "*Other"
+                    "*Other",
+                    "Previous Training"
                 ]
             },
             "I have the following criminal conviction": {
                 "leader": "I have the following criminal conviction",
                 "fieldNames": [
+                    "*Previous Street",
+                    "*Previous City",
+                    "*Previous Zip",
+                    "*Previous State",
                     "Nature of Offense",
                     "Date Charged",
                     "Location of Court",
@@ -3420,8 +4016,12 @@ TemplateMixin = {
     },
 
     fetchTemplatesAndSetState: function() {
-        var controller = setTemplateController.call(this);
-        controller.getTemplates(function(err, templates) {
+        var controller = setTemplateController.call(this),
+            opts = {};
+
+        opts.refresh = this.props.query.refreshTemplates;
+
+        controller.getTemplates(opts, function(err, templates) {
             if (err) {
                 return this.setState({
                     docError: err

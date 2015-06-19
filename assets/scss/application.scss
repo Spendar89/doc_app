@@ -16,22 +16,36 @@ body {
   padding-right: 15px;
   padding-left: 15px;
 }
+.checkbox {
+  label {
+    /*color: #81C2FC !important;*/
+    line-height: 20px;
+  }
+  input[type='checkbox'] {
+    transition: background .1s ease-in-out;
+    cursor: pointer;
+    min-height: 10px;
+    min-width: 10px;
+    -webkit-appearance: none;
+    border: 3px solid #1e73be;
+    border-radius: 3px;
+    outline: none !important;
+    &:checked {
+      -webkit-appearance: none;
+      background: #1e73be;
+    }
+  }
+}
 
 .group-templates-div {
   font-weight: bold !important;
   margin-top: 22px;
     input[type='checkbox'] {
-      height: 10px;
-      width: 10px;
+      min-height: 10px;
+      min-width: 10px;
       -webkit-appearance: none;
-      border: 3px solid rgba(0, 0, 0, 0.26);
       border-radius: 3px;
       outline: none !important;
-      &:checked {
-        -webkit-appearance: none;
-        background: rgb(98, 185, 247);
-        border: 3px solid rgb(98, 185, 247);
-      }
       &.group-templates-input {
         font-size: 50px;
         width: 20px;
@@ -247,45 +261,34 @@ td {
     }
 }
 .app-template-div {
-    /* width: 100%; */
-    /* position: absolute; */
-    /* overflow: hidden; */
-    /* height: 100%; */
   padding: 0;
-    padding-bottom: 15px;
-    .app-template-inner {
-        /*padding-top: 50px;*/
-        /* height: 100%; */
-    }
+  padding-bottom: 15px;
 }
 .btn {
-    border-radius: 0;
-    /*box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);*/
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    border: none;
     &.btn-default {
       color: rgba(0, 0, 0, 0.56);
       border: none;
       background-color: rgb(244, 244, 244);
       border-radius: 3px;
-      box-shadow: 0 0 2px rgba(0, 0, 0, 0.28);
+      box-shadow:0 0 2px rgba(0, 0, 0, 0.2); 
       &:hover {
         background-color: #D0D0D0;
-        box-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.66); 
         color: white;
       }
     }
     &.btn-remove {
       background: transparent;
       color: #d9534f;
-      border: none;
       padding: 0px;
     }
     &.btn-icon{
       background: transparent;
       color: $blue;
-      border: none;
       padding: 0px;
     }
 }
@@ -313,7 +316,6 @@ td {
             padding: 15px;
             border-bottom: 1px solid #edecec;
             border-radius: 2px 2px 0px 0px;
-            /* overflow: hidden; */
             &.doc-error {
                 background: #ffdfdf;
             }
@@ -336,32 +338,31 @@ td {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          /*margin-top: 29px;*/
           font-weight: 800; 
           font-size: 20px;
         }
         .doc-form {
-            /* border-top: none; */
-            /* height: 93%; */
-            /* padding: 15px; */
-            /* padding-bottom: 0; */
-            /* padding-top: 0; */
-            label {
-                color: rgba(0, 0, 0, 0.54) !important;
-                font-weight: normal;
+          .empty-fields-div {
+            text-align: center;
+            margin-top: 200px;
+            color: rgba(0, 0, 0, 0.26);
+          }
+          label {
+            color: rgba(0, 0, 0, 0.54) !important;
+            font-weight: normal;
+          }
+          .doc-form-inputs {
+            padding-bottom: 100px;
+          }
+          .doc-input {
+            &.invalid input {
+              border-color: rgba(255, 178, 174, 0.73) !important;
+              border: 1px solid;
             }
-            .doc-form-inputs {
-              padding-bottom: 100px;
+            &.custom-method label {
+              color: #2e6da4;
             }
-            .doc-input {
-                &.invalid input {
-                  border-color: rgba(255, 178, 174, 0.73) !important;
-                  border: 1px solid;
-                }
-                &.custom-method label {
-                    color: #2e6da4;
-                }
-            }
+          }
         }
         .signatures-block {
           .signatures-header {

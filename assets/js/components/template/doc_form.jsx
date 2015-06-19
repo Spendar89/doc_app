@@ -13,7 +13,15 @@ var DocForm = React.createClass({
         var template = this.props.template,
             customFields = template && template.customFields;
 
-            customFields = customFields && _.sortBy(customFields, "index");
+        customFields = customFields && _.sortBy(customFields, "index");
+
+        if (_.isEmpty(customFields)) {
+            return (
+                <h2 className="empty-fields-div">
+                    This document does not have any fields, yet still requires a signature.
+                </h2>
+            );
+        };
 
         return _.map(
             customFields, function (field) {
@@ -219,10 +227,6 @@ var DocForm = React.createClass({
         //}
         var template = this.props.template;
 
-        if (this.props.validationErrors[0]) {
-            console.log("ValidationErrors", this.props.validationErrors);
-        };
-
         var renderSignaturesBlock = function() {
             return (
                 <div className="signatures-block-div">
@@ -249,7 +253,6 @@ var DocForm = React.createClass({
                                         {this.renderSubmit()}
                                     </h3>
                             </div>
-                            
                         )
                             : (
                                 <div>
