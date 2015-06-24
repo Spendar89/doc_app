@@ -192,11 +192,20 @@ var DocForm = React.createClass({displayName: "DocForm",
             recipients: recipients,
             campus: this.props.campus
         }, function (data) {
+            console.log("Doc Data", data)
             var err = data.error,
                 doc = data.doc;
 
             this.props.onDoc(err, doc);
-        }.bind(this));
+        }.bind(this))
+        .fail(function(res) {
+            var data = res.responseJSON;
+            var err = data.error;
+
+            this.props.onDoc(err);
+        }.bind(this))
+        
+        ;
     },
 
     sendSignatureRequestReminder: function(recipient, callback, e) {
@@ -602,6 +611,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
     },
 
     handleFormError: function(err) {
+        console.log("HERE IS THE ERR", err)
         this.setState({
             docError: err,
             templateLoading: {}
@@ -2346,13 +2356,13 @@ module.exports=[{
         "Weeks": 27,
         "Terms": 8,
         "ClockHours": 142,
-        "QuarterHours": 74.5,
+        "Credits": 74.5,
         "Months": 12,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 19925,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 19945,
+        "Total": 19925,
         "campusData": {
             "Austin": {
                 "NumberEnrolled": 28,
@@ -2420,13 +2430,13 @@ module.exports=[{
         "Weeks": 39,
         "Terms": 13,
         "ClockHours": 650,
-        "QuarterHours": 46.5,
+        "Credits": 46.5,
         "Months": 9,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 13350,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 13370,
+        "Total": 13350,
         "campusData": {
             "Austin": {
                 "NumberEnrolled": 28,
@@ -2494,13 +2504,13 @@ module.exports=[{
         "Weeks": 33,
         "Terms": 11,
         "ClockHours": 806,
-        "QuarterHours": 61.5,
+        "Credits": 61.5,
         "Months": 8,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 15950,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 15970,
+        "Total": 15950,
         "campusData": {
             "Austin": {
                 "NumberEnrolled": 55,
@@ -2577,13 +2587,13 @@ module.exports=[{
         "Weeks": 48,
         "Terms": 16,
         "ClockHours": 806,
-        "QuarterHours": 61.5,
+        "Credits": 61.5,
         "Months": 11,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 15950,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 15970,
+        "Total": 15950,
         "campusData": {
             "Austin": {
                 "NumberEnrolled": 55,
@@ -2660,13 +2670,13 @@ module.exports=[{
         "Weeks": 36,
         "Terms": 12,
         "ClockHours": 978,
-        "QuarterHours": 69.5,
+        "Credits": 69.5,
         "Months": 9,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 18900,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 18920,
+        "Total": 18900,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 130,
@@ -2743,13 +2753,13 @@ module.exports=[{
         "Weeks": 54,
         "Terms": 18,
         "ClockHours": 978,
-        "QuarterHours": 69.5,
+        "Credits": 69.5,
         "Months": 14,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 18900,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 18920,
+        "Total": 18900,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 130,
@@ -2826,13 +2836,13 @@ module.exports=[{
         "Weeks": 36,
         "Terms": 12,
         "ClockHours": 926,
-        "QuarterHours": 68,
+        "Credits": 68,
         "Months": 9,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 16450,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 16470,
+        "Total": 16450,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 41,
@@ -2909,13 +2919,13 @@ module.exports=[{
         "Weeks": 51,
         "Terms": 17,
         "ClockHours": 926,
-        "QuarterHours": 68,
+        "Credits": 68,
         "Months": 13,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 16450,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 16470,
+        "Total": 16450,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 41,
@@ -2993,13 +3003,13 @@ module.exports=[{
         "Weeks": 30,
         "Terms": 10,
         "ClockHours": 780,
-        "QuarterHours": 57,
+        "Credits": 57,
         "Months": 8,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 15450,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 15470,
+        "Total": 15450,
         "campusData": {
             "San Antonio South": {
                 "NumberEnrolled": 46,
@@ -3031,13 +3041,13 @@ module.exports=[{
         "Weeks": 45,
         "Terms": 15,
         "ClockHours": 780,
-        "QuarterHours": 57,
+        "Credits": 57,
         "Months": 11,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 15450,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 15470,
+        "Total": 15450,
         "campusData": {
             "San Antonio South": {
                 "NumberEnrolled": 46,
@@ -3069,13 +3079,13 @@ module.exports=[{
         "Weeks": 33,
         "Terms": 11,
         "ClockHours": 848,
-        "QuarterHours": 65,
+        "Credits": 65,
         "Months": 9,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 16550,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 16570,
+        "Total": 16550,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 87,
@@ -3125,13 +3135,13 @@ module.exports=[{
         "Weeks": 45,
         "Terms": 15,
         "ClockHours": 848,
-        "QuarterHours": 65,
+        "Credits": 65,
         "Months": 12,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 16550,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 16570,
+        "Total": 16550,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 87,
@@ -3182,13 +3192,13 @@ module.exports=[{
         "Weeks": 50,
         "Terms": 17,
         "ClockHours": 1500,
-        "QuarterHours": 0,
+        "Credits": 0,
         "Months": 12,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 18450,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 18470,
+        "Total": 18450,
         "NumberEnrolled": 0,
         "NumberGrads": 0,
         "CompletionRate": 0,
@@ -3207,13 +3217,13 @@ module.exports=[{
         "Weeks": 80,
         "Terms": 24,
         "ClockHours": 1500,
-        "QuarterHours": 0,
+        "Credits": 0,
         "Months": 18,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 18450,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 18470,
+        "Total": 18450,
         "NumberEnrolled": 0,
         "NumberGrads": 0,
         "CompletionRate": 0,
@@ -3233,13 +3243,13 @@ module.exports=[{
         "Weeks": 36,
         "Terms": 6,
         "ClockHours": 942,
-        "QuarterHours": 74.5,
+        "Credits": 74.5,
         "Months": 12,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 19925,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 19945,
+        "Total": 19925,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 78,
@@ -3262,13 +3272,13 @@ module.exports=[{
         "Weeks": 48,
         "Terms": 8,
         "ClockHours": 942,
-        "QuarterHours": 74.5,
+        "Credits": 74.5,
         "Months": 12,
-        "RegFee": 20,
+        "RegFee": 0,
         "Tuition": 19925,
         "Textbook": 0,
         "OtherFees": 0,
-        "Total": 19945,
+        "Total": 19925,
         "campusData": {
             "San Antonio North": {
                 "NumberEnrolled": 78,
@@ -3646,9 +3656,29 @@ module.exports={
         ],
 
         "disabledFields": [
-            "Program",
-            "StartDate",
-            "GradDate"
+            "ProgramName",
+            "TermBeginDate",
+            "GradDate",
+            "Credits",
+            "Weeks",
+            "Months",
+            "Total",
+            "OtherFees",
+            "RegFee",
+            "Textbook",
+            "Terms",
+            "ClockHours",
+            "Tuition",
+            "ReportYear",
+            "NumberGradsPlaced",
+            "NumberEnrolled",
+            "NumberGrads",
+            "CompletionRate",
+            "NumberGradsEmployed",
+            "EmploymentRate",
+            "NumberGradsPlaced",
+            "PlacementRate"
+
         ],
 
         "headers": {
@@ -3973,7 +4003,7 @@ TemplateMixin = {
                     fieldValue = customFields[name].value;
                 } else {
                     _.each(sources, function(source, key) {
-                        if (source && source[name]) {
+                        if (source && source[name] || source[name] === 0) {
                             fieldValue = source[name]
                         }
                     });

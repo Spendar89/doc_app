@@ -94,11 +94,20 @@ var DocForm = React.createClass({
             recipients: recipients,
             campus: this.props.campus
         }, function (data) {
+            console.log("Doc Data", data)
             var err = data.error,
                 doc = data.doc;
 
             this.props.onDoc(err, doc);
-        }.bind(this));
+        }.bind(this))
+        .fail(function(res) {
+            var data = res.responseJSON;
+            var err = data.error;
+
+            this.props.onDoc(err);
+        }.bind(this))
+        
+        ;
     },
 
     sendSignatureRequestReminder: function(recipient, callback, e) {

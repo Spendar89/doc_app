@@ -86,7 +86,9 @@ post '/docs' do
       error[:type] = "Unknown Error"
     end
 
-    return error 404, error.to_json
+    res = {error: error}.to_json
+
+    return error 400, res 
   end
 end
 

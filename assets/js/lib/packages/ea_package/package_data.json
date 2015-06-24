@@ -222,9 +222,29 @@
         ],
 
         "disabledFields": [
-            "Program",
-            "StartDate",
-            "GradDate"
+            "ProgramName",
+            "TermBeginDate",
+            "GradDate",
+            "Credits",
+            "Weeks",
+            "Months",
+            "Total",
+            "OtherFees",
+            "RegFee",
+            "Textbook",
+            "Terms",
+            "ClockHours",
+            "Tuition",
+            "ReportYear",
+            "NumberGradsPlaced",
+            "NumberEnrolled",
+            "NumberGrads",
+            "CompletionRate",
+            "NumberGradsEmployed",
+            "EmploymentRate",
+            "NumberGradsPlaced",
+            "PlacementRate"
+
         ],
 
         "headers": {

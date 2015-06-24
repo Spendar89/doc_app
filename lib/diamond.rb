@@ -109,7 +109,7 @@ class Diamond
     @client.execute(
       "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
        FROM [#{@db_name}].dbo.Term 
-       WHERE TermEndDate >= '#{Date.today.to_s}'"
+       WHERE TermEndDate >= '#{Date.new(2016,1,1).to_s}'"
     ).each { |r| results << r }
 
     ap.set "terms", results

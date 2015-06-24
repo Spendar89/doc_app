@@ -135,7 +135,7 @@ TemplateMixin = {
                     fieldValue = customFields[name].value;
                 } else {
                     _.each(sources, function(source, key) {
-                        if (source && source[name]) {
+                        if (source && source[name] || source[name] === 0) {
                             fieldValue = source[name]
                         }
                     });
