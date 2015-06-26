@@ -97,12 +97,12 @@ class Diamond
   end
 
   def get_program_terms(program_description, refresh=false)
-    ap = AppCache.new
+    #ap = AppCache.new
 
-    unless refresh
-      cached = ap.get "terms"
-      return cached if cached.any?
-    end
+    #unless refresh
+      #cached = ap.get "terms"
+      #return cached if cached.any?
+    #end
 
     results = []
 
@@ -112,7 +112,7 @@ class Diamond
        WHERE TermEndDate >= '#{Date.new(2016,1,1).to_s}'"
     ).each { |r| results << r }
 
-    ap.set "terms", results
+    #ap.set "terms", results
 
     results
   end

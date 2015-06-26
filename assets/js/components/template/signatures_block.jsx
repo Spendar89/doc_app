@@ -70,12 +70,24 @@ var SignaturesBlock = React.createClass({
 
     render: function () {
         var r = this.props.recipients[0],
-            type = r && r.signature.type;
+            id = r && r.signature.signatureRequestId,
+            type = r && r.signature.type,
+            url = id && '/docs/' + id + '?pdf=true';
+
         return (
             <div className="signatures-block">
-                <div className="signatures-header row">
+                <div className="signatures-header col-sm-12">
                     <h2>Your Document is Ready!</h2>
                     <h4><i>Signature Type: {type}</i></h4>
+                    <h4><i>Document ID: {id}</i></h4>
+                    <a className="btn btn-icon" 
+                        href={url} 
+                        target="_blank">
+                        <h4>
+                            <span className="glyphicon glyphicon-export" aria-hidden="true"></span>
+                            Download PDF
+                        </h4>
+                    </a>
                 </div>
                 <div className="signatures-body row">
                     {_.map(this.props.recipients, this.renderSignature)}

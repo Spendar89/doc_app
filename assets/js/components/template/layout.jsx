@@ -164,9 +164,6 @@ var TemplateLayout = React.createClass({
                 url = '/leads?phone='
             }
             return $.get(url + phone, function (data) {
-                //var leads = _.select(data, function(d) {
-                    //return d["college/campus_of_interest"] === this.state.sources.campus["SCI Name"];
-                //}.bind(this));
                 return callback(data)
             }.bind(this));
         };
@@ -214,6 +211,8 @@ var TemplateLayout = React.createClass({
     handleDoc: function(err, doc) {
         this.setLoading("doc", false)
 
+        this.changePage("newDoc");
+
         if (err) {
             this.handleFormError(err);
         } else {
@@ -231,6 +230,7 @@ var TemplateLayout = React.createClass({
 
     handleProgramTermIndexChange: function(e) {
         var index = e.target.value;
+        console.log("INDEX", index)
         this.cursors.extensions.set("programTermIndex", index);
     },
 
@@ -416,6 +416,24 @@ var TemplateLayout = React.createClass({
 
             }.bind(this)
 
+            var savedDocs = function(cols) {
+                return (
+                    <div className={"col-sm-12 doc-viewer"}>
+                            <LeadDocsBlock  lead={this.state.extensions.lead} 
+                                onDocClick={this.handleDocClick}
+                                onSearch={this.fetchDocsAndSetState.bind(this, this.state.docsEmail)}
+                                docsEmail={this.state.docsEmail}
+                                onDocsEmail={this.handleDocsEmail}
+                                isRecipientsValid={this.isRecipientsValid}
+                                template={this.currentTemplate()}
+                                page={this.props.query.page}
+                                isLoading={this.state.isDocsLoading}
+                                docs={this.state.extensions.docs} />
+                    </div>
+                )
+
+            };
+
             var leftDiv = function(cols) {
                 return (
                     <div className={"col-sm-" + cols + " left-div"}>
@@ -474,6 +492,7 @@ var TemplateLayout = React.createClass({
                                 onDocsEmail={this.handleDocsEmail}
                                 isRecipientsValid={this.isRecipientsValid}
                                 template={this.currentTemplate()}
+                                isLoading={this.state.isDocsLoading}
                                 docs={this.state.extensions.docs} />
                         </div>
 
@@ -493,12 +512,19 @@ var TemplateLayout = React.createClass({
                         </div>
                     </ReactSwipe>
 
-                    var standardLayout =
-                        <div>
-                            {leftDiv.call(this, 3)}
-                            {middleDiv.call(this, 6)}
-                            {rightDiv.call(this, 3)}
-                        </div>
+                var standardLayout =
+                    this.props.query.page === "savedDocs" 
+                        ? (
+                            <div>
+                                {savedDocs.call(this, 12)}
+                            </div>
+                        ) : (
+                            <div>
+                                {leftDiv.call(this, 3)}
+                                {middleDiv.call(this, 6)}
+                                {rightDiv.call(this, 3)}
+                            </div>
+                        )
 
         
 

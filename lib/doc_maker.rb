@@ -16,7 +16,7 @@ class DocMaker
   # @sent_signature_request to response object
   def create_embedded_signature_request(recipients) 
     opts = @document.options.merge({
-      test_mode: 0, 
+      test_mode: 1, 
       signers: recipients, 
       client_id: ENV['HELLO_SIGN_CLIENT_ID']
     })
@@ -27,7 +27,7 @@ class DocMaker
 
   def create_email_signature_request(recipients)
     opts = @document.options.merge({
-      test_mode: 0, 
+      test_mode: 1, 
       signers: recipients
     })
 

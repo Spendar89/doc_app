@@ -56,14 +56,6 @@ Router.run(routes, function (Handler, state) {
 
 });
 
-// Or, if you'd like to use the HTML5 history API for cleaner URLs:
-//
- //Router.run(routes, Router.HistoryLocation, function (Handler) {
-   //React.render(<Handler/>, document.body);
- //});
-
-//React.render(<App tree={tree} />, document.body);
-
 
 },{"./components/template/layout.jsx":5,"./lib/globals.js":26,"./lib/packages/ea_package/package_data.json":27,"baobab":37,"baobab-react/mixins":35,"react-router":243}],2:[function(require,module,exports){
 var SharedBlock = React.createClass({displayName: "SharedBlock",
@@ -704,9 +696,6 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                 url = '/leads?phone='
             }
             return $.get(url + phone, function (data) {
-                //var leads = _.select(data, function(d) {
-                    //return d["college/campus_of_interest"] === this.state.sources.campus["SCI Name"];
-                //}.bind(this));
                 return callback(data)
             }.bind(this));
         };
@@ -754,6 +743,8 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
     handleDoc: function(err, doc) {
         this.setLoading("doc", false)
 
+        this.changePage("newDoc");
+
         if (err) {
             this.handleFormError(err);
         } else {
@@ -771,6 +762,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
     handleProgramTermIndexChange: function(e) {
         var index = e.target.value;
+        console.log("INDEX", index)
         this.cursors.extensions.set("programTermIndex", index);
     },
 
@@ -956,6 +948,24 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
 
             }.bind(this)
 
+            var savedDocs = function(cols) {
+                return (
+                    React.createElement("div", {className: "col-sm-12 doc-viewer"}, 
+                            React.createElement(LeadDocsBlock, {lead: this.state.extensions.lead, 
+                                onDocClick: this.handleDocClick, 
+                                onSearch: this.fetchDocsAndSetState.bind(this, this.state.docsEmail), 
+                                docsEmail: this.state.docsEmail, 
+                                onDocsEmail: this.handleDocsEmail, 
+                                isRecipientsValid: this.isRecipientsValid, 
+                                template: this.currentTemplate(), 
+                                page: this.props.query.page, 
+                                isLoading: this.state.isDocsLoading, 
+                                docs: this.state.extensions.docs})
+                    )
+                )
+
+            };
+
             var leftDiv = function(cols) {
                 return (
                     React.createElement("div", {className: "col-sm-" + cols + " left-div"}, 
@@ -1014,6 +1024,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                                 onDocsEmail: this.handleDocsEmail, 
                                 isRecipientsValid: this.isRecipientsValid, 
                                 template: this.currentTemplate(), 
+                                isLoading: this.state.isDocsLoading, 
                                 docs: this.state.extensions.docs})
                         )
 
@@ -1033,11 +1044,18 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                         )
                     )
 
-                    var standardLayout =
-                        React.createElement("div", null, 
-                            leftDiv.call(this, 3), 
-                            middleDiv.call(this, 6), 
-                            rightDiv.call(this, 3)
+                var standardLayout =
+                    this.props.query.page === "savedDocs" 
+                        ? (
+                            React.createElement("div", null, 
+                                savedDocs.call(this, 12)
+                            )
+                        ) : (
+                            React.createElement("div", null, 
+                                leftDiv.call(this, 3), 
+                                middleDiv.call(this, 6), 
+                                rightDiv.call(this, 3)
+                            )
                         )
 
         
@@ -1066,6 +1084,19 @@ module.exports = TemplateLayout;
 var Navbar = React.createClass({displayName: "Navbar",
 
     render: function() {
+        var savedDocs, newDoc;
+
+        var hasPage = _.any(window.location.href.split("&")[1])
+
+        if (hasPage) {
+            savedDocs = window.location.href.split("&page")[0]  + "&page=savedDocs";
+            newDoc = window.location.href.split("&page")[0]  + "&page=newDoc";
+        } else {
+            savedDocs = window.location.href.split("?page")[0]  + "?page=savedDocs";
+            newDoc = window.location.href.split("?page")[0]  + "?page=newDoc";
+
+        }
+
         return (
             React.createElement("nav", {className: "navbar navbar-default"}, 
                 React.createElement("div", {className: "container-fluid"}, 
@@ -1076,7 +1107,9 @@ var Navbar = React.createClass({displayName: "Navbar",
                         React.createElement("h5", {className: "pull-left"}, "SCI Document Manager")
                     ), 
                     React.createElement("div", {id: "navbar", className: "navbar-collapse collapse"}, 
-                        React.createElement("ul", {className: "nav navbar-nav navbar-right col-sm-6"}
+                        React.createElement("ul", {className: "nav navbar-nav navbar-right col-sm-6"}, 
+                            React.createElement("li", {className: "pull-right"}, React.createElement("a", {href: savedDocs}, "Saved Docs")), 
+                            React.createElement("li", {className: "pull-right"}, React.createElement("a", {href: newDoc}, "New Doc"))
                         )
                     )
                 )
@@ -1249,12 +1282,24 @@ var SignaturesBlock = React.createClass({displayName: "SignaturesBlock",
 
     render: function () {
         var r = this.props.recipients[0],
-            type = r && r.signature.type;
+            id = r && r.signature.signatureRequestId,
+            type = r && r.signature.type,
+            url = id && '/docs/' + id + '?pdf=true';
+
         return (
             React.createElement("div", {className: "signatures-block"}, 
-                React.createElement("div", {className: "signatures-header row"}, 
+                React.createElement("div", {className: "signatures-header col-sm-12"}, 
                     React.createElement("h2", null, "Your Document is Ready!"), 
-                    React.createElement("h4", null, React.createElement("i", null, "Signature Type: ", type))
+                    React.createElement("h4", null, React.createElement("i", null, "Signature Type: ", type)), 
+                    React.createElement("h4", null, React.createElement("i", null, "Document ID: ", id)), 
+                    React.createElement("a", {className: "btn btn-icon", 
+                        href: url, 
+                        target: "_blank"}, 
+                        React.createElement("h4", null, 
+                            React.createElement("span", {className: "glyphicon glyphicon-export", "aria-hidden": "true"}), 
+                            "Download PDF"
+                        )
+                    )
                 ), 
                 React.createElement("div", {className: "signatures-body row"}, 
                     _.map(this.props.recipients, this.renderSignature)
@@ -1699,9 +1744,17 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
         return (
             React.createElement("tr", {key: i}, 
                 React.createElement("td", null, 
-                    React.createElement("a", {onClick: _.partial(this.props.onDocClick, i)}, 
-                        doc["title"]
-                    )
+                    
+                        this.props.page !== "savedDocs" 
+                            ? (
+                                React.createElement("a", {onClick: _.partial(this.props.onDocClick, i)}, 
+                                    doc["title"]
+                                )
+                            ) : doc["title"]
+                    
+                ), 
+                React.createElement("td", null, 
+                    doc["signature_request_id"]
                 ), 
                 React.createElement("td", null, 
                     signed, "/", signatures.length
@@ -1720,12 +1773,19 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
 
     renderLeadDocs: function() {
         return _.map(this.props.docs, function(doc, i) {
-            if (doc["title"] !== this.props.template.title) return false;
+            if (this.props.page != "savedDocs" && doc["title"] !== this.props.template.title) return false;
             return this.renderLeadDocsRow(doc, i);
         }.bind(this));
     },
 
     render: function () {
+        var loaderStyle = function() {
+            var isLoading = _.isEmpty(this.props.docs) && this.props.isLoading; 
+            return {
+                display: (isLoading ? "block" : "none")
+            };
+        };
+
         return (
             React.createElement("div", {className: "block-div col-sm-12 with-table", id: "leadDocsBlock"}, 
                 React.createElement("div", {className: "form-group"}, 
@@ -1734,8 +1794,7 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
                     ), 
                     React.createElement("div", {className: "block-body"}, 
                         React.createElement("div", {className: "block-body-top"}, 
-                            React.createElement("p", null, React.createElement("i", null, "These are the saved documents belonging to the current lead." + ' ' +  
-                                    "Click to view and/or download a pdf:"))
+                            React.createElement("p", null, React.createElement("i", null, "Sign a saved document or view/download as a pdf:"))
                         ), 
                         React.createElement("div", {className: "docs-search-div row"}, 
                             React.createElement("div", {className: "col-sm-8 form-group"}, 
@@ -1743,12 +1802,31 @@ var LeadDocsBlock = React.createClass({displayName: "LeadDocsBlock",
                             ), 
                             React.createElement("div", {className: "col-sm-4"}, 
                                 React.createElement("a", {className: "btn btn-default btn-block", onClick: this.props.onSearch}, 
-                                    React.createElement("span", {className: "glyphicon glyphicon-search"})
+                                    React.createElement("span", {className: "glyphicon glyphicon-search", style: {marginRight: "15px"}}), 
+                                    React.createElement("b", null, "Search For Docs")
                                 )
                             )
                         ), 
                         React.createElement("div", {className: "lead-table-div"}, 
                             React.createElement("table", {className: "table table-hover"}, 
+                                React.createElement("thead", null, 
+                                    React.createElement("th", null, 
+                                        "Doc Name"
+                                    ), 
+                                    React.createElement("th", null, 
+                                        "HelloSign Doc ID"
+                                    ), 
+                                    React.createElement("th", null, 
+                                        "Signed/Total"
+                                    ), 
+                                    React.createElement("th", null, 
+                                        "Preview"
+                                    )
+                                ), 
+                                React.createElement("div", {className: "loader-div", style: loaderStyle.call(this)}, 
+                                    React.createElement("h3", {className: "loader-text"}, "Searching For Docs"), 
+                                    React.createElement(Spinner, null)
+                                ), 
                                 React.createElement("tbody", null, 
                                     this.renderLeadDocs()
                                 )
@@ -1773,7 +1851,9 @@ var LeadsSearchBlock = React.createClass({displayName: "LeadsSearchBlock",
     render: function() {
         return (
             React.createElement("div", {className: "leads-search-block col-sm-12"}, 
-                React.createElement(LeadsSearchInput, {input: this.props.leadsSearchInput, handleInput: this.props.onLeadsSearchInput, handleSubmit: this.props.onLeadsSearch})
+                React.createElement(LeadsSearchInput, {input: this.props.leadsSearchInput, 
+                                  handleInput: this.props.onLeadsSearchInput, 
+                                  handleSubmit: this.props.onLeadsSearch})
             )
         )
 
@@ -3333,9 +3413,10 @@ var ProgramMixin = {
             program = programs[programIndex],
             programDescription = program["ProgramName"];
 
-        //TODO: cache terms and go straight to callback
+        if (this.state.extensions.programTerms) return false;
+
         $.get('/terms', {
-                campus: this.props.query.campus || "Austin",
+                campus: this.state.sources.campus["SCI Name"], 
                 program_description: programDescription
             },
             function(terms) {
@@ -3343,13 +3424,11 @@ var ProgramMixin = {
                     return parseTerm(term, i);
                 });
 
-                //TODO: Change "Program" to "ProgramName"
+                var terms = _.sortBy(terms, function(t) {
+                    return new Date(t["TermBeginDate"])
+                });
+
                 this.context.tree.update({
-                    sources: {
-                        programTerm: {
-                            $set: terms[0]
-                        }
-                    },
                     extensions: {
                         programTerms: {
                             $set: terms
@@ -3381,6 +3460,22 @@ var ProgramMixin = {
 
     },
 
+    calculateGradDate: function(programTermIndex, programData) {
+        if (programTermIndex != 0 && !programTermIndex || !programData) return false;
+
+        var numTerms = programData["Terms"],
+            gradTermIndex = Number(programTermIndex) + Number(numTerms),
+            gradTerm = this.state.extensions.programTerms[gradTermIndex];
+
+        if (!gradTermIndex) return false;
+
+        var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found in Diamond";
+
+        return {
+            "EstimatedGradDate": gradDate
+        };
+    },
+
     componentDidMount: function() {
         this._fetchProgramsAndSetState();
     },
@@ -3388,11 +3483,19 @@ var ProgramMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var programIndex = this.state.extensions.programIndex,
             programTermIndex = this.state.extensions.programTermIndex,
-            programData = this.getProgramData(this.state);
+            programData = this.getProgramData(this.state),
+            gradDate = this.calculateGradDate(programTermIndex, programData);
 
         if (programIndex != prevState.extensions.programIndex) {
-            this._fetchTermsAndSetState(programIndex);
+            if (!this.state.sources.programTerms) {
+                this._fetchTermsAndSetState(programIndex);
+            };
+
             this.cursors.sources.set("program", programData);
+
+            if (gradDate) {
+                this.cursors.sources.set("gradDate", gradDate);
+            }
         };
 
         if (this.state.sources.campus != prevState.sources.campus) {
@@ -3403,10 +3506,14 @@ var ProgramMixin = {
             this.cursors.sources.set("program", programData);
         };
 
-
         if (programTermIndex != prevState.extensions.programTermIndex) {
-            var programTerm = this.state.extensions.programTerms[programTermIndex]
+            var programTerm = this.state.extensions.programTerms[programTermIndex];
+
             this.cursors.sources.set("programTerm", programTerm);
+
+            if (gradDate) {
+                this.cursors.sources.set("gradDate", gradDate);
+            }
         };
     }
 };
@@ -3824,6 +3931,11 @@ var HelpersMixin = {
         return recipients && recipients[i]
     },
 
+    changePage: function(p) {
+        var page = window.location.href.split("&page")[0]  + "&page=" + p;
+        window.location.href = page;
+    },
+
     currentTemplate: function() {
         var i = this.state.templateIndex;
 
@@ -4109,6 +4221,10 @@ TemplateMixin = {
 
     fetchDocsAndSetState: function(email) {
         var controller = setTemplateController.call(this);
+        
+        this.setState({isDocsLoading: true});
+        this.cursors.extensions.set('docs', []);
+
         async.waterfall(
             [
                 _.partial(controller.getDocs.bind(controller), email),
@@ -4121,6 +4237,8 @@ TemplateMixin = {
 
     setStateFromDocs: function(docs, callback) {
         this.cursors.extensions.set('docs', docs);
+        this.setState({isDocsLoading: false})
+
         callback(null)
     },
 

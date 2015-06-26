@@ -54,11 +54,3 @@ Router.run(routes, function (Handler, state) {
     React.render(<Handler query={state.query}/>, document.body);
 
 });
-
-// Or, if you'd like to use the HTML5 history API for cleaner URLs:
-//
- //Router.run(routes, Router.HistoryLocation, function (Handler) {
-   //React.render(<Handler/>, document.body);
- //});
-
-//React.render(<App tree={tree} />, document.body);

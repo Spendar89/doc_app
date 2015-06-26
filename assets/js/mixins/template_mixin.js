@@ -241,6 +241,10 @@ TemplateMixin = {
 
     fetchDocsAndSetState: function(email) {
         var controller = setTemplateController.call(this);
+        
+        this.setState({isDocsLoading: true});
+        this.cursors.extensions.set('docs', []);
+
         async.waterfall(
             [
                 _.partial(controller.getDocs.bind(controller), email),
@@ -253,6 +257,8 @@ TemplateMixin = {
 
     setStateFromDocs: function(docs, callback) {
         this.cursors.extensions.set('docs', docs);
+        this.setState({isDocsLoading: false})
+
         callback(null)
     },
 

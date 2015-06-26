@@ -14,6 +14,11 @@ var HelpersMixin = {
         return recipients && recipients[i]
     },
 
+    changePage: function(p) {
+        var page = window.location.href.split("&page")[0]  + "&page=" + p;
+        window.location.href = page;
+    },
+
     currentTemplate: function() {
         var i = this.state.templateIndex;
 

@@ -10,9 +10,17 @@ var LeadDocsBlock = React.createClass({
         return (
             <tr key={i}>
                 <td>
-                    <a onClick={_.partial(this.props.onDocClick, i)} >
-                        {doc["title"]}
-                    </a>
+                    {
+                        this.props.page !== "savedDocs" 
+                            ? (
+                                <a onClick={_.partial(this.props.onDocClick, i)} >
+                                    {doc["title"]}
+                                </a>
+                            ) : doc["title"] 
+                    }
+                </td>
+                <td>
+                    {doc["signature_request_id"]}
                 </td>
                 <td>
                     {signed}/{signatures.length}
@@ -31,12 +39,19 @@ var LeadDocsBlock = React.createClass({
 
     renderLeadDocs: function() {
         return _.map(this.props.docs, function(doc, i) {
-            if (doc["title"] !== this.props.template.title) return false;
+            if (this.props.page != "savedDocs" && doc["title"] !== this.props.template.title) return false;
             return this.renderLeadDocsRow(doc, i);
         }.bind(this));
     },
 
     render: function () {
+        var loaderStyle = function() {
+            var isLoading = _.isEmpty(this.props.docs) && this.props.isLoading; 
+            return {
+                display: (isLoading ? "block" : "none")
+            };
+        };
+
         return (
             <div className="block-div col-sm-12 with-table" id="leadDocsBlock">
                 <div className="form-group">
@@ -45,8 +60,7 @@ var LeadDocsBlock = React.createClass({
                     </div>
                     <div className="block-body">
                         <div className="block-body-top">
-                            <p><i>These are the saved documents belonging to the current lead.  
-                                    Click to view and/or download a pdf:</i></p>
+                            <p><i>Sign a saved document or view/download as a pdf:</i></p>
                         </div>
                         <div className="docs-search-div row">
                             <div className="col-sm-8 form-group">
@@ -54,12 +68,31 @@ var LeadDocsBlock = React.createClass({
                             </div>
                             <div className="col-sm-4">
                                 <a className="btn btn-default btn-block" onClick={this.props.onSearch}>
-                                    <span className="glyphicon glyphicon-search"></span>
+                                    <span className="glyphicon glyphicon-search" style={{marginRight: "15px"}}></span>
+                                    <b>Search For Docs</b>
                                 </a>
                             </div>
                         </div>
                         <div className="lead-table-div">
                             <table className="table table-hover">
+                                <thead>
+                                    <th>
+                                        Doc Name
+                                    </th>
+                                    <th>
+                                        HelloSign Doc ID
+                                    </th>
+                                    <th>
+                                        Signed/Total
+                                    </th>
+                                    <th>
+                                        Preview
+                                    </th>
+                                </thead>
+                                <div className="loader-div" style={loaderStyle.call(this)}>
+                                    <h3 className="loader-text">Searching For Docs</h3>
+                                    <Spinner />
+                                </div>
                                 <tbody>
                                     {this.renderLeadDocs()}
                                 </tbody>

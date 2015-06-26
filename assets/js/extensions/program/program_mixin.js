@@ -37,9 +37,10 @@ var ProgramMixin = {
             program = programs[programIndex],
             programDescription = program["ProgramName"];
 
-        //TODO: cache terms and go straight to callback
+        if (this.state.extensions.programTerms) return false;
+
         $.get('/terms', {
-                campus: this.props.query.campus || "Austin",
+                campus: this.state.sources.campus["SCI Name"], 
                 program_description: programDescription
             },
             function(terms) {
@@ -47,13 +48,11 @@ var ProgramMixin = {
                     return parseTerm(term, i);
                 });
 
-                //TODO: Change "Program" to "ProgramName"
+                var terms = _.sortBy(terms, function(t) {
+                    return new Date(t["TermBeginDate"])
+                });
+
                 this.context.tree.update({
-                    sources: {
-                        programTerm: {
-                            $set: terms[0]
-                        }
-                    },
                     extensions: {
                         programTerms: {
                             $set: terms
@@ -85,6 +84,22 @@ var ProgramMixin = {
 
     },
 
+    calculateGradDate: function(programTermIndex, programData) {
+        if (programTermIndex != 0 && !programTermIndex || !programData) return false;
+
+        var numTerms = programData["Terms"],
+            gradTermIndex = Number(programTermIndex) + Number(numTerms),
+            gradTerm = this.state.extensions.programTerms[gradTermIndex];
+
+        if (!gradTermIndex) return false;
+
+        var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found in Diamond";
+
+        return {
+            "EstimatedGradDate": gradDate
+        };
+    },
+
     componentDidMount: function() {
         this._fetchProgramsAndSetState();
     },
@@ -92,11 +107,19 @@ var ProgramMixin = {
     componentDidUpdate: function(prevProps, prevState) {
         var programIndex = this.state.extensions.programIndex,
             programTermIndex = this.state.extensions.programTermIndex,
-            programData = this.getProgramData(this.state);
+            programData = this.getProgramData(this.state),
+            gradDate = this.calculateGradDate(programTermIndex, programData);
 
         if (programIndex != prevState.extensions.programIndex) {
-            this._fetchTermsAndSetState(programIndex);
+            if (!this.state.sources.programTerms) {
+                this._fetchTermsAndSetState(programIndex);
+            };
+
             this.cursors.sources.set("program", programData);
+
+            if (gradDate) {
+                this.cursors.sources.set("gradDate", gradDate);
+            }
         };
 
         if (this.state.sources.campus != prevState.sources.campus) {
@@ -107,10 +130,14 @@ var ProgramMixin = {
             this.cursors.sources.set("program", programData);
         };
 
-
         if (programTermIndex != prevState.extensions.programTermIndex) {
-            var programTerm = this.state.extensions.programTerms[programTermIndex]
+            var programTerm = this.state.extensions.programTerms[programTermIndex];
+
             this.cursors.sources.set("programTerm", programTerm);
+
+            if (gradDate) {
+                this.cursors.sources.set("gradDate", gradDate);
+            }
         };
     }
 };
