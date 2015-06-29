@@ -3716,6 +3716,7 @@ module.exports={
 
         "nonDefaults": [
             "Primary Agreement (With Parent/Guardian)",
+            "Criminal Background Check Authorization (With Parent/Guardian)",
             "Insurance Waiver (With Parent/Guardian)",
             "Code of Conduct (Cosmo)",
             "Cosmo Previous Education Training Form",
