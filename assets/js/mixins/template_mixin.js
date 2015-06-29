@@ -399,9 +399,13 @@ TemplateMixin = {
                 var title = t.title,
                     config = this.packageData.config.templates[title]; 
 
-                if (!this.hasParentRecipient(t)) {
+                //if (!this.hasParentRecipient(t)) {
+                    //t.inGroup = this.state.groupTemplates;
+                //};
+
+                if (!_.include(this.packageData.config.nonDefaults, title)){
                     t.inGroup = this.state.groupTemplates;
-                };
+                }
 
                 t.config = config;
                 this.setCustomFields(t);

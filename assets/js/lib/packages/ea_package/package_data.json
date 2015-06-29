@@ -166,6 +166,14 @@
             }
         },
 
+        "nonDefaults": [
+            "Primary Agreement (With Parent/Guardian)",
+            "Insurance Waiver (With Parent/Guardian)",
+            "Code of Conduct (Cosmo)",
+            "Cosmo Previous Education Training Form",
+            "Notification to Prospective Pharmacy Technician Student"
+        ],
+
         "customOptions": {},
 
         "customTypes": {
@@ -218,7 +226,8 @@
             "*- College",
             "*- Technical",
             "*- Other",
-            "*Certificate,"
+            "*Certificate",
+            "*Cosmo"
         ],
 
         "disabledFields": [

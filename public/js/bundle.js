@@ -1525,6 +1525,7 @@ module.exports = TemplateController;
 module.exports=[
     {
         "SCI Name": "Austin",
+        "TWC Name": "Southern Careers Institute Inc. (TWC#S0470)",
         "SCI Fax": "512-265-0203",
         "SCI Address": "2301 S. Congress Ave.",
         "SCI City": "Austin",
@@ -1533,6 +1534,7 @@ module.exports=[
 
     {
         "SCI Name": "Brownsville",
+        "TWC Name": "Southern Careers Institute Inc. - Brownsville (TWC#S3388)",
         "SCI Fax": "956-215-7109",
         "SCI Address": "935 N Expressway",
         "SCI City": "Brownsville",
@@ -1541,6 +1543,7 @@ module.exports=[
 
     {
         "SCI Name": "Corpus Christi",
+        "TWC Name": "Southern Careers Institute - Corpus Christi Inc. (TWC#S0640)",
         "SCI Fax": "361-214-1727",
         "SCI Address": "2422 Airline Rd.",
         "SCI City": "Corpus Christi",
@@ -1549,6 +1552,7 @@ module.exports=[
 
     {
         "SCI Name": "San Antonio North",
+        "TWC Name": "Southern Careers Institute (TWC#S4333)",
         "SCI Fax": "210-802-2226",
         "SCI Address": "6963 NW Loop 410",
         "SCI City": "San Antonio",
@@ -1557,6 +1561,7 @@ module.exports=[
 
     {
         "SCI Name": "San Antonio South",
+        "TWC Name": "Southern Careers Institute #1 Inc. (TWC#S0708)",
         "SCI Fax": "210-802-2230",
         "SCI Address": "238 SW Military Dr. Ste 101",
         "SCI City": "San Antonio",
@@ -1565,6 +1570,7 @@ module.exports=[
 
     {
         "SCI Name": "Harlingen",
+        "TWC Name": "Southern Careers Institute Inc. - Harlingen (TWC#S3379)",
         "SCI Fax": "956-215-7113",
         "SCI Address": "1122 Morgan Blvd.",
         "SCI City": "Harlingen",
@@ -1573,6 +1579,7 @@ module.exports=[
 
     {
         "SCI Name": "Pharr",
+        "TWC Name": "Southern Careers Institute - South Texas Inc. (TWC#S0630)",
         "SCI Fax": "956-215-7108",
         "SCI Address": "1500 N. Jackson Rd.",
         "SCI City": "Pharr",
@@ -2435,9 +2442,9 @@ module.exports=[{
         "Evening": false,
         "Weeks": 27,
         "Terms": 8,
-        "ClockHours": 142,
-        "Credits": 74.5,
-        "Months": 12,
+        "ClockHours": 650,
+        "Credits": 46,
+        "Months": 6,
         "RegFee": 0,
         "Tuition": 19925,
         "Textbook": 0,
@@ -3707,6 +3714,14 @@ module.exports={
             }
         },
 
+        "nonDefaults": [
+            "Primary Agreement (With Parent/Guardian)",
+            "Insurance Waiver (With Parent/Guardian)",
+            "Code of Conduct (Cosmo)",
+            "Cosmo Previous Education Training Form",
+            "Notification to Prospective Pharmacy Technician Student"
+        ],
+
         "customOptions": {},
 
         "customTypes": {
@@ -3759,7 +3774,8 @@ module.exports={
             "*- College",
             "*- Technical",
             "*- Other",
-            "*Certificate,"
+            "*Certificate",
+            "*Cosmo"
         ],
 
         "disabledFields": [
@@ -4379,9 +4395,13 @@ TemplateMixin = {
                 var title = t.title,
                     config = this.packageData.config.templates[title]; 
 
-                if (!this.hasParentRecipient(t)) {
+                //if (!this.hasParentRecipient(t)) {
+                    //t.inGroup = this.state.groupTemplates;
+                //};
+
+                if (!_.include(this.packageData.config.nonDefaults, title)){
                     t.inGroup = this.state.groupTemplates;
-                };
+                }
 
                 t.config = config;
                 this.setCustomFields(t);
