@@ -17,6 +17,21 @@ get '/' do
   File.read(File.join('public', 'index.html'))
 end
 
+get '/programs' do
+  content_type :json
+  d = Diamond.new(params[:campus])
+  d.get_programs.to_json
+end
+
+get '/terms' do
+  content_type :json
+
+  d = Diamond.new(params[:campus])
+  program_description = params[:program_description]
+
+  d.get_program_terms(program_description).to_json
+end
+
 post '/leads/:id/cache_state' do
   content_type :json
 
@@ -157,14 +172,6 @@ get '/docs/:signature_request_id' do
   end
 end
 
-get '/terms' do
-  content_type :json
-
-  d = Diamond.new(params[:campus])
-  program_description = params[:program_description]
-
-  d.get_program_terms(program_description).to_json
-end
 
 get '/templates/:template_id' do
   content_type :json
