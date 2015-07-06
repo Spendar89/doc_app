@@ -44,7 +44,7 @@ class Diamond
       "San Antonio South" => "826-SA",
       "Harlingen" => "827-HAR",
       "Pharr" => "829-PHAR",
-      "Corpus" => "830-CC1",
+      "Corpus Christi" => "830-CC1",
       "Online" => "801-Online"
     }
   end

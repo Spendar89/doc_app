@@ -1,7 +1,7 @@
 var ProgramBlock = React.createClass({
 
     renderProgramOption: function(program, i) {
-        return <option key={i} value={i}>{program["ProgramName"]}</option>
+        return <option key={i} value={i}>{program["ProgramDescription"]}</option>
     },
 
     renderProgramTermOption: function(term, i) {

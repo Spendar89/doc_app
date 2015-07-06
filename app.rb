@@ -19,8 +19,9 @@ end
 
 get '/programs' do
   content_type :json
+
   d = Diamond.new(params[:campus])
-  d.get_programs.to_json
+  d.get_programs_with_tuition.to_json
 end
 
 get '/terms' do
