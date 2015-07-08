@@ -5,23 +5,8 @@ var setController = function() {
         campusName = campus && campus["SCI Name"],
         loaderFn = this.setLoading;
 
-    this.termsController= new TermsController(campusName, loaderFn);
+    this.termsController = new TermsController(campusName, loaderFn);
     return this.termsController;
-};
-
-var parseTerm = function(term, index) {
-    var beginDate = term["TermBeginDate"],
-        endDate = term["TermEndDate"];
-        //program = this.state.sources.program;
-
-    //if (program && program["ProgramDescription"].match("Cosmo")) {
-         
-    //}
-
-    term["TermBeginDate"] = new Date(beginDate).toLocaleDateString();
-    term["TermEndDate"] = new Date(endDate).toLocaleDateString();
-
-    return term;
 };
 
 var TermMixin = {
@@ -30,8 +15,6 @@ var TermMixin = {
             programNo = program["ProgramNo"],
             controller = setController.call(this);
 
-        //if (this.state.extensions.programTerms) return false;
-        //
         controller.getTerms(programNo, function(err, terms) {
             if (err) {
                 return this.setState({
@@ -39,14 +22,48 @@ var TermMixin = {
                 });
             };
 
-            var terms = _.map(terms, function(term, i) {
-                return parseTerm.call(this, term, i);
-            });
+            var parseTerm = function(term) {
+                var beginDate = Moment(term["TermBeginDate"]),
+                    endDate = Moment(term["TermEndDate"]);
 
-            var terms = _.sortBy(terms, function(t) {
-                // TODO: dont need new Date
-                return new Date(t["TermBeginDate"])
-            });
+                var termLength = endDate
+                                .add(1, "days")
+                                .diff(beginDate, 'weeks');
+
+                term["TermLength"] = termLength;
+                term["TermBeginDate"] = beginDate.format("MM/DD/YY");
+                term["TermEndDate"] = endDate.format("MM/DD/YY");
+
+                return term;
+            };
+
+            var filterTerm = function(term) {
+                var l = term["TermLength"],
+                    desc = program["ProgramDescription"];
+
+                if (desc.match("HVAC")) {
+                    if (desc.match("Evening")) {
+                        return l === 8;
+                    } else {
+                        return l === 6;
+                    };
+
+                    return false;
+                };
+
+                return l === 3 || l === 2;
+            };
+
+            var sortTerm = function(t) {
+                return new Date(t["TermBeginDate"]);
+            };
+
+            terms = _(terms)
+                    .map(parseTerm)
+                    .filter(filterTerm)
+                    .sortBy(sortTerm)
+                    .value();
+
 
             this.context.tree.update({
                 extensions: {
@@ -68,26 +85,19 @@ var TermMixin = {
 
         if ( hasNoIndex || !programData) return false;
 
-        //var numTerms = programData["Terms"],
         var numWeeks = programData["WeeksRequired"],
             termLength = 6,
             numTerms = Math.floor(numWeeks/termLength),
             gradTermIndex = Number(programTermIndex) + Number(numTerms),
             gradTerm = this.state.extensions.programTerms[gradTermIndex];
 
-        console.log("Grad Term Index", gradTerm)
-
         if (!gradTermIndex) return false;
 
         var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found in Diamond";
-        console.log("Grad Term Index", gradDate)
 
         return {
             "EstimatedGradDate": gradDate
         };
-    },
-
-    componentDidMount: function() {
     },
 
     componentDidUpdate: function(prevProps, prevState) {

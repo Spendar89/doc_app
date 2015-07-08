@@ -7,6 +7,7 @@ MediaQuery = require('react-responsive');
 ReactBtn = require('react-btn-checkbox');
 Checkbox = ReactBtn.Checkbox;
 Radio = ReactBtn.Radio;
+Moment = require('moment');
 DOCKER_HOST = process.env.DOCKER_HOST;
 EMAIL_AUTH_APP = process.env.NODE_ENV === "docker" ? process.env.EMAIL_AUTH_APP : "http://localhost:8000";
 HELLO_SIGN_CLIENT_ID = process.env.HELLO_SIGN_CLIENT_ID;
