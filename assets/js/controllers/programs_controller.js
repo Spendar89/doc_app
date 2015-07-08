@@ -1,4 +1,3 @@
-
 var request = require('superagent');
 
 var buildUrl = function(path) {
@@ -24,6 +23,27 @@ ProgramsController.prototype = {
         request
             .get(url)
             .query({
+                campus: this.campus 
+            })
+            .end(
+                function(err, res) {
+                    var body = res && res.body;
+                    this.loaderFn("programs", false);
+                    callback(err, body);
+                }.bind(this)
+            );
+    },
+
+    getProgramTerms: function(programNo, callback) {
+        var path = '/terms',
+            url = buildUrl(path);
+
+        this.loaderFn("programs", "Loading Program Terms");
+
+        request
+            .get(url)
+            .query({
+                program_no: programNo,
                 campus: this.campus 
             })
             .end(

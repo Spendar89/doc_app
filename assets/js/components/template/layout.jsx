@@ -4,28 +4,31 @@ var BranchMixin = require('baobab-react/mixins').branch,
 var SharedBlock = require('./../shared/shared_block.jsx'),
     Navbar = require('./navbar.jsx');
 
-var TemplateBlock = require('./template_block.jsx'),
+var TemplateMixin = require('./../../mixins/template_mixin.js'),
+    TemplateBlock = require('./template_block.jsx'),
     RecipientsBlock = require('./recipients_block.jsx'),
     DocForm = require('./doc_form.jsx'),
     HelpersMixin = require('./../../mixins/helpers_mixin.js'),
-    TemplateMixin = require('./../../mixins/template_mixin.js'),
     RecipientsManager = require('./../../lib/recipients_manager.js');
 
-var LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
+var LeadMixin = require('./../../extensions/lead/lead_mixin.js'),
+    LeadDocsBlock = require('./../../extensions/lead/components/lead_docs_block.jsx'),
     LeadDataBlock = require('./../../extensions/lead/components/lead_data_block.jsx'),
     LeadsSearchBlock = require('./../../extensions/lead/components/leads_search_block.jsx'),
     LeadsSearchResults = require('./../../extensions/lead/components/leads_search_results.jsx'),
-    LeadsWelcomeOverlay = require('./../../extensions/lead/components/leads_welcome_overlay.jsx'),
-    LeadMixin = require('./../../extensions/lead/lead_mixin.js');
+    LeadsWelcomeOverlay = require('./../../extensions/lead/components/leads_welcome_overlay.jsx');
 
 var ProgramMixin = require('./../../extensions/program/program_mixin.js'),
     ProgramBlock = require('./../../extensions/program/components/program_block.jsx');
+
+var TermMixin = require('./../../extensions/term/term_mixin.js');
 
 var CampusMixin = require('./../../extensions/campus/campus_mixin.js'),
     CampusBlock = require('./../../extensions/campus/components/campus_block.jsx');
 
 var TemplateLayout = React.createClass({
-    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin, CampusMixin, HelpersMixin],
+    mixins: [LeadMixin, TemplateMixin, BranchMixin, ProgramMixin, 
+             CampusMixin, HelpersMixin, TermMixin],
 
     contextTypes: {
         router: React.PropTypes.func

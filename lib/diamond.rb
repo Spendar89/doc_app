@@ -96,11 +96,19 @@ class Diamond
     }
   end
 
-  def get_program_terms(program_description, refresh=false)
-    end_date = Date.new(2016,1,1).to_s
-    query "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-           FROM #{tables[:term]}
-           WHERE TermEndDate >= '#{end_date}'"
+  def get_program_terms(program_no, refresh=false)
+    query "SELECT DISTINCT ProgramCourse.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+           FROM [#{@db_name}].dbo.ProgramCourse
+           INNER JOIN [#{@db_name}].dbo.CourseOffering 
+           ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
+           INNER JOIN [#{@db_name}].dbo.Term 
+           ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
+           WHERE TermEndDate >= '#{Date.today.to_s}' 
+           AND ProgramNo = '#{program_no}'"
+      #end_date = Date.new(2016,1,1).to_s
+      #query "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+           #FROM #{tables[:term]}
+           #WHERE TermEndDate >= '#{end_date}'"
 
   end
 end

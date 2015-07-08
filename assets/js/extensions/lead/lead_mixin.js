@@ -115,7 +115,7 @@ var LeadMixin = {
     },
 
     componentDidMount: function() {
-        if (this.props.query.vId) {
+        if (this.props.query.vId && this.props.query.campus) {
             this._fetchLeadAndSetState(
                 this.props.query.vId, 
                 this.props.query.campus, 
@@ -127,7 +127,7 @@ var LeadMixin = {
     componentWillReceiveProps: function(nextProps) {
         var hasNewVid = this.props.query.vId != nextProps.query.vId;
 
-        if (hasNewVid) {
+        if (hasNewVid && nextProps.query.campus) {
             this.cursors.allCustomFields.set({});
             this._fetchLeadAndSetState(
                 nextProps.query.vId, 
@@ -148,7 +148,7 @@ var LeadMixin = {
 
         var hasLeadPending = this.state.syncRemote && leadPending, 
             hasNewDocId = leadRecipient && leadRecipient.signatureId && !prevLeadRecipient.signatureId, 
-            hasChangedLead = getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
+            hasChangedLead = lead && getLeadId(this.state.extensions) != getLeadId(prevState.extensions),
             hasLeadRecipient = leadRecipient && !leadRecipient.id && this.state.extensions.lead;
 
             if (leadRecipient != prevLeadRecipient && leadRecipient.authorized) {

@@ -53,6 +53,14 @@ var HelpersMixin = {
         var templates = this.currentGroupedTemplates();
 
         return _.map(templates, "id");
+    },
+
+    currentCampusName: function(props) {
+        var campus = this.state.sources.campus,
+            name = campus && campus["SCI Name"],
+            queryCampus = props && props.query.campus;
+
+        return name || queryCampus;
     }
 
 }

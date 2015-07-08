@@ -28,9 +28,9 @@ get '/terms' do
   content_type :json
 
   d = Diamond.new(params[:campus])
-  program_description = params[:program_description]
+  program_no = params[:program_no]
 
-  d.get_program_terms(program_description).to_json
+  d.get_program_terms(program_no).to_json
 end
 
 post '/leads/:id/cache_state' do
