@@ -123,7 +123,7 @@ var DocInput = React.createClass({
     },
 
     render: function() {
-        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ",
+        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-12 ",
             fieldDisplay = this.props.field.display,
             inputStyle = {display: fieldDisplay};
 

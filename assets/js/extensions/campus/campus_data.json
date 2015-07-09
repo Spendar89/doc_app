@@ -1,6 +1,6 @@
 [
     {
-        "SCI Name": "Austin",
+        "CampusName": "Austin",
         "TWC Name": "Southern Careers Institute Inc. (TWC#S0470)",
         "SCI Fax": "512-265-0203",
         "SCI Address": "2301 S. Congress Ave.",
@@ -9,7 +9,7 @@
     },
 
     {
-        "SCI Name": "Brownsville",
+        "CampusName": "Brownsville",
         "TWC Name": "Southern Careers Institute Inc. - Brownsville (TWC#S3388)",
         "SCI Fax": "956-215-7109",
         "SCI Address": "935 N Expressway",
@@ -18,7 +18,7 @@
     },
 
     {
-        "SCI Name": "Corpus Christi",
+        "CampusName": "Corpus Christi",
         "TWC Name": "Southern Careers Institute - Corpus Christi Inc. (TWC#S0640)",
         "SCI Fax": "361-214-1727",
         "SCI Address": "2422 Airline Rd.",
@@ -27,7 +27,7 @@
     },
 
     {
-        "SCI Name": "San Antonio North",
+        "CampusName": "San Antonio North",
         "TWC Name": "Southern Careers Institute (TWC#S4333)",
         "SCI Fax": "210-802-2226",
         "SCI Address": "6963 NW Loop 410",
@@ -36,7 +36,7 @@
     },
 
     {
-        "SCI Name": "San Antonio South",
+        "CampusName": "San Antonio South",
         "TWC Name": "Southern Careers Institute #1 Inc. (TWC#S0708)",
         "SCI Fax": "210-802-2230",
         "SCI Address": "238 SW Military Dr. Ste 101",
@@ -45,7 +45,7 @@
     },
 
     {
-        "SCI Name": "Harlingen",
+        "CampusName": "Harlingen",
         "TWC Name": "Southern Careers Institute Inc. - Harlingen (TWC#S3379)",
         "SCI Fax": "956-215-7113",
         "SCI Address": "1122 Morgan Blvd.",
@@ -54,7 +54,7 @@
     },
 
     {
-        "SCI Name": "Pharr",
+        "CampusName": "Pharr",
         "TWC Name": "Southern Careers Institute - South Texas Inc. (TWC#S0630)",
         "SCI Fax": "956-215-7108",
         "SCI Address": "1500 N. Jackson Rd.",

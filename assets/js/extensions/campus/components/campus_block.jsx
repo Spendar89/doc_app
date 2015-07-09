@@ -1,7 +1,7 @@
 var CampusBlock = React.createClass({
 
     renderCampusOption: function(campus, i) {
-        return <option key={i} value={i}>{campus["SCI Name"]}</option>
+        return <option key={i} value={i}>{campus["CampusName"]}</option>
     },
 
     render: function() {

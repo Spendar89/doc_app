@@ -455,6 +455,7 @@ var TemplateLayout = React.createClass({
                             <div className={"col-sm-" + cols + " doc-form-div middle-div"}>
                                 <DocForm    
                                     template={this.currentTemplate()}
+                                    docFormHeaderFixed={this.state.docFormHeaderFixed}
                                     groupedTemplateIds={this.currentGroupedTemplateIds()}
                                     onCustomFieldUpdate={this.handleCustomFieldUpdate} 
                                     removeCustomField={this.removeCustomField}

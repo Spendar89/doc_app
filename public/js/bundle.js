@@ -336,9 +336,15 @@ var DocForm = React.createClass({displayName: "DocForm",
             )
         }.bind(this)
 
+        var headerStyle = function() {
+            return this.props.docFormHeaderFixed 
+                ? {position: 'fixed', width: '50%', left: '25%'}
+                : {position: 'relative', width: '100%', left: '0'}
+        }
+
         return (
             React.createElement("div", {className: "doc-form-inner-div col-sm-12"}, 
-                React.createElement("div", {className: "col-sm-12 doc-form-header-div"}, 
+                React.createElement("div", {id: "docFormHeaderDiv", style: headerStyle.call(this), className: "col-sm-12 doc-form-header-div"}, 
                     this.props.validationErrors[0]
                         ? (
                             React.createElement("div", null, 
@@ -511,7 +517,7 @@ var DocInput = React.createClass({displayName: "DocInput",
     },
 
     render: function() {
-        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-6 ",
+        var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-12 ",
             fieldDisplay = this.props.field.display,
             inputStyle = {display: fieldDisplay};
 
@@ -987,6 +993,7 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
                             React.createElement("div", {className: "col-sm-" + cols + " doc-form-div middle-div"}, 
                                 React.createElement(DocForm, {
                                     template: this.currentTemplate(), 
+                                    docFormHeaderFixed: this.state.docFormHeaderFixed, 
                                     groupedTemplateIds: this.currentGroupedTemplateIds(), 
                                     onCustomFieldUpdate: this.handleCustomFieldUpdate, 
                                     removeCustomField: this.removeCustomField, 
@@ -1605,11 +1612,13 @@ var TermsController = function(campus, loaderFn) {
 };
 
 TermsController.prototype = {
-    getTerms: function(programNo, callback) {
+    getTerms: function(callback) {
         var path = '/terms',
             url = buildUrl(path);
 
         this.loaderFn("terms", "Loading Terms");
+
+        var programNo = null;
 
         request
             .get(url)
@@ -1634,7 +1643,7 @@ module.exports = TermsController;
 },{"_process":440,"superagent":437}],14:[function(require,module,exports){
 module.exports=[
     {
-        "SCI Name": "Austin",
+        "CampusName": "Austin",
         "TWC Name": "Southern Careers Institute Inc. (TWC#S0470)",
         "SCI Fax": "512-265-0203",
         "SCI Address": "2301 S. Congress Ave.",
@@ -1643,7 +1652,7 @@ module.exports=[
     },
 
     {
-        "SCI Name": "Brownsville",
+        "CampusName": "Brownsville",
         "TWC Name": "Southern Careers Institute Inc. - Brownsville (TWC#S3388)",
         "SCI Fax": "956-215-7109",
         "SCI Address": "935 N Expressway",
@@ -1652,7 +1661,7 @@ module.exports=[
     },
 
     {
-        "SCI Name": "Corpus Christi",
+        "CampusName": "Corpus Christi",
         "TWC Name": "Southern Careers Institute - Corpus Christi Inc. (TWC#S0640)",
         "SCI Fax": "361-214-1727",
         "SCI Address": "2422 Airline Rd.",
@@ -1661,7 +1670,7 @@ module.exports=[
     },
 
     {
-        "SCI Name": "San Antonio North",
+        "CampusName": "San Antonio North",
         "TWC Name": "Southern Careers Institute (TWC#S4333)",
         "SCI Fax": "210-802-2226",
         "SCI Address": "6963 NW Loop 410",
@@ -1670,7 +1679,7 @@ module.exports=[
     },
 
     {
-        "SCI Name": "San Antonio South",
+        "CampusName": "San Antonio South",
         "TWC Name": "Southern Careers Institute #1 Inc. (TWC#S0708)",
         "SCI Fax": "210-802-2230",
         "SCI Address": "238 SW Military Dr. Ste 101",
@@ -1679,7 +1688,7 @@ module.exports=[
     },
 
     {
-        "SCI Name": "Harlingen",
+        "CampusName": "Harlingen",
         "TWC Name": "Southern Careers Institute Inc. - Harlingen (TWC#S3379)",
         "SCI Fax": "956-215-7113",
         "SCI Address": "1122 Morgan Blvd.",
@@ -1688,7 +1697,7 @@ module.exports=[
     },
 
     {
-        "SCI Name": "Pharr",
+        "CampusName": "Pharr",
         "TWC Name": "Southern Careers Institute - South Texas Inc. (TWC#S0630)",
         "SCI Fax": "956-215-7108",
         "SCI Address": "1500 N. Jackson Rd.",
@@ -1737,9 +1746,9 @@ module.exports = {
             this.cursors.sources.set("campus", campus);
         };
 
-        if (queryCampus && campus && queryCampus != campus["SCI Name"]) {
+        if (queryCampus && campus && queryCampus != campus["CampusName"]) {
             _.each(campuses, function(c, i) {
-                if (c["SCI Name"] === queryCampus) {
+                if (c["CampusName"] === queryCampus) {
                     return this.cursors.extensions.set("campusIndex", i);
                 };
             }.bind(this));
@@ -1753,7 +1762,7 @@ module.exports = {
 var CampusBlock = React.createClass({displayName: "CampusBlock",
 
     renderCampusOption: function(campus, i) {
-        return React.createElement("option", {key: i, value: i}, campus["SCI Name"])
+        return React.createElement("option", {key: i, value: i}, campus["CampusName"])
     },
 
     render: function() {
@@ -3496,7 +3505,7 @@ var ProgramsController = require('./../../controllers/programs_controller.js');
 
 var setProgramsController = function() {
     var campus = this.state.sources.campus,
-        campusName = campus && campus["SCI Name"],
+        campusName = campus && campus["CampusName"],
         loaderFn = this.setLoading;
 
     this.programsController= new ProgramsController(campusName, loaderFn);
@@ -3562,7 +3571,7 @@ var ProgramMixin = {
                 }
             ),
             campus = state.sources.campus,
-            campusName = campus && campus["SCI Name"],
+            campusName = campus && campus["CampusName"],
             campusData = programData && programData.campusData;
 
         if (campusName && campusData) {
@@ -3601,7 +3610,7 @@ var TermsController = require('./../../controllers/terms_controller.js');
 
 var setController = function() {
     var campus = this.state.sources.campus,
-        campusName = campus && campus["SCI Name"],
+        campusName = campus && campus["CampusName"],
         loaderFn = this.setLoading;
 
     this.termsController = new TermsController(campusName, loaderFn);
@@ -3612,9 +3621,11 @@ var TermMixin = {
     _fetchTermsAndSetState: function(programIndex) {
         var program = this.state.sources.program,
             programNo = program["ProgramNo"],
-            controller = setController.call(this);
+            controller = setController.call(this),
+            terms = this.state.extensions.programTerms;
 
-        controller.getTerms(programNo, function(err, terms) {
+
+        var handleTerms = function(err, terms) {
             if (err) {
                 return this.setState({
                     docError: err
@@ -3675,24 +3686,28 @@ var TermMixin = {
                 }
             });
 
-        }.bind(this));
+        };
+
+        controller.getTerms(handleTerms.bind(this));
     },
 
-    calculateGradDate: function(programTermIndex) {
+    calculateGradDate: function(termIndex) {
         var programData = this.state.sources.program,
-            hasNoIndex = programTermIndex != 0 && !programTermIndex;
+            hasNoIndex = termIndex != 0 && !termIndex,
+            terms = this.state.extensions.programTerms,
+            term = terms && terms[termIndex],
+            termLength = term && term["TermLength"]
 
-        if ( hasNoIndex || !programData) return false;
+        if ( hasNoIndex || !programData || !termLength) return false;
 
         var numWeeks = programData["WeeksRequired"],
-            termLength = 6,
             numTerms = Math.floor(numWeeks/termLength),
-            gradTermIndex = Number(programTermIndex) + Number(numTerms),
-            gradTerm = this.state.extensions.programTerms[gradTermIndex];
+            gradTermIndex = Number(termIndex) + Number(numTerms),
+            gradTerm = terms[gradTermIndex];
 
         if (!gradTermIndex) return false;
 
-        var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found in Diamond";
+        var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found";
 
         return {
             "EstimatedGradDate": gradDate
@@ -3751,22 +3766,22 @@ module.exports={
         "templates": {
             "Primary Agreement (With Parent/Guardian)": {
                 "headers": {
-                    "Weeks": "Program Length",
+                    "WeeksRequired": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
                     "FName": "Enrollment Information",
-                    "ProgramName": "Program Information"
+                    "ProgramDescription": "Program Information"
                 }
             },
             "Primary Agreement": {
                 "headers": {
-                    "Weeks": "Program Length",
+                    "WeeksRequired": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
                     "FName": "Enrollment Information",
-                    "ProgramName": "Program Information"
+                    "ProgramDescription": "Program Information"
                 }
             },
             "Criminal Background Check Authorization  (With Parent/Guardian)": {
@@ -3932,9 +3947,9 @@ module.exports={
             "Phone": "tel",
             "PhoneMobile": "tel",
             "PhoneOther": "tel",
-            "Weeks": "number",
-            "Months": "number",
-            "ClockHours": "number",
+            "WeeksRequired": "number",
+            "MonthsRequired": "number",
+            "HoursRequired": "number",
             "Date of Birth": "date",
             "SSN": "password",
             "Evening": "checkbox",
@@ -3948,8 +3963,6 @@ module.exports={
             "PhoneOther",
             "PhoneMobile",
             "MName",
-            "OtherFees",
-            "Credits",
             "*Probation",
             "*Offense",
             "*Punishment",
@@ -3976,18 +3989,19 @@ module.exports={
         ],
 
         "disabledFields": [
-            "ProgramName",
+            "ProgramDescription",
             "TermBeginDate",
-            "GradDate",
-            "Credits",
-            "Weeks",
-            "Months",
+            "EstimatedGradDate",
+            "Units",
+            "HoursRequired",
+            "WeeksRequired",
+            "MonthsRequired",
             "Total",
             "OtherFees",
             "RegFee",
             "Textbook",
             "Terms",
-            "ClockHours",
+            "HoursRequired",
             "Tuition",
             "ReportYear",
             "NumberGradsPlaced",
@@ -4187,7 +4201,7 @@ var HelpersMixin = {
 
     currentCampusName: function(props) {
         var campus = this.state.sources.campus,
-            name = campus && campus["SCI Name"],
+            name = campus && campus["CampusName"],
             queryCampus = props && props.query.campus;
 
         return name || queryCampus;
@@ -4242,8 +4256,6 @@ TemplateMixin = {
 
         var fieldNames = config.customFieldGroups[field.name].fieldNames;
 
-        console.log("here is the field", field)
-
         if (field.value) {
             display = "block";
         } else {
@@ -4257,7 +4269,6 @@ TemplateMixin = {
                 fieldNameMatches =  _.filter(_.keys(customFields), function(name) {
                     return name.match(fieldName.substring(1));
                 });
-                console.log("heres the field match", fieldNameMatches)
             } else {
                 fieldNameMatches = [fieldName];
             };
@@ -4362,6 +4373,25 @@ TemplateMixin = {
 
     componentDidMount: function() {
         this.fetchTemplatesAndSetState();
+        window.addEventListener('scroll', this.handleScroll);
+    },
+
+    componentWillUnmount: function() {
+        window.removeEventListener('scroll', this.handleScroll);
+    },
+
+    handleScroll: function(e) {
+        var headerHeight = document.getElementById("docFormHeaderDiv").scrollHeight;
+
+        if (document.body.scrollTop >= headerHeight && !this.state.docFormHeaderFixed) {
+            this.setState({
+                docFormHeaderFixed: true
+            });
+        } else if (document.body.scrollTop < headerHeight && this.state.docFormHeaderFixed){ 
+            this.setState({
+                docFormHeaderFixed: false
+            });
+        };
     },
 
     setStateFromTemplate: function(prevTemplate, template, callback) {

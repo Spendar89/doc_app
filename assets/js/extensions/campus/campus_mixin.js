@@ -37,9 +37,9 @@ module.exports = {
             this.cursors.sources.set("campus", campus);
         };
 
-        if (queryCampus && campus && queryCampus != campus["SCI Name"]) {
+        if (queryCampus && campus && queryCampus != campus["CampusName"]) {
             _.each(campuses, function(c, i) {
-                if (c["SCI Name"] === queryCampus) {
+                if (c["CampusName"] === queryCampus) {
                     return this.cursors.extensions.set("campusIndex", i);
                 };
             }.bind(this));

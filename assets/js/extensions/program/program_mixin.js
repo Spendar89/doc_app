@@ -3,7 +3,7 @@ var ProgramsController = require('./../../controllers/programs_controller.js');
 
 var setProgramsController = function() {
     var campus = this.state.sources.campus,
-        campusName = campus && campus["SCI Name"],
+        campusName = campus && campus["CampusName"],
         loaderFn = this.setLoading;
 
     this.programsController= new ProgramsController(campusName, loaderFn);
@@ -69,7 +69,7 @@ var ProgramMixin = {
                 }
             ),
             campus = state.sources.campus,
-            campusName = campus && campus["SCI Name"],
+            campusName = campus && campus["CampusName"],
             campusData = programData && programData.campusData;
 
         if (campusName && campusData) {

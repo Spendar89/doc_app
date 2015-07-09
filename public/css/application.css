@@ -261,8 +261,13 @@ td {
     min-height: 650px;
     background: white;
     box-shadow: rgba(0, 0, 0, 0.2) 0 2px 6px 0;
-    border-radius: 0px; }
+    border-radius: 0px;
+    overflow-x: hidden;
+    z-index: 1; }
     .doc-form-div .doc-form-inner-div .doc-form-header-div {
+      z-index: 1;
+      top: 0;
+      background: white;
       color: rgba(0, 0, 0, 0.54);
       padding: 15px;
       border-bottom: 1px solid #edecec;

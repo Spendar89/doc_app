@@ -92,35 +92,26 @@ class Diamond
     programs = get_programs
     programs.map {|p|
       p["Tuition"] = p["ProgramFeeAmount"].to_i
+      p["OtherFees"] = 0
+      p["RegFees"] = 0
+      p["ReportYear"] = "2013-2014"
       p
     }
   end
 
   def get_program_terms(program_no, refresh=false)
-    query "SELECT DISTINCT ProgramCourse.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-           FROM [#{@db_name}].dbo.ProgramCourse
-           INNER JOIN [#{@db_name}].dbo.CourseOffering 
-           ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
-           INNER JOIN [#{@db_name}].dbo.Term 
-           ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
-           WHERE TermEndDate >= '#{Date.today.to_s}' 
-           AND ProgramNo = '#{program_no}'"
+    #query "SELECT DISTINCT ProgramCourse.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+           #FROM [#{@db_name}].dbo.ProgramCourse
+           #INNER JOIN [#{@db_name}].dbo.CourseOffering 
+           #ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
+           #INNER JOIN [#{@db_name}].dbo.Term 
+           #ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
+           #WHERE TermEndDate >= '#{Date.today.to_s}' 
+           #AND ProgramNo = '#{program_no}'"
       #end_date = Date.new(2016,1,1).to_s
-      #query "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-           #FROM #{tables[:term]}
-           #WHERE TermEndDate >= '#{end_date}'"
-
+      end_date = Date.today.to_s
+      query "SELECT DISTINCT Term.TermID, Term.TermBeginDate, Term.TermEndDate 
+           FROM #{tables[:term]}
+           WHERE TermBeginDate >= '#{end_date}'"
   end
 end
-
-#Old Program Terms:
-#"SELECT DISTINCT Program.ProgramNo, Term.TermID, Term.TermBeginDate, Term.TermEndDate 
-#FROM [#{@db_name}].dbo.Program 
-#INNER JOIN [#{@db_name}].dbo.ProgramCourse
-#ON [#{@db_name}].dbo.Program.ProgramNo = [#{@db_name}].dbo.ProgramCourse.ProgramNo 
-#INNER JOIN [#{@db_name}].dbo.CourseOffering 
-#ON [#{@db_name}].dbo.ProgramCourse.CourseNo = [#{@db_name}].dbo.CourseOffering.CourseNo 
-#INNER JOIN [#{@db_name}].dbo.Term 
-#ON [#{@db_name}].dbo.CourseOffering.TermID = Term.TermID 
-#WHERE TermEndDate >= '#{Date.today.to_s}' 
-#AND ProgramDescription = '#{program_description}'"

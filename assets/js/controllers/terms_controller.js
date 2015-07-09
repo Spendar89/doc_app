@@ -13,11 +13,13 @@ var TermsController = function(campus, loaderFn) {
 };
 
 TermsController.prototype = {
-    getTerms: function(programNo, callback) {
+    getTerms: function(callback) {
         var path = '/terms',
             url = buildUrl(path);
 
         this.loaderFn("terms", "Loading Terms");
+
+        var programNo = null;
 
         request
             .get(url)

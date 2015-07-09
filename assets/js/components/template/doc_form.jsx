@@ -246,9 +246,15 @@ var DocForm = React.createClass({
             )
         }.bind(this)
 
+        var headerStyle = function() {
+            return this.props.docFormHeaderFixed 
+                ? {position: 'fixed', width: '50%', left: '25%'}
+                : {position: 'relative', width: '100%', left: '0'}
+        }
+
         return (
             <div className="doc-form-inner-div col-sm-12">
-                <div className="col-sm-12 doc-form-header-div">
+                <div id="docFormHeaderDiv" style={headerStyle.call(this)} className="col-sm-12 doc-form-header-div">
                     {this.props.validationErrors[0]
                         ? (
                             <div>

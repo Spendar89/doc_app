@@ -7,22 +7,22 @@
         "templates": {
             "Primary Agreement (With Parent/Guardian)": {
                 "headers": {
-                    "Weeks": "Program Length",
+                    "WeeksRequired": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
                     "FName": "Enrollment Information",
-                    "ProgramName": "Program Information"
+                    "ProgramDescription": "Program Information"
                 }
             },
             "Primary Agreement": {
                 "headers": {
-                    "Weeks": "Program Length",
+                    "WeeksRequired": "Program Length",
                     "RegFee": "Program Fees",
                     "Cash": "Method of Payment",
                     "Morning": "Session",
                     "FName": "Enrollment Information",
-                    "ProgramName": "Program Information"
+                    "ProgramDescription": "Program Information"
                 }
             },
             "Criminal Background Check Authorization  (With Parent/Guardian)": {
@@ -188,9 +188,9 @@
             "Phone": "tel",
             "PhoneMobile": "tel",
             "PhoneOther": "tel",
-            "Weeks": "number",
-            "Months": "number",
-            "ClockHours": "number",
+            "WeeksRequired": "number",
+            "MonthsRequired": "number",
+            "HoursRequired": "number",
             "Date of Birth": "date",
             "SSN": "password",
             "Evening": "checkbox",
@@ -204,8 +204,6 @@
             "PhoneOther",
             "PhoneMobile",
             "MName",
-            "OtherFees",
-            "Credits",
             "*Probation",
             "*Offense",
             "*Punishment",
@@ -232,18 +230,19 @@
         ],
 
         "disabledFields": [
-            "ProgramName",
+            "ProgramDescription",
             "TermBeginDate",
-            "GradDate",
-            "Credits",
-            "Weeks",
-            "Months",
+            "EstimatedGradDate",
+            "Units",
+            "HoursRequired",
+            "WeeksRequired",
+            "MonthsRequired",
             "Total",
             "OtherFees",
             "RegFee",
             "Textbook",
             "Terms",
-            "ClockHours",
+            "HoursRequired",
             "Tuition",
             "ReportYear",
             "NumberGradsPlaced",

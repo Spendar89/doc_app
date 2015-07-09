@@ -2,7 +2,7 @@ var TermsController = require('./../../controllers/terms_controller.js');
 
 var setController = function() {
     var campus = this.state.sources.campus,
-        campusName = campus && campus["SCI Name"],
+        campusName = campus && campus["CampusName"],
         loaderFn = this.setLoading;
 
     this.termsController = new TermsController(campusName, loaderFn);
@@ -13,9 +13,11 @@ var TermMixin = {
     _fetchTermsAndSetState: function(programIndex) {
         var program = this.state.sources.program,
             programNo = program["ProgramNo"],
-            controller = setController.call(this);
+            controller = setController.call(this),
+            terms = this.state.extensions.programTerms;
 
-        controller.getTerms(programNo, function(err, terms) {
+
+        var handleTerms = function(err, terms) {
             if (err) {
                 return this.setState({
                     docError: err
@@ -76,24 +78,28 @@ var TermMixin = {
                 }
             });
 
-        }.bind(this));
+        };
+
+        controller.getTerms(handleTerms.bind(this));
     },
 
-    calculateGradDate: function(programTermIndex) {
+    calculateGradDate: function(termIndex) {
         var programData = this.state.sources.program,
-            hasNoIndex = programTermIndex != 0 && !programTermIndex;
+            hasNoIndex = termIndex != 0 && !termIndex,
+            terms = this.state.extensions.programTerms,
+            term = terms && terms[termIndex],
+            termLength = term && term["TermLength"]
 
-        if ( hasNoIndex || !programData) return false;
+        if ( hasNoIndex || !programData || !termLength) return false;
 
         var numWeeks = programData["WeeksRequired"],
-            termLength = 6,
             numTerms = Math.floor(numWeeks/termLength),
-            gradTermIndex = Number(programTermIndex) + Number(numTerms),
-            gradTerm = this.state.extensions.programTerms[gradTermIndex];
+            gradTermIndex = Number(termIndex) + Number(numTerms),
+            gradTerm = terms[gradTermIndex];
 
         if (!gradTermIndex) return false;
 
-        var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found in Diamond";
+        var gradDate = gradTerm ? gradTerm["TermEndDate"] : "Date Not Found";
 
         return {
             "EstimatedGradDate": gradDate

@@ -41,8 +41,6 @@ TemplateMixin = {
 
         var fieldNames = config.customFieldGroups[field.name].fieldNames;
 
-        console.log("here is the field", field)
-
         if (field.value) {
             display = "block";
         } else {
@@ -56,7 +54,6 @@ TemplateMixin = {
                 fieldNameMatches =  _.filter(_.keys(customFields), function(name) {
                     return name.match(fieldName.substring(1));
                 });
-                console.log("heres the field match", fieldNameMatches)
             } else {
                 fieldNameMatches = [fieldName];
             };
@@ -161,6 +158,25 @@ TemplateMixin = {
 
     componentDidMount: function() {
         this.fetchTemplatesAndSetState();
+        window.addEventListener('scroll', this.handleScroll);
+    },
+
+    componentWillUnmount: function() {
+        window.removeEventListener('scroll', this.handleScroll);
+    },
+
+    handleScroll: function(e) {
+        var headerHeight = document.getElementById("docFormHeaderDiv").scrollHeight;
+
+        if (document.body.scrollTop >= headerHeight && !this.state.docFormHeaderFixed) {
+            this.setState({
+                docFormHeaderFixed: true
+            });
+        } else if (document.body.scrollTop < headerHeight && this.state.docFormHeaderFixed){ 
+            this.setState({
+                docFormHeaderFixed: false
+            });
+        };
     },
 
     setStateFromTemplate: function(prevTemplate, template, callback) {

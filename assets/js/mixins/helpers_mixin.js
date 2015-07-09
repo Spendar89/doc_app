@@ -57,7 +57,7 @@ var HelpersMixin = {
 
     currentCampusName: function(props) {
         var campus = this.state.sources.campus,
-            name = campus && campus["SCI Name"],
+            name = campus && campus["CampusName"],
             queryCampus = props && props.query.campus;
 
         return name || queryCampus;
