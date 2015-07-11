@@ -41,6 +41,6 @@
     "buildJs": "source ~/.zshrc && browserify -t reactify -t envify assets/js/app.js -o public/js/bundle.js",
     "buildSass": "sass assets/scss/application.scss:public/css/application.css",
     "build": "npm run buildJs && npm run buildSass",
-    "docker": "export NODE_ENV=docker && boot2docker start && npm run build && docker build -t spendar89/docapp . && docker push spendar89/docapp"
+    "docker": "export NODE_ENV=docker && boot2docker start && npm run build && docker build --no-cache -t spendar89/docapp . && docker push spendar89/docapp"
   }
 }

@@ -25,18 +25,18 @@ var TermMixin = {
             };
 
             var parseTerm = function(term) {
-                var beginDate = Moment(term["TermBeginDate"]),
-                    endDate = Moment(term["TermEndDate"]);
+                var bd = term["TermBeginDate"],
+                    ed = term["TermEndDate"],
+                    beginDate = Moment(bd.split("T")[0]),
+                    endDate = Moment(ed.split("T")[0]),
+                    termLength = endDate.weeks() - beginDate.weeks();
 
-                var termLength = endDate
-                                .add(1, "days")
-                                .diff(beginDate, 'weeks');
+                return _.extend(term, {
+                    "TermLength": termLength,
+                    "TermBeginDate": beginDate.format("MM/DD/YY"),
+                    "TermEndDate": endDate.format("MM/DD/YY")
+                });
 
-                term["TermLength"] = termLength;
-                term["TermBeginDate"] = beginDate.format("MM/DD/YY");
-                term["TermEndDate"] = endDate.format("MM/DD/YY");
-
-                return term;
             };
 
             var filterTerm = function(term) {
@@ -53,7 +53,7 @@ var TermMixin = {
                     return false;
                 };
 
-                return l === 3 || l === 2;
+                return l === 3;
             };
 
             var sortTerm = function(t) {
