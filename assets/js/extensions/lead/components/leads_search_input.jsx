@@ -48,7 +48,7 @@ var LeadsSearchInput = React.createClass({
                     placeholder="Search by Email or Phone Number"/>;
 
         var leadDiv = 
-            <h4 style={{"margin-top": 0, color: "rgb(68, 168, 68)", "font-weight": "normal"}}>
+            <h4 style={{marginTop: 0, color: "rgb(68, 168, 68)", fontWeight: "normal"}}>
                 Selected: {fullName}
             </h4>
 

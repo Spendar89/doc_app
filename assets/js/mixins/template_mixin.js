@@ -166,7 +166,11 @@ TemplateMixin = {
     },
 
     handleScroll: function(e) {
-        var headerHeight = document.getElementById("docFormHeaderDiv").scrollHeight;
+        var headerDiv = document.getElementById("docFormHeaderDiv");
+
+        if (!headerDiv) return false;
+
+        var headerHeight = headerDiv.scrollHeight; 
 
         if (document.body.scrollTop >= headerHeight && !this.state.docFormHeaderFixed) {
             this.setState({

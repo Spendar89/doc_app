@@ -260,9 +260,11 @@ var DocForm = React.createClass({
                             <div>
                                 <div className="doc-form-header col-sm-6">
                                     <h3 className="validation-error-header">Validation Errors:</h3>
-                                    {_.map(this.props.validationErrors, function(e) {
-                                        return <p className="validation-error">- {e}</p>
-                                        })}
+                                    {
+                                        _.map(this.props.validationErrors, function(e, i) {
+                                            return <p className="validation-error" key={i}>- {e}</p>
+                                        })
+                                    }
                                 </div>
                                     <h3 className="col-sm-6">
                                         {this.renderSubmit()}

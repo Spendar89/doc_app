@@ -350,9 +350,11 @@ var DocForm = React.createClass({displayName: "DocForm",
                             React.createElement("div", null, 
                                 React.createElement("div", {className: "doc-form-header col-sm-6"}, 
                                     React.createElement("h3", {className: "validation-error-header"}, "Validation Errors:"), 
-                                    _.map(this.props.validationErrors, function(e) {
-                                        return React.createElement("p", {className: "validation-error"}, "- ", e)
+                                    
+                                        _.map(this.props.validationErrors, function(e, i) {
+                                            return React.createElement("p", {className: "validation-error", key: i}, "- ", e)
                                         })
+                                    
                                 ), 
                                     React.createElement("h3", {className: "col-sm-6"}, 
                                         this.renderSubmit()
@@ -752,7 +754,10 @@ var TemplateLayout = React.createClass({displayName: "TemplateLayout",
     handleDoc: function(err, doc) {
         this.setLoading("doc", false)
 
-        this.changePage("newDoc");
+        // No longer needed bc saved docs page only previews
+        //if (this.props.query.page === "savedDocs") {
+            //return this.changePage("newDoc");
+        //}
 
         if (err) {
             this.handleFormError(err);
@@ -2044,7 +2049,7 @@ var LeadsSearchInput = React.createClass({displayName: "LeadsSearchInput",
                     placeholder: "Search by Email or Phone Number"});
 
         var leadDiv = 
-            React.createElement("h4", {style: {"margin-top": 0, color: "rgb(68, 168, 68)", "font-weight": "normal"}}, 
+            React.createElement("h4", {style: {marginTop: 0, color: "rgb(68, 168, 68)", fontWeight: "normal"}}, 
                 "Selected: ", fullName
             )
 
@@ -4406,7 +4411,11 @@ TemplateMixin = {
     },
 
     handleScroll: function(e) {
-        var headerHeight = document.getElementById("docFormHeaderDiv").scrollHeight;
+        var headerDiv = document.getElementById("docFormHeaderDiv");
+
+        if (!headerDiv) return false;
+
+        var headerHeight = headerDiv.scrollHeight; 
 
         if (document.body.scrollTop >= headerHeight && !this.state.docFormHeaderFixed) {
             this.setState({

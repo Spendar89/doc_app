@@ -214,7 +214,10 @@ var TemplateLayout = React.createClass({
     handleDoc: function(err, doc) {
         this.setLoading("doc", false)
 
-        this.changePage("newDoc");
+        // No longer needed bc saved docs page only previews
+        //if (this.props.query.page === "savedDocs") {
+            //return this.changePage("newDoc");
+        //}
 
         if (err) {
             this.handleFormError(err);
