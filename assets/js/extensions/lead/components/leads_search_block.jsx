@@ -7,6 +7,7 @@ var LeadsSearchBlock = React.createClass({
         return (
             <div className="leads-search-block col-sm-12">
                 <LeadsSearchInput input={this.props.leadsSearchInput} 
+                                  lead={this.props.lead}
                                   handleInput={this.props.onLeadsSearchInput} 
                                   handleSubmit={this.props.onLeadsSearch}/>
             </div>

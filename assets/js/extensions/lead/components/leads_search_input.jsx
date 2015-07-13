@@ -28,23 +28,43 @@ var LeadsSearchInput = React.createClass({
 
     handleClick: function (e) {
         e.preventDefault();
-        this.props.handleSubmit(this.props.input, this.state.isEmail);
+
+        if (this.props.lead) {
+            window.location.href = "/";
+        } else {
+            this.props.handleSubmit(this.props.input, this.state.isEmail);
+        }
     },
 
     render: function() {
+        var lead = this.props.lead;
+        var fullName = lead && lead["FName"] + " " + lead["LName"];
+
+        var input = 
+            <input  onChange={this.handleChange}  
+                    type="text" 
+                    value={this.props.input}
+                    className="form-control" 
+                    placeholder="Search by Email or Phone Number"/>;
+
+        var leadDiv = 
+            <h4 style={{"margin-top": 0, color: "rgb(68, 168, 68)", "font-weight": "normal"}}>
+                Selected: {fullName}
+            </h4>
+
+        var btnClearClass = "glyphicon glyphicon-remove";
+        var btnSearchClass = "glyphicon glyphicon-search";
+        var btnColorClass = this.props.lead ? "btn-danger" : "btn-default";
+
         return (
             <form className="leads-default-search row" role="search">
                 <div className="form-group col-sm-9 row">
-                    <input  onChange={this.handleChange}  
-                            type="text" 
-                            value={this.props.input}
-                            className="form-control" 
-                            placeholder="Search by Email or Phone Number"/>
+                    {this.props.lead ? leadDiv : input}
                 </div>
-                <button className="btn btn-default col-sm-3 pull-right"
-                        disabled={!this.state.isValid}
+                <button className={"btn col-sm-3 pull-right " + btnColorClass}
+                        disabled={!this.props.lead && !this.state.isValid}
                         onClick={this.handleClick} >
-                    <span className="glyphicon glyphicon-search"></span>
+                    <span className={this.props.lead ? btnClearClass : btnSearchClass}></span>
                 </button>
             </form>
         );

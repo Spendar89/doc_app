@@ -73,6 +73,9 @@ var ProgramMixin = {
             campusData = programData && programData.campusData;
 
         if (campusName && campusData) {
+            var months = program["MonthsRequired"];
+            program["MonthsRequired"] = Math.ceil(months)
+
             campusData = campusData[campusName];
             program = _.merge(program, campusData);
         };

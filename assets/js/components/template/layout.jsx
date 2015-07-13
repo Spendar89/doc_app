@@ -396,6 +396,7 @@ var TemplateLayout = React.createClass({
                     <div className="lead-block">
                         <LeadsSearchBlock   leads={this.state.leads} 
                                             vId={this.props.query.vId}
+                                            lead={this.state.sources.lead}
                                             leadsSearchInput={this.state.leadsSearchInput}
                                             onLeadsSearchInput={this.handleLeadsSearchInput}
                                             onLeadsResult={this.handleLeadsResult} 
