@@ -6,6 +6,8 @@ var DocInput = React.createClass({
             field.value = field.value === true
                 ? false
                 : true;
+        } else if (field.type === "date") {
+            field.value = Moment(e);
         } else {
             field.value = e.target.value;
         };
@@ -79,13 +81,32 @@ var DocInput = React.createClass({
                                 className="doc-block-input form-control" />
                 </div>
             )
+        } else if (this.props.field.type === "date") {
+            var format = this.props.field.name === "Date"
+                ?  "DD-MM-YYYY"
+                : "MM-DD-YYYY";
+
+            return (
+                <div className="date-picker">
+                    {this.renderLabel()}
+                    <DatePicker 
+                        className="form-control"
+                        dateFormat={format}
+                        placeholderText={format}
+                        selected={this.props.field.value} 
+                        onChange={this.handleChange} />
+                </div>
+            )
+
         } else {
+            var val = this.props.field.value;
+            val = val === 0  || val === "0" ? "N/A" : val;
             return (
                 <div className="default-input">
                     {this.renderLabel()}
                     <input  disabled={this.props.field.disabled}
                             onChange={this.handleChange} 
-                            value={this.props.field.value} 
+                            value={val} 
                             className="doc-block-input form-control" 
                             type={this.props.field.type || "text"} />
                 </div>

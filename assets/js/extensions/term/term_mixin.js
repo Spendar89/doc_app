@@ -33,8 +33,8 @@ var TermMixin = {
 
                 return _.extend(term, {
                     "TermLength": termLength,
-                    "TermBeginDate": beginDate.format("MM/DD/YY"),
-                    "TermEndDate": endDate.format("MM/DD/YY")
+                    "TermBeginDate": beginDate.format("MM-DD-YYYY"),
+                    "TermEndDate": endDate.format("MM-DD-YYYY")
                 });
 
             };

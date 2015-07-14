@@ -148,8 +148,10 @@ var DocForm = React.createClass({
     },
 
     formStyle: function() {
+        var show = !_.any(this.props.templateLoading) && !this.props.docError; 
         return {
-            visibility: (!_.any(this.props.templateLoading) && !this.props.docError ? "visible" : "hidden")
+            visibility: show ? "visible" : "hidden",
+            opacity: show ? 1 : 0
         };
     },
 

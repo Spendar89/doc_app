@@ -1,6 +1,75 @@
 var PROGRAM_DATA = require('./program_data.json');
 var ProgramsController = require('./../../controllers/programs_controller.js');
 
+var DEFAULT_PROGRAM_DATA = {
+    "ReportYear": "2013-2014",
+    "WeeksRequired": 0,
+    "HoursRequired": 0,
+    "Units": 0,
+    "MonthsRequired": 0,
+    "RegFee": 0,
+    "Tuition": 0,
+    "Textbook": 0,
+    "OtherFees": 0,
+    "Total": 0,
+    "campusData": {
+        "Austin": {
+            "NumberEnrolled": 0,
+            "NumberGrads": 0,
+            "CompletionRate": 0,
+            "NumberGradsEmployed": 0,
+            "EmploymentRate": 0,
+            "NumberGradsPlaced": 0,
+            "PlacementRate": 0 
+        },
+        "San Antonio South": {
+            "NumberEnrolled": 0,
+            "NumberGrads": 0,
+            "CompletionRate": 0,
+            "NumberGradsEmployed": 0,
+            "EmploymentRate": 0,
+            "NumberGradsPlaced": 0,
+            "PlacementRate": 0 
+        },
+        "Harlingen": {
+            "NumberEnrolled": 0,
+            "NumberGrads": 0,
+            "CompletionRate": 0,
+            "NumberGradsEmployed": 0,
+            "EmploymentRate": 0,
+            "NumberGradsPlaced": 0,
+            "PlacementRate": 0 
+        },
+        "Pharr": {
+            "NumberEnrolled": 0,
+            "NumberGrads": 0,
+            "CompletionRate": 0,
+            "NumberGradsEmployed": 0,
+            "EmploymentRate": 0,
+            "NumberGradsPlaced": 0,
+            "PlacementRate": 0 
+        },
+        "Corpus Christi": {
+            "NumberEnrolled": 0,
+            "NumberGrads": 0,
+            "CompletionRate": 0,
+            "NumberGradsEmployed": 0,
+            "EmploymentRate": 0,
+            "NumberGradsPlaced": 0,
+            "PlacementRate": 0 
+        },
+        "Brownsville": {
+            "NumberEnrolled": 0,
+            "NumberGrads": 0,
+            "CompletionRate": 0,
+            "NumberGradsEmployed": 0,
+            "EmploymentRate": 0,
+            "NumberGradsPlaced": 0,
+            "PlacementRate": 0 
+        }
+    }
+}
+
 var setProgramsController = function() {
     var campus = this.state.sources.campus,
         campusName = campus && campus["CampusName"],
@@ -67,7 +136,7 @@ var ProgramMixin = {
                 function(p) { 
                     return p["ProgramDescription"] === program["ProgramDescription"] 
                 }
-            ),
+            ) || program && DEFAULT_PROGRAM_DATA,
             campus = state.sources.campus,
             campusName = campus && campus["CampusName"],
             campusData = programData && programData.campusData;
@@ -76,7 +145,7 @@ var ProgramMixin = {
             var months = program["MonthsRequired"];
             program["MonthsRequired"] = Math.ceil(months)
 
-            campusData = campusData[campusName];
+            campusData = campusData[campusName]; 
             program = _.merge(program, campusData);
         };
 
