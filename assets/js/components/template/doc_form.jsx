@@ -30,6 +30,7 @@ var DocForm = React.createClass({
                     <div key={fieldName}>
                         {this.renderDocInputHeader(field)}
                         <DocInput field={field} 
+                                  isValidField={this.isValidField}
                                   onCustomFieldUpdate={this.props.onCustomFieldUpdate} 
                                   fieldName={fieldName} />
                     </div>
@@ -46,10 +47,17 @@ var DocForm = React.createClass({
 
     transformCustomFields: function () {
         return _.transform(this.props.template.customFields, function(result, field, name) {
-            // if field.value is undefined its because its a checkbox
+            // if val is undefined its because its a checkbox
             // or else it would not have passed validation...
-            result[name] = field.value || "";
+            var val = field.value;
+            if (val === 0 || val === "0") val = "N/A";
+            result[name] = val || ""; 
         });
+    },
+
+    isValidField: function(field) {
+        var val = field.value;
+        return _.isNumber(val) || !!val || field.type === "checkbox" || field.optional;
     },
 
     validateDoc: function(callback) {
@@ -57,10 +65,7 @@ var DocForm = React.createClass({
 
         var validRecipients = this.props.isRecipientsValid();  
 
-        var validFields = _.every(this.props.template.customFields, function(field, fieldName) {
-            if (field.optional) return true;
-            return field.value !== undefined || field.type === "checkbox";
-        });
+        var validFields = _.every(this.props.template.customFields, this.isValidField);
 
         if (!validRecipients) {
             errs.push("Recipient fields must contain valid name and email address")

@@ -3,11 +3,9 @@ var DocInput = React.createClass({
     handleChange: function (e) {
         var field = _.extend(this.props.field, {});
         if (field.type === "checkbox") {
-            field.value = field.value === true
-                ? false
-                : true;
+            field.value = !field.value;
         } else if (field.type === "date") {
-            field.value = Moment(e);
+            field.value = Moment(e).format("MM-DD-YYYY");
         } else {
             field.value = e.target.value;
         };
@@ -82,9 +80,9 @@ var DocInput = React.createClass({
                 </div>
             )
         } else if (this.props.field.type === "date") {
-            var format = this.props.field.name === "Date"
-                ?  "DD-MM-YYYY"
-                : "MM-DD-YYYY";
+            var format = "MM-DD-YYYY";
+            var val = this.props.field.value;
+            var date = val && Moment(val, "MM-DD-YYYY");
 
             return (
                 <div className="date-picker">
@@ -93,7 +91,7 @@ var DocInput = React.createClass({
                         className="form-control"
                         dateFormat={format}
                         placeholderText={format}
-                        selected={this.props.field.value} 
+                        selected={date} 
                         onChange={this.handleChange} />
                 </div>
             )
@@ -138,7 +136,8 @@ var DocInput = React.createClass({
     },
 
     validationClass: function() {
-        return !this.props.field.optional && this.props.field.value == undefined
+        var field = this.props.field;
+        return !this.props.isValidField(field)
             ? "invalid doc-input form-group"
             : "valid doc-input form-group";
     },
@@ -147,7 +146,6 @@ var DocInput = React.createClass({
         var gridClass = this.props.field.type === "checkbox" ? " col-sm-4 " : " col-sm-12 ",
             fieldDisplay = this.props.field.display,
             inputStyle = {display: fieldDisplay};
-
         
         return (
             <div style={inputStyle} className={this.validationClass() + gridClass + this.customMethodClass()}>
