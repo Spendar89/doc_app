@@ -46,4 +46,12 @@ class AppCache
     get "terms"
   end
 
+  def set_pdf(signature_request_id, pdf)
+    @redis.set "pdf::#{signature_request_id}", pdf
+  end
+
+  def get_pdf(signature_request_id)
+    @redis.get "pdf::#{signature_request_id}"
+  end
+
 end

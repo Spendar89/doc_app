@@ -134,9 +134,8 @@ get '/leads/:leads_id/docs/:doc_id' do
     return DocMaker.download_doc(@doc_id)
   rescue Exception => e
     content_type :json
-    diamond = Diamond.new(params[:campus])
-    diamond.destroy_document(@doc_id)
-    return "That Document Has Been Deleted"
+    res = {error: e}.to_json
+    return error 404, res 
   end
 end
 

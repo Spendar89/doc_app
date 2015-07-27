@@ -78,8 +78,13 @@ class DocMaker
   end
 
   def self.download_doc(signature_request_id)
+    ap = AppCache.new
     client = HelloSign.client
-    client.signature_request_files({ signature_request_id: signature_request_id })
+    pdf = ap.get_pdf(signature_request_id)
+    return pdf if pdf
+    pdf = client.signature_request_files({ signature_request_id: signature_request_id })
+    ap.set_pdf signature_request_id, pdf
+    pdf
   end
 
   def self.get_signature_requests(email=false)
